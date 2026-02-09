@@ -3,7 +3,6 @@ export default defineNuxtConfig({
   modules: [
     '@tresjs/nuxt',
     '@nuxt/ui-pro',
-    '@nuxt/devtools',
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
     '@nuxt/image',
@@ -13,11 +12,7 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
   ],
 
-  compatibilityDate: '2025-03-06',
-
-  experimental: {
-    appManifest: false,
-  },
+  compatibilityDate: '2025-06-09',
 
   devServer: {
     port: 10003,
