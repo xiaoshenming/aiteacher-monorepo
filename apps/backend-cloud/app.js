@@ -67,7 +67,7 @@ app.use("/api/analytics", analyticsRouter)
 // 加入课堂录制API路由
 app.use("/api/recording", recordingRouter)
 // 启动监听
-const PORT = process.env.PORT || 5555;
+const PORT = process.env.PORT || 10002;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`服务器已启动，监听端口：http://0.0.0.0:${PORT}`);
 });

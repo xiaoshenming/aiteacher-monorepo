@@ -2,7 +2,7 @@
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "defaultBase": "main",
   "defaultProject": "frontend",
-  "parallel": 4,
+  "parallel": 5,
   "targetDefaults": {
     "build": {
       "dependsOn": ["^build"],
@@ -19,11 +19,15 @@
       "parallel": true
     },
     "lint": {
+      "dependsOn": ["^build"],
       "cache": true
     },
     "test": {
       "cache": true
     }
+  },
+  "tui": {
+    "enabled": false
   },
   "plugins": [
     {
@@ -33,9 +37,19 @@
       }
     }
   ],
-  "generators": {
-    "@nx/js": {
-      "library": "packages/js"
+  "release": {
+    "projectsRelationship": "independent",
+    "releaseTagPattern": "{projectName}@{version}",
+    "groups": {
+      "backend": {
+        "projects": ["backend-main", "backend-cloud"]
+      },
+      "frontend": {
+        "projects": ["frontend"]
+      },
+      "services": {
+        "projects": ["service-asr"]
+      }
     }
   }
 }

@@ -30,7 +30,7 @@ const staticFiles = require("./model/static/staticFiles"); // 静态文件资源
 const { errorHandler } = require("./middleware/errorHandler");
 const logger = require("./utils/logger");
 const app = express(); // 创建 Express 实例
-const port = process.env.PORT || 4444; // 默认端口
+const port = process.env.PORT || 10001; // 默认端口
 app.use(express.json()); // 解析 JSON 请求体
 app.use(cors()); // 启用 CORS 中间件
 app.use(fileUploadMiddleware()); // 文件上传中间件

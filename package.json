@@ -4,7 +4,7 @@
   "private": true,
   "description": "AI Teacher - Monorepo with Nx",
   "scripts": {
-    "dev": "concurrently --names \"MAIN,CLOUD,FRONT,ASR,NX\" --prefix-colors \"bgBlue.bold,bgMagenta.bold,bgGreen.bold,bgYellow.bold,bgCyan.bold\" --prefix \"[{name}]\" --timestamp-format \"HH:mm:ss\" --prefix-length 10 \"pnpm --filter @aiteacher/backend-main run dev\" \"pnpm --filter @aiteacher/backend-cloud run dev\" \"pnpm --filter @aiteacher/frontend run dev\" \"pnpm --filter @aiteacher/service-asr run dev\" \"nx graph --port=7777\"",
+    "dev": "concurrently --names \"MAIN,CLOUD,FRONT,ASR,NX\" --prefix-colors \"bgBlue.bold,bgMagenta.bold,bgGreen.bold,bgYellow.bold,bgCyan.bold\" --prefix \"[{name}]\" --timestamp-format \"HH:mm:ss\" --prefix-length 10 \"pnpm --filter @aiteacher/backend-main run dev\" \"pnpm --filter @aiteacher/backend-cloud run dev\" \"pnpm --filter @aiteacher/frontend run dev\" \"pnpm --filter @aiteacher/service-asr run dev\" \"nx graph --port=10004\"",
     "dev:nx": "nx run-many --target=dev --parallel=4",
     "dev:native": "pnpm -r --parallel --filter './apps/**' run dev",
     "dev:backend": "concurrently --names \"MAIN,CLOUD\" --prefix-colors \"bgBlue.bold,bgMagenta.bold\" --prefix \"[{name}]\" \"pnpm --filter @aiteacher/backend-main run dev\" \"pnpm --filter @aiteacher/backend-cloud run dev\"",
@@ -13,7 +13,7 @@
     "start": "nx run-many --target=start",
     "lint": "nx run-many --target=lint",
     "test": "nx run-many --target=test",
-    "graph": "nx graph --port=7777",
+    "graph": "nx graph --port=10004",
     "stop": "pkill -f 'nodemon|nuxt dev|python funasr'"
   },
   "devDependencies": {

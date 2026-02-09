@@ -1288,7 +1288,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "funasr_service:app",
         host="0.0.0.0",
-        port=8888,
+        port=10005,
         reload=False,  # 生产环境建议关闭
         log_level="info"
     )
