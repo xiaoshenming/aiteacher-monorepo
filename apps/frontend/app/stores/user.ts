@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia'
+import type { UserRole } from '~/types/dashboard'
 
 export interface UserInfo {
   id: string | null
   name: string
   email: string
-  role: string
+  role: UserRole | ''
   avatar: string
 }
 
@@ -22,25 +23,25 @@ export const useUserStore = defineStore('user', () => {
 
   // Role helpers
   const roleLabel = computed(() => {
-    const map: Record<string, string> = {
+    const map: Record<UserRole, string> = {
       '0': '学生',
       '1': '普通用户',
       '2': '教师',
       '3': '管理员',
       '4': '超级管理员',
     }
-    return map[userInfo.value.role] || '未知'
+    return (userInfo.value.role && map[userInfo.value.role]) || '未知'
   })
 
   const roleHome = computed(() => {
-    const map: Record<string, string> = {
+    const map: Record<UserRole, string> = {
       '0': '/student',
       '1': '/home',
       '2': '/user',
       '3': '/admin',
       '4': '/superadmin',
     }
-    return map[userInfo.value.role] || '/dashboard'
+    return (userInfo.value.role && map[userInfo.value.role]) || '/dashboard'
   })
 
   function setToken(newToken: string) {

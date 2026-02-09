@@ -3,25 +3,37 @@ const userStore = useUserStore()
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900">
-    <div class="text-center space-y-4">
-      <div class="w-16 h-16 mx-auto rounded-full bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center">
-        <UIcon name="i-lucide-shield" class="text-3xl text-teal-600 dark:text-teal-400" />
+  <UDashboardPanel>
+    <template #header>
+      <UDashboardNavbar title="首页">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+      </UDashboardNavbar>
+    </template>
+
+    <template #body>
+      <div class="p-6 space-y-6">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+            <UIcon name="i-lucide-shield" class="text-2xl text-primary" />
+          </div>
+          <div>
+            <h1 class="text-xl font-semibold text-highlighted">
+              欢迎回来，{{ userStore.userInfo.name || '管理员' }}
+            </h1>
+            <p class="text-sm text-muted">
+              {{ userStore.roleLabel }} · 管理后台
+            </p>
+          </div>
+        </div>
+
+        <USeparator />
+
+        <p class="text-muted">
+          管理后台内容即将上线，敬请期待。
+        </p>
       </div>
-      <h1 class="text-2xl font-bold text-default">
-        管理后台
-      </h1>
-      <p class="text-muted">
-        欢迎，{{ userStore.userInfo.name || '管理员' }}！这里是管理员仪表盘。
-      </p>
-      <div class="pt-4">
-        <button
-          class="px-4 py-2 rounded-lg bg-teal-500 text-white hover:bg-teal-600 transition-colors cursor-pointer"
-          @click="userStore.logout(); navigateTo('/login')"
-        >
-          退出登录
-        </button>
-      </div>
-    </div>
-  </div>
+    </template>
+  </UDashboardPanel>
 </template>
