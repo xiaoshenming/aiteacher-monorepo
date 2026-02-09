@@ -1,0 +1,5 @@
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - esbuild
+  - fast-folder-size
+  - vue-demi

@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  # 主程序后端
+  backend-main:
+    build:
+      context: ./apps/backend-main
+      dockerfile: Dockerfile
+    container_name: aiteacher-backend-main
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - ./apps/backend-main/.env
+    volumes:
+      - ./apps/backend-main:/app
+      - /app/node_modules
+    networks:
+      - aiteacher-network
+    restart: unless-stopped
+
+  # 云盘后端
+  backend-cloud:
+    build:
+      context: ./apps/backend-cloud
+      dockerfile: Dockerfile
+    container_name: aiteacher-backend-cloud
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - ./apps/backend-cloud/.env
+    volumes:
+      - ./apps/backend-cloud:/app
+      - /app/node_modules
+    networks:
+      - aiteacher-network
+    restart: unless-stopped
+
+  # 语音识别服务
+  service-asr:
+    build:
+      context: ./apps/service-asr
+      dockerfile: Dockerfile
+    container_name: aiteacher-service-asr
+    ports:
+      - "8766:8766"
+    environment:
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - ./apps/service-asr/.env
+    volumes:
+      - ./apps/service-asr:/app
+    networks:
+      - aiteacher-network
+    restart: unless-stopped
+
+  # 前端
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    container_name: aiteacher-frontend
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - NUXT_PUBLIC_API_BASE_URL=http://backend-main:3000
+      - NUXT_PUBLIC_CLOUD_API_BASE_URL=http://backend-cloud:5001
+      - NUXT_PUBLIC_ASR_API_BASE_URL=http://service-asr:8766
+    volumes:
+      - ./apps/frontend:/app
+      - /app/node_modules
+      - /app/.nuxt
+    networks:
+      - aiteacher-network
+    restart: unless-stopped
+    depends_on:
+      - backend-main
+      - backend-cloud
+      - service-asr
+
+networks:
+  aiteacher-network:
+    driver: bridge

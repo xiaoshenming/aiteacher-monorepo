@@ -1,0 +1,167 @@
+{
+	"info": {
+		"_postman_id": "d12ead29-cde1-46d3-b83f-37e0d10a8790",
+		"name": "电脑接口",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40595249"
+	},
+	"item": [
+		{
+			"name": "分片上传接口",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "合并分片接口",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"fileMd5\": \"a4f0f8a8bbda6dc810ff3fad4a671f96\",\n  \"fileName\": \"海绵宝宝背景.jpg\",\n  \"fileType\": \"image/jpeg\",\n  \"fileSize\": 1746798\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5001/api/pc/chunk/merge",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5001",
+					"path": [
+						"api",
+						"pc",
+						"chunk",
+						"merge"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "文件下载接口",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:5001/api/pc/download/4",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5001",
+					"path": [
+						"api",
+						"pc",
+						"download",
+						"4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "文件删除接口",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:5001/api/pc/delete/2",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5001",
+					"path": [
+						"api",
+						"pc",
+						"delete",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "获取文件列表接口",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:5001/api/pc/list",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5001",
+					"path": [
+						"api",
+						"pc",
+						"list"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					"// 获取存储的token和设备类型",
+					"const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsInJvbGUiOiIzIiwiZGV2aWNlIjoibW9iaWxlIiwiaWF0IjoxNzQxODc5MDcwLCJleHAiOjE3NDI0ODM4NzB9.xLBTcLCtRTQJOUdTuUc4BvsEGB5b54Ua4E4Po8ca3uY'",
+					"const deviceType = 'mobile'",
+					"",
+					"// 清除旧的头信息",
+					"pm.request.headers.remove(\"Authorization\");",
+					"pm.request.headers.remove(\"devicetype\");",
+					"",
+					"// 添加新的鉴权头",
+					"if (token) {",
+					"    pm.request.headers.add({",
+					"        key: \"Authorization\",",
+					"        value: `Bearer ${token}`",
+					"    });",
+					"    ",
+					"    pm.request.headers.add({",
+					"        key: \"devicetype\",",
+					"        value: deviceType || \"pc\" // 默认pc设备",
+					"    });",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

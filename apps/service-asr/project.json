@@ -1,0 +1,23 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "service-asr",
+  "sourceRoot": "apps/service-asr",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "./venv/bin/python funasr_service.py",
+        "cwd": "apps/service-asr"
+      }
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "./venv/bin/python funasr_service.py",
+        "cwd": "apps/service-asr"
+      }
+    }
+  },
+  "tags": ["service", "asr"]
+}

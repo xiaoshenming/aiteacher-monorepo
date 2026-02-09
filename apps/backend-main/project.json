@@ -1,0 +1,23 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "backend-main",
+  "sourceRoot": "apps/backend-main",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "nodemon app.js",
+        "cwd": "apps/backend-main"
+      }
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node app.js",
+        "cwd": "apps/backend-main"
+      }
+    }
+  },
+  "tags": ["backend", "main"]
+}

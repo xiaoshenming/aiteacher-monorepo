@@ -1,0 +1,12 @@
+{
+  "name": "@aiteacher/service-asr",
+  "version": "1.0.0",
+  "description": "AI Teacher Speech Recognition Service (FunASR)",
+  "scripts": {
+    "dev": "./venv/bin/python funasr_service.py",
+    "start": "./venv/bin/python funasr_service.py",
+    "build": "echo 'No build step required'"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

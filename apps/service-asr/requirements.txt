@@ -1,0 +1,21 @@
+# FunASR微服务依赖
+# Python 3.8+
+
+# 核心依赖
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+websockets==12.0
+
+# FunASR及其依赖
+funasr==1.0.0
+modelscope==1.11.0
+soundfile==0.12.1
+numpy>=1.26.0
+
+# 可选：加速和优化
+# torch==2.1.0  # GPU支持（如需要）
+# torchaudio==2.1.0
+
+# 日志和工具
+requests==2.31.0

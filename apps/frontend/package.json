@@ -1,0 +1,43 @@
+{
+  "name": "@aiteacher/frontend",
+  "description": "AI Teacher Frontend - Nuxt + TresJS",
+  "author": "Alvaro Saburido <hola@alvarosaburido.dev> (https://github.com/alvarosabu/)",
+  "version": "1.0.0",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "vue",
+    "tresjs",
+    "webgl",
+    "vite",
+    "3d",
+    "threejs",
+    "three",
+    "threejs-vue"
+  ],
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "devDependencies": {
+    "@nuxt/devtools": "^1.0.0",
+    "@tailwindcss/vite": "^4.1.18",
+    "@tresjs/cientos": "^4.1.1",
+    "@tresjs/nuxt": "^4.0.0",
+    "@tresjs/post-processing": "^2.1.0",
+    "@types/node": "^22.15.21",
+    "@types/three": "^0.173.0",
+    "autoprefixer": "^10.4.24",
+    "nuxt": "^3.17.4",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "three": "^0.173.0"
+  },
+  "dependencies": {
+    "@nuxt/ui-pro": "^3.3.7"
+  }
+}

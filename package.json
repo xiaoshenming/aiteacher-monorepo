@@ -1,0 +1,27 @@
+{
+  "name": "aiteacher-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Teacher - Monorepo with Nx",
+  "scripts": {
+    "dev": "nx run-many --target=dev --parallel=4",
+    "dev:native": "pnpm -r --parallel --filter './apps/**' run dev",
+    "dev:backend": "nx run-many --target=dev --projects=backend-main,backend-cloud --parallel=2",
+    "dev:frontend": "nx run --project=frontend dev",
+    "build": "nx run-many --target=build",
+    "start": "nx run-many --target=start",
+    "lint": "nx run-many --target=lint",
+    "test": "nx run-many --target=test",
+    "graph": "nx graph --port=7777",
+    "stop": "pkill -f 'nodemon|nuxt dev|python funasr'"
+  },
+  "devDependencies": {
+    "@nx/js": "^22.4.4",
+    "nx": "22.4.4"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@10.20.0"
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "backend-cloud",
+  "sourceRoot": "apps/backend-cloud",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "nodemon app.js",
+        "cwd": "apps/backend-cloud"
+      }
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node app.js",
+        "cwd": "apps/backend-cloud"
+      }
+    }
+  },
+  "tags": ["backend", "cloud"]
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "defaultBase": "main",
+  "defaultProject": "frontend",
+  "parallel": 4,
+  "targetDefaults": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["{projectRoot}/dist"],
+      "cache": true
+    },
+    "dev": {
+      "dependsOn": [],
+      "cache": false,
+      "parallel": true
+    },
+    "start": {
+      "dependsOn": [],
+      "parallel": true
+    },
+    "lint": {
+      "cache": true
+    },
+    "test": {
+      "cache": true
+    }
+  },
+  "plugins": [
+    {
+      "plugin": "@nx/js",
+      "options": {
+        "analyzeSourceFiles": true
+      }
+    }
+  ],
+  "generators": {
+    "@nx/js": {
+      "library": "packages/js"
+    }
+  }
+}
