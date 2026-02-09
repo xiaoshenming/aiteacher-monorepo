@@ -6,8 +6,13 @@ export default defineAppConfig({
     },
     card: {
       slots: {
-        root: 'hover:bg-linear-[115deg,#272727 .06%,#171717]',
-        body: 'p-2 sm:p-3',
+        root: 'transition-all duration-200 ease hover:shadow-lg hover:-translate-y-0.5',
+        body: 'p-4 sm:p-6',
+      },
+    },
+    button: {
+      slots: {
+        base: 'cursor-pointer transition-all duration-200 ease',
       },
     },
   },

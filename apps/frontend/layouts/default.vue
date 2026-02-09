@@ -1,15 +1,10 @@
-<script lang="ts" setup></script>
-
 <template>
-  <div>
-    <TheHeader />
-    <NuxtLoadingIndicator />
-    <main
-      class="bg-(--ui-bg) min-h-[calc(100vh-var(--ui-header-height))]"
-    >
+  <div class="min-h-screen flex flex-col">
+    <AppHeader />
+    <NuxtLoadingIndicator color="var(--color-teal-500)" />
+    <main class="flex-1">
       <slot />
     </main>
+    <AppFooter />
   </div>
 </template>
-
-<style scoped></style>ß

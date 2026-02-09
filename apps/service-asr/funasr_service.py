@@ -16,6 +16,7 @@ from pathlib import Path
 # 必须在导入 funasr 之前设置
 os.environ['MODELSCOPE_CACHE'] = str(Path(__file__).parent / "models")
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, WebSocket, WebSocketDisconnect, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from funasr import AutoModel
@@ -45,11 +46,45 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """应用生命周期管理 - 启动加载模型，关闭时优雅退出"""
+    # === Startup ===
+    logger.info("=" * 50)
+    logger.info("🚀 FunASR多模型服务启动中...")
+    logger.info("=" * 50)
+
+    try:
+        load_nano_model()
+    except Exception as e:
+        logger.error(f"Nano模型加载失败，但服务继续: {e}")
+
+    try:
+        load_sensevoice_model()
+    except Exception as e:
+        logger.error(f"SenseVoiceSmall模型加载失败，但服务继续: {e}")
+
+    logger.info("=" * 50)
+    logger.info("✅ FunASR多模型服务已就绪！")
+    logger.info("   📌 /transcribe - 使用Nano模型高精度转写")
+    logger.info("   📌 /transcribe/sensevoice - 使用SenseVoice转写")
+    logger.info("   📌 /stream - WebSocket实时流式(Nano)")
+    logger.info("   📌 /stream/sensevoice - WebSocket实时流式(SenseVoice)")
+    logger.info("=" * 50)
+
+    yield
+
+    # === Shutdown ===
+    logger.info("🛑 FunASR服务正在关闭...")
+    logger.info("✅ FunASR服务已优雅关闭")
+
+
 # 创建FastAPI应用
 app = FastAPI(
     title="FunASR语音识别服务",
     description="多模型语音识别服务：Fun-ASR-Nano-2512(高精度) + SenseVoiceSmall(实时流式)",
-    version="2.0.0"
+    version="2.0.0",
+    lifespan=lifespan,
 )
 
 # 配置CORS - 允许Node.js后端调用
@@ -125,34 +160,6 @@ def load_sensevoice_model():
 def load_model():
     """加载FunASR模型（向后兼容）"""
     return load_nano_model()
-
-
-@app.on_event("startup")
-async def startup_event():
-    """服务启动时加载所有模型"""
-    logger.info("=" * 50)
-    logger.info("🚀 FunASR多模型服务启动中...")
-    logger.info("=" * 50)
-    
-    # 加载模型1: Nano (高精度)
-    try:
-        load_nano_model()
-    except Exception as e:
-        logger.error(f"Nano模型加载失败，但服务继续: {e}")
-    
-    # 加载模型2: SenseVoiceSmall (实时流式)
-    try:
-        load_sensevoice_model()
-    except Exception as e:
-        logger.error(f"SenseVoiceSmall模型加载失败，但服务继续: {e}")
-    
-    logger.info("=" * 50)
-    logger.info("✅ FunASR多模型服务已就绪！")
-    logger.info("   📌 /transcribe - 使用Nano模型高精度转写")
-    logger.info("   📌 /transcribe/sensevoice - 使用SenseVoice转写")
-    logger.info("   📌 /stream - WebSocket实时流式(Nano)")
-    logger.info("   📌 /stream/sensevoice - WebSocket实时流式(SenseVoice)")
-    logger.info("=" * 50)
 
 
 @app.get("/")
