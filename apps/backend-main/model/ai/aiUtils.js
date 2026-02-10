@@ -63,4 +63,45 @@ async function getAIResponse(prompt, model = "deepseek-chat") {
   }
 }
 
-module.exports = { getAIResponseStream, getAIResponse };
+/**
+ * 启用流式传输获取 AI 响应（支持自定义 system prompt 和参数）
+ * @param {Object} options 配置选项
+ * @param {string} options.prompt 用户输入的提示词
+ * @param {string} [options.systemPrompt] 系统提示词
+ * @param {Function} [options.callback] 每接收到一个 chunk 时调用的回调函数
+ * @param {string} [options.model] 使用的模型
+ * @param {number} [options.maxTokens] 最大生成 token 数
+ * @returns {Promise<string>} 最终完整的响应
+ */
+async function getAIResponseStreamCustom({ prompt, systemPrompt = "You are a helpful assistant.", callback, model = "deepseek-chat", maxTokens }) {
+  try {
+    const params = {
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt },
+      ],
+      model: model,
+      stream: true,
+    };
+    if (maxTokens) {
+      params.max_tokens = maxTokens;
+    }
+
+    const stream = await openai.chat.completions.create(params);
+
+    let fullResponse = "";
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || "";
+      fullResponse += content;
+      if (callback) {
+        callback(content);
+      }
+    }
+    return fullResponse;
+  } catch (error) {
+    console.error("Error fetching AI response stream (custom):", error);
+    throw new Error("Failed to fetch AI response stream");
+  }
+}
+
+module.exports = { getAIResponseStream, getAIResponse, getAIResponseStreamCustom };

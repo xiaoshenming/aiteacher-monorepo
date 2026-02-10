@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   modules: [
     '@tresjs/nuxt',
-    '@nuxt/ui-pro',
+    '@nuxt/ui',
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
     '@nuxt/image',
@@ -37,6 +37,11 @@ export default defineNuxtConfig({
         'tsx',
       ],
     },
+  },
+
+  routeRules: {
+    '/user/**': { ssr: false },
+    '/admin/**': { ssr: false },
   },
 
   compatibilityDate: '2025-06-09',
@@ -80,5 +85,13 @@ export default defineNuxtConfig({
   echarts: {
     charts: ['BarChart', 'LineChart', 'PieChart'],
     components: ['DatasetComponent', 'GridComponent', 'TooltipComponent', 'LegendComponent'],
+  },
+
+  vite: {
+    optimizeDeps: {
+      include: [
+        '@nuxt/ui > prosemirror-state',
+      ],
+    },
   },
 })

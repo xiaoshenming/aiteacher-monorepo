@@ -15,6 +15,11 @@ export function useColorModeTransition() {
    * Falls back to instant switch if View Transition API is not supported.
    */
   function startViewTransition(x: number, y: number) {
+    if (!import.meta.client) {
+      switchTheme()
+      return
+    }
+
     if (!document.startViewTransition) {
       switchTheme()
       return
@@ -57,6 +62,10 @@ export function useColorModeTransition() {
    * Trigger transition from viewport center (for cases without a MouseEvent, e.g. dropdown menus).
    */
   function startViewTransitionFromCenter() {
+    if (!import.meta.client) {
+      switchTheme()
+      return
+    }
     startViewTransition(window.innerWidth / 2, window.innerHeight / 2)
   }
 

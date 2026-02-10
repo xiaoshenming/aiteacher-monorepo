@@ -22,6 +22,12 @@ function getTeacherNav(closeSidebar: () => void): DashboardNavItem[][] {
       onSelect: closeSidebar,
     },
     {
+      label: '教案管理',
+      icon: 'i-lucide-notebook-pen',
+      to: '/user/lesson-plans',
+      onSelect: closeSidebar,
+    },
+    {
       label: '云盘',
       icon: 'i-lucide-cloud',
       to: '/user/clouddisk',

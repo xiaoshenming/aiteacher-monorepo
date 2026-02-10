@@ -1,7 +1,7 @@
 // routes/ai.js
 const express = require("express");
 const router = express.Router();
-const { getAIResponseStream, getAIResponse } = require("./aiUtils");
+const { getAIResponseStream, getAIResponse, getAIResponseStreamCustom } = require("./aiUtils");
 const db = require("../../config/db");
 const authorize = require("../auth/authUtils");
 const { promisify } = require('util');
@@ -286,6 +286,92 @@ ${text}
       message: "Error processing translation request",
       data: null,
     });
+  }
+});
+
+// 编辑器 AI 内联续写接口（SSE 流式）
+router.post("/editor-completion", authorize(["0", "1", "2", "3", "4"]), async (req, res) => {
+  const { prompt, model = "deepseek-chat" } = req.body;
+  const userId = req.user?.id;
+  const userType = req.user?.role || 'teacher';
+
+  if (!prompt || typeof prompt !== "string") {
+    return res.status(400).json({
+      code: 400,
+      message: "Prompt must be a non-empty string.",
+      data: null,
+    });
+  }
+
+  try {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+
+    const sendEvent = (data, event = "message") => {
+      res.write(`event: ${event}\n`);
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    };
+
+    const systemPrompt = `你是一位专业的教育工作者和写作助手。你的任务是根据用户已有的教案或文档内容，自然地续写下去。
+
+要求：
+1. 保持与前文一致的语气、风格和格式
+2. 续写内容要自然连贯，像是同一个人写的
+3. 只输出续写的内容，不要重复前文，不要添加解释
+4. 续写长度适中（1-3句话），不要过长
+5. 如果前文是 Markdown 格式，续写也使用 Markdown
+6. 内容要专业、准确，适合教育场景`;
+
+    let fullResponse = '';
+    await getAIResponseStreamCustom({
+      prompt: prompt,
+      systemPrompt: systemPrompt,
+      callback: (chunk) => {
+        fullResponse += chunk;
+        sendEvent({
+          code: 200,
+          message: "STREAMING",
+          data: {
+            chunk,
+            done: false,
+          },
+        });
+      },
+      model: model,
+      maxTokens: 256
+    });
+
+    sendEvent(
+      {
+        code: 200,
+        message: "COMPLETED",
+        data: {
+          done: true,
+        },
+      },
+      "done"
+    );
+
+    // 记录使用统计
+    const estimatedTokens = Math.ceil((prompt.length + fullResponse.length) / 4);
+    if (userId) {
+      await recordAIUsage(userId, userType, model, 'editor_completion', estimatedTokens);
+    }
+
+    res.end();
+  } catch (error) {
+    console.error("Error handling editor completion request:", error);
+    res.write(`event: error\n`);
+    res.write(
+      `data: ${JSON.stringify({
+        code: 500,
+        message: "Error processing editor completion request",
+        data: null,
+      })}\n\n`
+    );
+    res.end();
   }
 });
 

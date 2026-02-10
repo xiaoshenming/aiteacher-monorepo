@@ -2,7 +2,7 @@
 const { open, navItems, roleTitle } = useDashboardNav()
 const { isNotificationsSlideoverOpen } = useDashboard()
 const userStore = useUserStore()
-const { colorMode, nextTheme, startViewTransitionFromCenter } = useColorModeTransition()
+const { nextTheme, startViewTransitionFromCenter } = useColorModeTransition()
 
 const userMenuItems = computed(() => [
   [{
