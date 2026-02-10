@@ -52,53 +52,59 @@ const userMenuItems = computed(() => [
       </template>
 
       <template #default="{ collapsed }">
-        <UNavigationMenu
-          :collapsed="collapsed"
-          :items="navItems[0]"
-          orientation="vertical"
-          tooltip
-        />
+        <ClientOnly>
+          <UNavigationMenu
+            :collapsed="collapsed"
+            :items="navItems[0]"
+            orientation="vertical"
+            tooltip
+          />
 
-        <UNavigationMenu
-          v-if="navItems[1]?.length"
-          :collapsed="collapsed"
-          :items="navItems[1]"
-          orientation="vertical"
-          tooltip
-          class="mt-auto"
-        />
+          <UNavigationMenu
+            v-if="navItems[1]?.length"
+            :collapsed="collapsed"
+            :items="navItems[1]"
+            orientation="vertical"
+            tooltip
+            class="mt-auto"
+          />
+        </ClientOnly>
       </template>
 
       <template #footer="{ collapsed }">
-        <UDropdownMenu :items="userMenuItems">
-          <UButton
-            :avatar="userStore.userInfo.avatar ? { src: userStore.userInfo.avatar, alt: userStore.userInfo.name } : undefined"
-            :icon="!userStore.userInfo.avatar ? 'i-lucide-user' : undefined"
-            :label="collapsed ? undefined : userStore.userInfo.name || '用户'"
-            :class="collapsed ? 'justify-center' : ''"
-            color="neutral"
-            variant="ghost"
-            block
-            :ui="{ trailingIcon: 'ms-auto' }"
-            :trailing-icon="collapsed ? undefined : 'i-lucide-chevrons-up-down'"
-          />
+        <ClientOnly>
+          <UDropdownMenu :items="userMenuItems">
+            <UButton
+              :avatar="userStore.userInfo.avatar ? { src: userStore.userInfo.avatar, alt: userStore.userInfo.name } : undefined"
+              :icon="!userStore.userInfo.avatar ? 'i-lucide-user' : undefined"
+              :label="collapsed ? undefined : userStore.userInfo.name || '用户'"
+              :class="collapsed ? 'justify-center' : ''"
+              color="neutral"
+              variant="ghost"
+              block
+              :ui="{ trailingIcon: 'ms-auto' }"
+              :trailing-icon="collapsed ? undefined : 'i-lucide-chevrons-up-down'"
+            />
 
-          <template #account>
-            <div class="text-left">
-              <p class="font-medium text-highlighted truncate">
-                {{ userStore.userInfo.name || '用户' }}
-              </p>
-              <p class="text-xs text-muted truncate">
-                {{ userStore.userInfo.email || userStore.roleLabel }}
-              </p>
-            </div>
-          </template>
-        </UDropdownMenu>
+            <template #account>
+              <div class="text-left">
+                <p class="font-medium text-highlighted truncate">
+                  {{ userStore.userInfo.name || '用户' }}
+                </p>
+                <p class="text-xs text-muted truncate">
+                  {{ userStore.userInfo.email || userStore.roleLabel }}
+                </p>
+              </div>
+            </template>
+          </UDropdownMenu>
+        </ClientOnly>
       </template>
     </UDashboardSidebar>
 
     <slot />
 
-    <NotificationsSlideover />
+    <ClientOnly>
+      <NotificationsSlideover />
+    </ClientOnly>
   </UDashboardGroup>
 </template>

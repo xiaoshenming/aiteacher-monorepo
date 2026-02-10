@@ -24,10 +24,12 @@ const items = computed(() => [{
       </NuxtLink>
     </template>
 
-    <UNavigationMenu
-      :items="items"
-      variant="link"
-    />
+    <ClientOnly>
+      <UNavigationMenu
+        :items="items"
+        variant="link"
+      />
+    </ClientOnly>
 
     <template #right>
       <LayoutColorModeToggle />
@@ -74,11 +76,13 @@ const items = computed(() => [{
     </template>
 
     <template #body>
-      <UNavigationMenu
-        :items="items"
-        orientation="vertical"
-        class="-mx-2.5"
-      />
+      <ClientOnly>
+        <UNavigationMenu
+          :items="items"
+          orientation="vertical"
+          class="-mx-2.5"
+        />
+      </ClientOnly>
       <USeparator class="my-6" />
       <template v-if="userStore.isLoggedIn">
         <UButton

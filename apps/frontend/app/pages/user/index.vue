@@ -130,7 +130,9 @@ const quickActions = [
         </div>
 
         <!-- Stats -->
-        <DashboardStats :stats="stats" />
+        <ClientOnly>
+          <DashboardStats :stats="stats" />
+        </ClientOnly>
 
         <!-- Quick Actions -->
         <div>
@@ -153,18 +155,20 @@ const quickActions = [
         </div>
 
         <!-- Charts -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <DashboardChart
-            title="成绩分布"
-            subtitle="班级"
-            :option="scoreDistOption"
-          />
-          <DashboardChart
-            title="学情趋势"
-            subtitle="近8周"
-            :option="trendOption"
-          />
-        </div>
+        <ClientOnly>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DashboardChart
+              title="成绩分布"
+              subtitle="班级"
+              :option="scoreDistOption"
+            />
+            <DashboardChart
+              title="学情趋势"
+              subtitle="近8周"
+              :option="trendOption"
+            />
+          </div>
+        </ClientOnly>
       </div>
     </template>
   </UDashboardPanel>

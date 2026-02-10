@@ -9,8 +9,35 @@ export default defineNuxtConfig({
     '@nuxt/fonts',
     '@vueuse/nuxt',
     'nuxt-echarts',
+    '@nuxtjs/mdc',
     '@nuxt/eslint',
   ],
+
+  mdc: {
+    headings: {
+      anchorLinks: false,
+    },
+    highlight: {
+      shikiEngine: 'javascript',
+      langs: [
+        'javascript',
+        'typescript',
+        'python',
+        'java',
+        'cpp',
+        'c',
+        'html',
+        'css',
+        'json',
+        'bash',
+        'sql',
+        'markdown',
+        'vue',
+        'jsx',
+        'tsx',
+      ],
+    },
+  },
 
   compatibilityDate: '2025-06-09',
 
@@ -21,7 +48,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: 'http://localhost:10001/api/',
-      apiCloud: 'http://localhost:5001/api/',
+      apiCloud: 'http://localhost:10002/api/',
     },
   },
 
