@@ -42,3 +42,4 @@ logs/
 
 # Models (too large for git)
 apps/service-asr/models/
+docs
