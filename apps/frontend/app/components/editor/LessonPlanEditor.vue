@@ -16,6 +16,7 @@ const config = useRuntimeConfig()
 const CustomImage = Image.extend({
   renderHTML({ HTMLAttributes }) {
     let { src } = HTMLAttributes
+    // 将 /api/ 开头的路径转换为完整的 API URL
     if (src && !src.startsWith('http') && src.startsWith('/api/')) {
       const base = (config.public.apiCloud as string).replace(/\/$/, '')
       src = `${base}${src.replace(/^\/api/, '')}`

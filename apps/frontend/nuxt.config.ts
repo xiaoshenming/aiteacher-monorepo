@@ -39,10 +39,7 @@ export default defineNuxtConfig({
     },
   },
 
-  routeRules: {
-    '/user/**': { ssr: false },
-    '/admin/**': { ssr: false },
-  },
+  routeRules: {},
 
   compatibilityDate: '2025-06-09',
 
@@ -88,6 +85,9 @@ export default defineNuxtConfig({
   },
 
   vite: {
+    resolve: {
+      dedupe: ['vue', '@vue/runtime-core', '@vue/runtime-dom', '@vue/server-renderer', '@vue/reactivity', '@vue/shared'],
+    },
     optimizeDeps: {
       include: [
         '@nuxt/ui > prosemirror-state',

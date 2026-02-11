@@ -10,6 +10,13 @@ export interface ChatMessage {
   role: 'user' | 'assistant' | 'system' | 'data'
   content: string
   createdAt?: Date
+  parts?: ChatMessagePart[]
+}
+
+export interface ChatMessagePart {
+  type: 'text' | 'image' | 'tool-call' | 'tool-result'
+  content?: string
+  [key: string]: any
 }
 
 export interface ChatConversation {
@@ -166,6 +173,16 @@ export const useChatSessionsStore = defineStore('chatSessions', () => {
     const data = await loadFromIDB()
     conversations.value = data.conversations
     activeConversationId.value = data.activeId
+
+    // 迁移旧消息，确保所有消息都有 parts 属性
+    conversations.value.forEach(conv => {
+      conv.messages.forEach(msg => {
+        if (!msg.parts || msg.parts.length === 0) {
+          msg.parts = [{ type: 'text', content: msg.content }]
+        }
+      })
+    })
+
     _hydrated.value = true
   }
 
@@ -239,6 +256,7 @@ export const useChatSessionsStore = defineStore('chatSessions', () => {
       role: 'user',
       content,
       createdAt: new Date(),
+      parts: [{ type: 'text', content }],
     })
     conversation.updatedAt = Date.now()
 
@@ -262,6 +280,7 @@ export const useChatSessionsStore = defineStore('chatSessions', () => {
       role: 'assistant',
       content: '',
       createdAt: new Date(),
+      parts: [{ type: 'text', content: '' }],
     })
     conversation.updatedAt = Date.now()
 
@@ -275,6 +294,9 @@ export const useChatSessionsStore = defineStore('chatSessions', () => {
     const lastMessage = conversation.messages[conversation.messages.length - 1]
     if (lastMessage?.role === 'assistant') {
       lastMessage.content += chunk
+      if (lastMessage.parts && lastMessage.parts[0]?.type === 'text') {
+        lastMessage.parts[0].content = lastMessage.content
+      }
     }
     // 流式传输中不触发持久化，避免性能问题
   }

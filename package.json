@@ -34,7 +34,8 @@
       "@vue/compiler-core": "3.5.28",
       "@vue/compiler-dom": "3.5.28",
       "@vue/reactivity": "3.5.28",
-      "@vue/shared": "3.5.28"
+      "@vue/shared": "3.5.28",
+      "typescript": "5.9.3"
     }
   }
 }
