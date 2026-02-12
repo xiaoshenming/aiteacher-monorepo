@@ -1,0 +1,23 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "landppt",
+  "sourceRoot": "apps/LandPPT",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run python run.py",
+        "cwd": "apps/LandPPT"
+      }
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run python run.py",
+        "cwd": "apps/LandPPT"
+      }
+    }
+  },
+  "tags": ["service", "ppt"]
+}
