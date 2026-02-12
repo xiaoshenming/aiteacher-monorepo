@@ -11,6 +11,7 @@ const pptRouter = require("./model/ppt/pptRouter"); // PPT 相关接口
 const newsRouter = require("./model/news/newsRouter"); // 新闻接口
 const resourceRouter = require("./model/edu/resourceRouter"); // 教育资源接口
 const lessonPlansRouter = require("./model/edu/lessonPlansRouter"); // 教案接口
+const assignmentRouter = require("./model/edu/assignmentRouter"); // 作业接口
 const authRouter = require("./model/rabbitmq/authRouter"); // 鉴权相关接口（RabbitMQ）
 const notificationRouter = require("./model/rabbitmq/notificationRouter"); // 消息通知接口（RabbitMQ）
 const userRouter = require("./model/user/userRouter"); // 用户接口
@@ -21,6 +22,7 @@ const adminRouter = require("./model/admin/adminRouter"); // 管理员接口
 const authorize = require("./model/auth/authUtils"); // 鉴权中间件
 const scheduleRouter = require("./model/schedule/scheduleRouter"); // 课程表接口
 const questionRouter = require("./model/question/questionRouter"); // 题目生成接口
+const questionBankRouter = require("./model/edu/questionBankRouter"); // 题库管理接口
 const aiRouter = require("./model/ai/aiRouter"); // AI 功能接口
 const { setupWebSocketServer } = require("./model/ai/wxsocket"); // 初始化 WebSocket 服务（用于 AI 模块）
 const { startHeartbeats } = require("./config/heartbeat"); // 启动心跳检测（Redis 与 MySQL）
@@ -46,11 +48,13 @@ app.use("/api/notifications", notificationRouter); // 消息通知（RabbitMQ）
 app.use("/api/changelog", changelogRoute); // 版本更新日志接口
 app.use("/api/course-schedule", scheduleRouter); // 课程表接口
 app.use("/api/bridge", questionRouter); // 题目生成接口
+app.use("/api/question-bank", questionBankRouter); // 题库管理接口
 app.use("/api/ai", aiRouter); // AI 功能接口
 app.use("/api/resource", resourceRouter); // 教育资源接口
 app.use("/api/ppt", pptRouter); // PPT 接口
 app.use("/api/news", newsRouter); // 新闻接口
 app.use("/api/lessonPlans", lessonPlansRouter); // 教案接口
+app.use("/api/assignments", assignmentRouter); // 作业接口
 app.use("/api", verifyRoute); // 邮件验证接口
 
 // 全局错误处理中间件

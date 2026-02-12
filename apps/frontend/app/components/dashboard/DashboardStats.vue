@@ -14,7 +14,7 @@ function formatValue(stat: Stat): string {
 <template>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <UPageCard
-      v-for="(stat, index) in stats"
+      v-for="stat in stats"
       :key="stat.title"
       :icon="stat.icon"
       :title="stat.title"

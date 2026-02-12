@@ -6,6 +6,7 @@ const path = require('path')
 const fs = require('fs-extra')
 const multer = require('multer')
 const db = require('../utils/db')
+const mime = require('mime-types')
 
 // 全局存储路径配置（相对路径）
 const FILE_STORAGE_PATH = './storage/files' // 文件存储路径
@@ -143,6 +144,45 @@ router.post('/chunk/merge', async (req, res) => {
   } catch (err) {
     console.error('文件合并失败:', err)
     res.status(500).json({ code: 500, message: '合并文件出错', data: null })
+  }
+})
+
+/**
+ * 文件预览接口（inline 模式）
+ * @route GET /preview/:fileId
+ * @group 文件管理
+ */
+router.get('/preview/:fileId', async (req, res) => {
+  try {
+    const fileId = parseInt(req.params.fileId, 10)
+    if (isNaN(fileId)) {
+      return res.status(400).json({ code: 400, message: '无效的文件ID', data: null })
+    }
+    const [rows] = await db.query(
+      'SELECT * FROM file WHERE id = ? AND lvid = ?',
+      [fileId, req.user.lvid]
+    )
+    const file = rows[0]
+    if (!file || file.is_folder) {
+      return res.status(404).json({ code: 404, message: '文件不存在', data: null })
+    }
+    const filePath = path.resolve(file.path)
+    // 允许 storage/files 和 storage/mobile_files 两个目录
+    const storageRoot = path.resolve('./storage')
+    if (!filePath.startsWith(storageRoot + path.sep)) {
+      return res.status(403).json({ code: 403, message: '非法文件路径', data: null })
+    }
+    if (!await fs.pathExists(filePath)) {
+      return res.status(404).json({ code: 404, message: '文件已丢失', data: null })
+    }
+    const safeType = mime.lookup(file.name) || 'application/octet-stream'
+    res.setHeader('Content-Type', safeType)
+    res.setHeader('Content-Disposition', 'inline')
+    res.setHeader('X-Content-Type-Options', 'nosniff')
+    res.sendFile(filePath)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ code: 500, message: '预览失败', data: null })
   }
 })
 

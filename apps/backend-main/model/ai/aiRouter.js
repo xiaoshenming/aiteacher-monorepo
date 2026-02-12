@@ -375,4 +375,124 @@ router.post("/editor-completion", authorize(["0", "1", "2", "3", "4"]), async (r
   }
 });
 
+// AI 智能生成打印材料接口
+router.post("/generate-print", authorize(["0", "1", "2", "3", "4"]), async (req, res) => {
+  const { prompt, template_type = "quiz", model = "deepseek-chat" } = req.body;
+  const userId = req.user?.id;
+  const userType = req.user?.role || 'teacher';
+
+  if (!prompt || typeof prompt !== "string" || prompt.trim().length === 0) {
+    return res.status(400).json({
+      code: 400,
+      message: "Prompt must be a non-empty string.",
+      data: null,
+    });
+  }
+
+  // 模板类型对应的中文名和格式指导
+  const templateGuides = {
+    quiz: {
+      name: '课堂测验',
+      guide: `格式要求：
+- 顶部居中显示标题（如"课堂测验"）
+- 标题下方显示科目、班级、日期、姓名填写栏
+- 分隔线后按题型分区（选择题、填空题、判断题、简答题等）
+- 每道题编号清晰，选择题选项用 A/B/C/D 排列
+- 底部可留评分栏`
+    },
+    midterm: {
+      name: '期中考试',
+      guide: `格式要求：
+- 顶部居中显示学校名称和"期中考试试卷"
+- 显示科目、年级、考试时间、满分分值
+- 包含考生信息栏（姓名、班级、学号）
+- 注意事项说明
+- 按题型分大题，每大题标注分值（如"一、选择题（每题3分，共30分）"）
+- 题目数量适中，难度递进
+- 底部留答题区或答题卡说明`
+    },
+    exercise: {
+      name: '课堂练习',
+      guide: `格式要求：
+- 顶部显示"课堂练习"标题和科目信息
+- 练习题目直接排列，编号清晰
+- 题目之间留适当空白供学生作答
+- 可包含例题和解题提示
+- 难度适中，侧重巩固课堂知识`
+    },
+    notice: {
+      name: '通知公告',
+      guide: `格式要求：
+- 顶部居中显示"通知"或"公告"
+- 发布单位/部门
+- 正文内容分段清晰
+- 包含时间、地点、对象等关键信息
+- 底部显示发布日期和发布单位
+- 如有附件说明或联系方式也要包含`
+    },
+    report: {
+      name: '成绩单',
+      guide: `格式要求：
+- 顶部显示学校名称和"学生成绩报告单"
+- 学生基本信息（姓名、班级、学号、学期）
+- 使用HTML表格展示各科成绩（科目、平时成绩、期中成绩、期末成绩、总评）
+- 表格样式清晰，有边框
+- 底部包含班主任评语栏、家长签字栏
+- 可包含排名或等级信息`
+    },
+  };
+
+  const templateInfo = templateGuides[template_type] || templateGuides.quiz;
+
+  try {
+    const aiPrompt = `你是一位资深教育工作者和排版设计专家。请根据用户的需求生成一份专业的教学打印材料。
+
+材料类型：${templateInfo.name}
+
+${templateInfo.guide}
+
+通用要求：
+1. 输出纯 HTML 代码，可直接用于打印
+2. 使用内联样式确保打印效果一致
+3. 字体使用宋体或黑体，适合中文打印
+4. 排版美观、专业，符合中国教育行业标准
+5. 内容要专业、准确、有教育价值
+6. 只输出 HTML 内容，不要包含 \`\`\`html 代码块标记，不要有任何解释文字
+7. 不要包含 <html>、<head>、<body> 等外层标签，只输出内容部分的 HTML
+8. 确保所有内容都是中文
+
+用户需求：${prompt}`;
+
+    const aiResponse = await getAIResponse(aiPrompt, model);
+
+    // 清理可能的代码块标记
+    let content = aiResponse.trim();
+    content = content.replace(/^```html?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
+
+    // 记录使用统计
+    const estimatedTokens = Math.ceil((aiPrompt.length + aiResponse.length) / 4);
+    if (userId) {
+      await recordAIUsage(userId, userType, model, 'generate_print', estimatedTokens);
+    }
+
+    return res.json({
+      code: 200,
+      message: "Print content generated successfully",
+      data: {
+        content: content,
+        template_type: template_type,
+        tokens: estimatedTokens,
+        model: model,
+      },
+    });
+  } catch (error) {
+    console.error("Error generating print content:", error);
+    return res.status(500).json({
+      code: 500,
+      message: "Error generating print content",
+      data: null,
+    });
+  }
+});
+
 module.exports = router;

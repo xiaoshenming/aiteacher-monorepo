@@ -22,6 +22,7 @@
     "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.3",
     "mammoth": "^1.11.0",
+    "mime-types": "^3.0.2",
     "multer": "^2.0.2",
     "mysql2": "^3.16.0",
     "openai": "^6.15.0",

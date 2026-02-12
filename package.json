@@ -36,6 +36,18 @@
       "@vue/reactivity": "3.5.28",
       "@vue/shared": "3.5.28",
       "typescript": "5.9.3"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "@scarf/scarf",
+      "@vue-office/docx",
+      "@vue-office/excel",
+      "@vue-office/pdf",
+      "@vue-office/pptx",
+      "esbuild",
+      "nx",
+      "sharp",
+      "vue-demi"
+    ]
   }
 }

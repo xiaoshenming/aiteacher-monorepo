@@ -80,7 +80,7 @@ export default defineNuxtConfig({
   },
 
   echarts: {
-    charts: ['BarChart', 'LineChart', 'PieChart'],
+    charts: ['BarChart', 'LineChart', 'PieChart', 'RadarChart'],
     components: ['DatasetComponent', 'GridComponent', 'TooltipComponent', 'LegendComponent'],
   },
 
@@ -91,6 +91,12 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: [
         '@nuxt/ui > prosemirror-state',
+      ],
+      exclude: [
+        '@vue-office/docx',
+        '@vue-office/excel',
+        '@vue-office/pdf',
+        '@vue-office/pptx',
       ],
     },
   },

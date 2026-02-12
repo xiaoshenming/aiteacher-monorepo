@@ -36,10 +36,17 @@ const authenticate = async (req, res, next) => {
     
     // 从请求头获取必要信息
     const authHeader = req.headers.authorization;    // Bearer令牌头
-    const deviceType = req.headers.devicetype;       // 客户端设备类型
+    const deviceType = req.headers.devicetype || 'pc'; // 客户端设备类型，默认pc
 
-    // 验证Authorization头格式（Bearer Token）
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // 支持从query参数获取token（用于文件下载等无法设置请求头的场景）
+    let token;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    } else if (req.query && req.query.token) {
+      token = req.query.token;
+    }
+
+    if (!token) {
       console.log('未提供访问令牌');
       return res.status(401).json({
         code: 401,
@@ -47,8 +54,6 @@ const authenticate = async (req, res, next) => {
         data: null
       });
     }
-
-    const token = authHeader.split(' ')[1];
     console.log('接收到的 Token:', token);
 
     // JWT验证阶段
