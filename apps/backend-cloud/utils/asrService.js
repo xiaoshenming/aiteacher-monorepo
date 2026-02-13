@@ -10,8 +10,8 @@ const WebSocket = require('ws');
 
 class ASRService {
   // FunASR服务配置
-  static FUNASR_URL = process.env.FUNASR_URL || 'http://localhost:8766';
-  static FUNASR_WS_URL = process.env.FUNASR_WS_URL || 'ws://localhost:8766';
+  static FUNASR_URL = process.env.FUNASR_URL || 'http://localhost:10005';
+  static FUNASR_WS_URL = process.env.FUNASR_WS_URL || 'ws://localhost:10005';
   static REQUEST_TIMEOUT = 120000; // 120秒超时
   static MAX_RETRIES = 3; // 最大重试次数
 
@@ -90,10 +90,11 @@ class ASRService {
 
       } catch (error) {
         retries++;
-        console.error(`转写失败 (尝试 ${retries}/${this.MAX_RETRIES}):`, error.message);
+        const errMsg = error.response?.data?.detail || error.response?.data?.error || error.message || String(error);
+        console.error(`转写失败 (尝试 ${retries}/${this.MAX_RETRIES}):`, errMsg);
 
         if (retries >= this.MAX_RETRIES) {
-          throw new Error(`转写失败（已重试${this.MAX_RETRIES}次）: ${error.message}`);
+          throw new Error(`转写失败（已重试${this.MAX_RETRIES}次）: ${errMsg}`);
         }
 
         // 等待后重试

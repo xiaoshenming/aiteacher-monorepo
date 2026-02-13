@@ -960,7 +960,7 @@ class QwenTranslator:
             # 配置翻译参数
             if mode == "zh2en":
                 target_lang = "English"
-                source_lang = "auto"
+                source_lang = "Chinese"
             elif mode == "en2zh":
                 target_lang = "Chinese"
                 source_lang = "English"
@@ -968,12 +968,13 @@ class QwenTranslator:
                 return None
 
             payload = {
-                "model": "qwen-mt-flash",
-                "messages": [{"role": "user", "content": text}],
-                "translation_options": {
-                    "source_lang": source_lang,
-                    "target_lang": target_lang
-                }
+                "model": "qwen-plus",
+                "messages": [
+                    {"role": "system", "content": f"You are a translator. Translate the following text from {source_lang} to {target_lang}. Only output the translation, nothing else."},
+                    {"role": "user", "content": text}
+                ],
+                "temperature": 0.3,
+                "max_tokens": 500
             }
 
             response = await self.client.post(self.api_path, json=payload)

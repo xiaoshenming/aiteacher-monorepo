@@ -23,3 +23,30 @@ export interface TranscriptSegment {
   text: string
   speaker?: string
 }
+
+export interface AINote {
+  status: string
+  summary?: string
+  keywords?: string | string[]
+  content?: {
+    outline?: string | string[]
+    keypoints?: string[]
+    key_points?: string[]
+    quizzes?: Array<{ question: string; options: string[]; answer: string }>
+    quiz?: Array<{ question: string; options: string[]; answer: string }>
+    homework?: string[]
+  }
+  error_message?: string
+  processing_duration?: number
+}
+
+export interface Transcript {
+  id: string
+  status: string
+  text?: string
+  segments?: TranscriptSegment[]
+  error_message?: string
+  processing_duration?: number
+  created_at?: string
+  completed_at?: string
+}

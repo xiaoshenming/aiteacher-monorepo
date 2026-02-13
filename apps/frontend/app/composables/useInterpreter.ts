@@ -1,8 +1,11 @@
 interface TranscriptItem {
   id: string
   text: string
+  corrected: string
   translation: string
   timestamp: number
+  isFinal: boolean
+  cutReason?: string
 }
 
 export function useInterpreter() {
@@ -12,11 +15,17 @@ export function useInterpreter() {
   const isConnected = ref(false)
   const transcripts = ref<TranscriptItem[]>([])
   const translations = ref<Map<string, string>>(new Map())
+  const currentText = ref('')
 
   let ws: WebSocket | null = null
   let audioContext: AudioContext | null = null
   let mediaStream: MediaStream | null = null
   let processor: ScriptProcessorNode | null = null
+
+  // 配置
+  const language = ref('zh')
+  const translationMode = ref('zh2en')
+  const enableCorrection = ref(true)
 
   function getWsUrl() {
     const host = window.location.hostname || 'localhost'
@@ -31,30 +40,57 @@ export function useInterpreter() {
       }
 
       ws = new WebSocket(getWsUrl())
+      ws.binaryType = 'arraybuffer'
 
       ws.onopen = () => {
         isConnected.value = true
+
+        // 发送配置消息（后端协议要求）
+        ws!.send(JSON.stringify({
+          type: 'config',
+          language: language.value,
+          mode: translationMode.value,
+          enable_correction: enableCorrection.value,
+        }))
+
         resolve()
       }
 
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data)
-          if (data.text) {
-            const item: TranscriptItem = {
-              id: crypto.randomUUID(),
-              text: data.text,
-              translation: data.translation || '',
-              timestamp: Date.now(),
+
+          if (data.type === 'result') {
+            // 后端返回格式: { type: "result", original, corrected, translation, is_final, cut_reason }
+            const text = data.corrected || data.original || data.text || ''
+
+            if (text && data.is_final) {
+              const item: TranscriptItem = {
+                id: crypto.randomUUID(),
+                text: data.original || text,
+                corrected: data.corrected || text,
+                translation: data.translation || '',
+                timestamp: Date.now(),
+                isFinal: true,
+                cutReason: data.cut_reason,
+              }
+              transcripts.value.push(item)
+              if (data.translation) {
+                translations.value.set(item.id, data.translation)
+              }
+              currentText.value = ''
             }
-            transcripts.value.push(item)
-            if (data.translation) {
-              translations.value.set(item.id, data.translation)
+            else if (text) {
+              // 中间结果，更新当前文本
+              currentText.value = text
             }
+          }
+          else if (data.error) {
+            console.error('ASR error:', data.error)
           }
         }
         catch {
-          // WebSocket 错误处理
+          // 非 JSON 消息忽略
         }
       }
 
@@ -73,7 +109,15 @@ export function useInterpreter() {
     try {
       await connectWebSocket()
 
-      mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      })
       audioContext = new AudioContext({ sampleRate: 16000 })
       const source = audioContext.createMediaStreamSource(mediaStream)
       processor = audioContext.createScriptProcessor(4096, 1, 1)
@@ -86,7 +130,7 @@ export function useInterpreter() {
           const float32 = e.inputBuffer.getChannelData(0)
           const int16 = new Int16Array(float32.length)
           for (let i = 0; i < float32.length; i++) {
-            int16[i] = Math.max(-32768, Math.min(32767, Math.round(float32[i] * 32767)))
+            int16[i] = Math.max(-32768, Math.min(32767, Math.round(float32[i]! * 32767)))
           }
           ws.send(int16.buffer)
         }
@@ -101,16 +145,33 @@ export function useInterpreter() {
   }
 
   function stopRecording() {
+    // 发送结束标记（后端协议要求）
+    if (ws?.readyState === WebSocket.OPEN) {
+      try {
+        ws.send(JSON.stringify({ type: 'end' }))
+      }
+      catch { /* ignore */ }
+    }
+
     processor?.disconnect()
     processor = null
     mediaStream?.getTracks().forEach(t => t.stop())
     mediaStream = null
     audioContext?.close()
     audioContext = null
-    ws?.close()
+
+    // 延迟关闭 WebSocket，让 end 消息有时间发送
+    const wsRef = ws
     ws = null
+    if (wsRef) {
+      setTimeout(() => {
+        try { wsRef.close() } catch { /* ignore */ }
+      }, 500)
+    }
+
     isRecording.value = false
     isConnected.value = false
+    currentText.value = ''
   }
 
   async function translateText(text: string, sourceLang: string, targetLang: string): Promise<string> {
@@ -153,6 +214,10 @@ export function useInterpreter() {
     isConnected: readonly(isConnected),
     transcripts: readonly(transcripts),
     translations: readonly(translations),
+    currentText: readonly(currentText),
+    language,
+    translationMode,
+    enableCorrection,
     startRecording,
     stopRecording,
     translateText,

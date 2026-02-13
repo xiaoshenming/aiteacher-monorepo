@@ -1,4 +1,4 @@
-import type { Recording, TranscriptSegment } from '~/types/recording'
+import type { Recording, TranscriptSegment, Transcript, AINote } from '~/types/recording'
 
 interface PaginatedData<T> {
   total: number
@@ -76,13 +76,24 @@ export function useRecordings() {
   }
 
   async function getTranscript(id: string) {
-    const res = await cloudFetch<DetailResponse<TranscriptSegment[]>>(`/recording/${id}/transcript`)
+    const res = await cloudFetch<DetailResponse<Transcript>>(`/recording/${id}/transcript`)
     return res.data
   }
 
   async function getTranscriptStatus(id: string) {
     const res = await cloudFetch<DetailResponse<{ status: string }>>(`/recording/${id}/transcript/status`)
     return res.data
+  }
+
+  async function getNotes(id: string) {
+    const res = await cloudFetch<{ code: number; message: string; data: AINote }>(`/recording/${id}/notes`)
+    return { code: res.code, message: res.message, data: res.data }
+  }
+
+  async function generateNotes(id: string) {
+    return cloudFetch<DetailResponse<{ note_id: string; status: string }>>(`/recording/${id}/generate-notes`, {
+      method: 'POST',
+    })
   }
 
   return {
@@ -94,5 +105,7 @@ export function useRecordings() {
     startTranscribe,
     getTranscript,
     getTranscriptStatus,
+    getNotes,
+    generateNotes,
   }
 }

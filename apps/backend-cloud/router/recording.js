@@ -768,15 +768,15 @@ router.get('/list', authMiddleware, async (req, res) => {
 
     // 获取列表
     const sql = `
-      SELECT 
-        id, course_id, lesson_plan_id, title, 
-        start_time, end_time, duration, 
-        video_mime_type, audio_mime_type, file_size,
+      SELECT
+        id, course_id, lesson_plan_id, title,
+        start_time, end_time, duration,
+        video_mime_type, audio_mime_type, audio_path, file_size,
         sync_status, cloud_video_url, cloud_filename,
         created_at, updated_at
-      FROM course_recordings 
+      FROM course_recordings
       ${whereClause}
-      ORDER BY start_time DESC 
+      ORDER BY start_time DESC
       LIMIT ? OFFSET ?
     `;
     

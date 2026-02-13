@@ -41,6 +41,8 @@ app.use(cookieParser())
 app.use("/api", apidownload);
 // UmoEditor文件访问API - 不需要全局认证
 app.use("/api/editor/file", express.static(path.join(__dirname, "storage/editor/files")));
+// 录制文件访问 - 不需要全局认证
+app.use("/api/recording/file", express.static(path.join(__dirname, "storage/audio")));
 
 // 应用全局认证中间件
 app.use((req, res, next) => {
