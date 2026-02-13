@@ -274,7 +274,7 @@ router.post('/:id/upload-audio', authMiddleware, audioUpload.single('audio'), as
 router.post('/:id/transcribe', authMiddleware, audioUpload.single('audio'), async (req, res) => {
   try {
     const { id } = req.params;
-    let { audio_path, asr_provider = 'FunASR' } = req.body;
+    let { audio_path, asr_provider = 'FunASR' } = req.body || {};
     const user_id = req.user.lvid;
 
     // 如果上传了文件，优先使用新上传的文件

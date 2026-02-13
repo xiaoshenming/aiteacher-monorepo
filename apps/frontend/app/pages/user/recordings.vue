@@ -18,11 +18,224 @@ const recordingDuration = ref(0)
 const showStartModal = ref(false)
 const newTitle = ref('')
 const starting = ref(false)
+const recordingSource = ref<'camera' | 'screen' | 'both'>('screen')
 
 let mediaRecorder: MediaRecorder | null = null
 let recordedChunks: Blob[] = []
 let recordingStream: MediaStream | null = null
 let durationTimer: ReturnType<typeof setInterval> | null = null
+
+// 双路录制：原始流引用
+const screenStreamRaw = ref<MediaStream | null>(null)
+const userStreamRaw = ref<MediaStream | null>(null)
+let mixAnimationId: number | null = null
+
+// 摄像头布局状态 (百分比)
+const cameraLayout = ref({ x: 75, y: 75, width: 20, height: 20 })
+const previewContainer = ref<HTMLDivElement | null>(null)
+const previewVideo = ref<HTMLVideoElement | null>(null)
+const cameraOverlayVideo = ref<HTMLVideoElement | null>(null)
+const previewStream = ref<MediaStream | null>(null)
+
+// 拖拽控制
+const isDragging = ref(false)
+const isResizing = ref(false)
+let dragStartX = 0
+let dragStartY = 0
+let startLayout = { x: 0, y: 0, width: 0, height: 0 }
+
+// 摄像头叠加层 video srcObject 同步
+watch([cameraOverlayVideo, userStreamRaw], ([el, stream]) => {
+  if (el) el.srcObject = stream || null
+})
+
+const cameraStyle = computed(() => ({
+  left: `${cameraLayout.value.x}%`,
+  top: `${cameraLayout.value.y}%`,
+  width: `${cameraLayout.value.width}%`,
+  height: `${cameraLayout.value.height}%`,
+  position: 'absolute' as const,
+  border: '2px solid var(--ui-primary)',
+  borderRadius: '6px',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+  cursor: isDragging.value ? 'grabbing' : 'grab',
+  overflow: 'hidden',
+  zIndex: 10,
+  background: '#000',
+}))
+
+function startDragging(e: MouseEvent) {
+  isDragging.value = true
+  dragStartX = e.clientX
+  dragStartY = e.clientY
+  startLayout = { ...cameraLayout.value }
+  window.addEventListener('mousemove', handleDragging)
+  window.addEventListener('mouseup', stopDragging)
+}
+
+function handleDragging(e: MouseEvent) {
+  if (!isDragging.value || !previewContainer.value) return
+  const rect = previewContainer.value.getBoundingClientRect()
+  const dx = ((e.clientX - dragStartX) / rect.width) * 100
+  const dy = ((e.clientY - dragStartY) / rect.height) * 100
+  cameraLayout.value.x = Math.max(0, Math.min(100 - cameraLayout.value.width, startLayout.x + dx))
+  cameraLayout.value.y = Math.max(0, Math.min(100 - cameraLayout.value.height, startLayout.y + dy))
+}
+
+function stopDragging() {
+  isDragging.value = false
+  window.removeEventListener('mousemove', handleDragging)
+  window.removeEventListener('mouseup', stopDragging)
+}
+
+function startResizing(e: MouseEvent) {
+  isResizing.value = true
+  dragStartX = e.clientX
+  dragStartY = e.clientY
+  startLayout = { ...cameraLayout.value }
+  window.addEventListener('mousemove', handleResizing)
+  window.addEventListener('mouseup', stopResizing)
+}
+
+function handleResizing(e: MouseEvent) {
+  if (!isResizing.value || !previewContainer.value) return
+  const rect = previewContainer.value.getBoundingClientRect()
+  const dx = ((e.clientX - dragStartX) / rect.width) * 100
+  cameraLayout.value.width = Math.max(10, Math.min(50, startLayout.width + dx))
+  cameraLayout.value.height = Math.max(10, Math.min(50, startLayout.height + dx))
+}
+
+function stopResizing() {
+  isResizing.value = false
+  window.removeEventListener('mousemove', handleResizing)
+  window.removeEventListener('mouseup', stopResizing)
+}
+
+// Canvas 混合 (双路录制)
+function startCanvasMixing(screenStream: MediaStream, cameraStream: MediaStream): MediaStream {
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')!
+  const settings = screenStream.getVideoTracks()[0].getSettings()
+  canvas.width = settings.width || 1920
+  canvas.height = settings.height || 1080
+
+  const screenVideo = document.createElement('video')
+  screenVideo.srcObject = screenStream
+  screenVideo.muted = true
+  screenVideo.play()
+
+  const cameraVideo = document.createElement('video')
+  cameraVideo.srcObject = cameraStream
+  cameraVideo.muted = true
+  cameraVideo.play()
+
+  function draw() {
+    ctx.drawImage(screenVideo, 0, 0, canvas.width, canvas.height)
+    if (cameraStream.active) {
+      const cw = (cameraLayout.value.width / 100) * canvas.width
+      const ch = (cameraLayout.value.height / 100) * canvas.height
+      const cx = (cameraLayout.value.x / 100) * canvas.width
+      const cy = (cameraLayout.value.y / 100) * canvas.height
+      ctx.shadowBlur = 15
+      ctx.shadowColor = 'rgba(0,0,0,0.5)'
+      ctx.drawImage(cameraVideo, cx, cy, cw, ch)
+      ctx.shadowBlur = 0
+    }
+    mixAnimationId = requestAnimationFrame(draw)
+  }
+  draw()
+  return canvas.captureStream(30)
+}
+
+// 音频混合
+async function mixAudio(screenStream: MediaStream, micStream: MediaStream): Promise<MediaStreamTrack[]> {
+  const hasScreenAudio = screenStream.getAudioTracks().length > 0
+  const hasMicAudio = micStream.getAudioTracks().length > 0
+  if (hasScreenAudio && hasMicAudio) {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+      const audioCtx = new AudioCtx()
+      const dest = audioCtx.createMediaStreamDestination()
+      audioCtx.createMediaStreamSource(screenStream).connect(dest)
+      audioCtx.createMediaStreamSource(micStream).connect(dest)
+      return dest.stream.getAudioTracks()
+    } catch { /* fallback */ }
+  }
+  if (hasMicAudio) return micStream.getAudioTracks()
+  if (hasScreenAudio) return screenStream.getAudioTracks()
+  return []
+}
+
+// 获取媒体流
+async function getMediaStream(): Promise<MediaStream> {
+  const micConstraints = { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }
+
+  switch (recordingSource.value) {
+    case 'camera': {
+      const camStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } },
+        ...micConstraints,
+      })
+      userStreamRaw.value = camStream
+      return camStream
+    }
+    case 'screen': {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } },
+        audio: true,
+      })
+      screenStreamRaw.value = screenStream
+      try {
+        const micStream = await navigator.mediaDevices.getUserMedia(micConstraints)
+        userStreamRaw.value = micStream
+        const mixed = await mixAudio(screenStream, micStream)
+        return new MediaStream([...screenStream.getVideoTracks(), ...mixed])
+      } catch {
+        return screenStream
+      }
+    }
+    case 'both': {
+      const displayStream = await navigator.mediaDevices.getDisplayMedia({
+        video: { width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: true,
+      })
+      screenStreamRaw.value = displayStream
+      const cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 640 }, height: { ideal: 480 } },
+        ...micConstraints,
+      })
+      userStreamRaw.value = cameraStream
+      const mixedAudio = await mixAudio(displayStream, cameraStream)
+      const mixedCanvas = startCanvasMixing(displayStream, cameraStream)
+      return new MediaStream([...mixedCanvas.getVideoTracks(), ...mixedAudio])
+    }
+  }
+}
+
+// 预览（录制前配置画面）
+async function preparePreview() {
+  try {
+    cleanupStreams()
+    const stream = await getMediaStream()
+    previewStream.value = stream
+    if (previewVideo.value) {
+      previewVideo.value.srcObject = stream
+      previewVideo.value.muted = true
+    }
+  } catch (err: any) {
+    if (err.name !== 'NotAllowedError') {
+      toast.add({ title: '预览失败: ' + (err.message || '未知错误'), color: 'error' })
+    }
+  }
+}
+
+function cleanupStreams() {
+  if (mixAnimationId) { cancelAnimationFrame(mixAnimationId); mixAnimationId = null }
+  if (previewStream.value) { previewStream.value.getTracks().forEach(t => t.stop()); previewStream.value = null }
+  if (screenStreamRaw.value) { screenStreamRaw.value.getTracks().forEach(t => t.stop()); screenStreamRaw.value = null }
+  if (userStreamRaw.value) { userStreamRaw.value.getTracks().forEach(t => t.stop()); userStreamRaw.value = null }
+  if (previewVideo.value) previewVideo.value.srcObject = null
+}
 
 // 查看转录
 const showTranscriptModal = ref(false)
@@ -108,21 +321,12 @@ async function handleStartRecording() {
   if (!newTitle.value.trim()) return
   starting.value = true
   try {
-    // 请求屏幕共享 + 麦克风
-    const displayStream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
-      audio: true,
-    })
-
+    // 如果已有预览流，直接使用；否则获取新流
     let combinedStream: MediaStream
-    try {
-      const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const tracks = [...displayStream.getTracks(), ...audioStream.getAudioTracks()]
-      combinedStream = new MediaStream(tracks)
-    }
-    catch {
-      // 麦克风不可用，仅用屏幕音频
-      combinedStream = displayStream
+    if (previewStream.value) {
+      combinedStream = previewStream.value
+    } else {
+      combinedStream = await getMediaStream()
     }
 
     // 创建后端记录
@@ -148,21 +352,20 @@ async function handleStartRecording() {
       handleRecordingStopped()
     }
 
-    // 用户点击浏览器的"停止共享"时自动结束
-    displayStream.getVideoTracks()[0].addEventListener('ended', () => {
-      if (isRecording.value) {
-        stopRecording()
-      }
-    })
+    // 屏幕共享停止时自动结束录制
+    const videoTrack = combinedStream.getVideoTracks()[0]
+    if (videoTrack) {
+      videoTrack.addEventListener('ended', () => {
+        if (isRecording.value) stopRecording()
+      })
+    }
 
-    mediaRecorder.start(1000) // 每秒收集一次数据
+    mediaRecorder.start(1000)
     isRecording.value = true
     isPaused.value = false
     recordingDuration.value = 0
     durationTimer = setInterval(() => {
-      if (!isPaused.value) {
-        recordingDuration.value++
-      }
+      if (!isPaused.value) recordingDuration.value++
     }, 1000)
 
     showStartModal.value = false
@@ -204,6 +407,7 @@ function stopRecording() {
     recordingStream.getTracks().forEach(t => t.stop())
     recordingStream = null
   }
+  cleanupStreams()
   isRecording.value = false
   isPaused.value = false
 }
@@ -299,9 +503,8 @@ function handlePlay(recording: Recording) {
 onMounted(loadRecordings)
 
 onBeforeUnmount(() => {
-  if (isRecording.value) {
-    stopRecording()
-  }
+  if (isRecording.value) stopRecording()
+  cleanupStreams()
 })
 </script>
 
@@ -411,12 +614,73 @@ onBeforeUnmount(() => {
   <UModal v-model:open="showStartModal" title="开始录制">
     <template #content>
       <div class="p-6 space-y-4">
-        <p class="text-sm text-[var(--ui-text-dimmed)]">
-          将使用屏幕共享录制您的课堂内容，请在弹出的窗口中选择要共享的屏幕或窗口。
-        </p>
         <UInput v-model="newTitle" placeholder="请输入录制标题" autofocus @keyup.enter="handleStartRecording" />
+
+        <!-- 录制源选择 -->
+        <div class="space-y-2">
+          <p class="text-sm font-medium">录制模式</p>
+          <div class="flex gap-3">
+            <label v-for="opt in [
+              { value: 'camera', label: '摄像头', icon: 'i-lucide-camera' },
+              { value: 'screen', label: '屏幕共享', icon: 'i-lucide-monitor' },
+              { value: 'both', label: '双路录制', icon: 'i-lucide-picture-in-picture-2' },
+            ]" :key="opt.value"
+              class="flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors"
+              :class="recordingSource === opt.value
+                ? 'border-[var(--ui-primary)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]'
+                : 'border-[var(--ui-border)] hover:border-[var(--ui-border-hover)]'"
+            >
+              <input type="radio" v-model="recordingSource" :value="opt.value" class="sr-only" />
+              <UIcon :name="opt.icon" class="text-base" />
+              <span class="text-sm">{{ opt.label }}</span>
+            </label>
+          </div>
+          <p class="text-xs text-[var(--ui-text-dimmed)]">
+            {{ recordingSource === 'camera' ? '仅录制摄像头画面和麦克风音频'
+              : recordingSource === 'screen' ? '录制屏幕内容，同时捕获麦克风音频'
+              : '屏幕画面 + 摄像头画中画，可拖拽调整摄像头位置' }}
+          </p>
+        </div>
+
+        <!-- 预览区域 -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-sm font-medium">画面预览</p>
+            <UButton size="xs" variant="soft" :label="previewStream ? '重新预览' : '开启预览'" icon="i-lucide-eye" @click="preparePreview" />
+          </div>
+          <div ref="previewContainer" class="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+            <video ref="previewVideo" autoplay muted playsinline class="w-full h-full object-contain" />
+
+            <!-- 双路录制：可拖拽摄像头叠加层 -->
+            <div
+              v-if="recordingSource === 'both' && userStreamRaw"
+              :style="cameraStyle"
+              @mousedown="startDragging"
+            >
+              <video
+                ref="cameraOverlayVideo"
+                autoplay
+                muted
+                playsinline
+                class="w-full h-full object-cover pointer-events-none"
+              />
+              <div
+                class="absolute right-0 bottom-0 w-5 h-5 bg-[var(--ui-primary)] cursor-nwse-resize rounded-tl z-[11]"
+                @mousedown.stop="startResizing"
+                title="拖拽缩放"
+              />
+              <span class="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded pointer-events-none">摄像头</span>
+            </div>
+
+            <!-- 无预览时的提示 -->
+            <div v-if="!previewStream" class="absolute inset-0 flex items-center justify-center bg-black/70 text-white text-sm">
+              点击「开启预览」配置画面
+            </div>
+          </div>
+        </div>
+
         <div class="flex justify-end gap-2">
-          <UButton variant="ghost" label="取消" @click="showStartModal = false" />
+          <UButton variant="ghost" label="取消" @click="showStartModal = false; cleanupStreams()" />
           <UButton
             icon="i-lucide-circle"
             color="error"

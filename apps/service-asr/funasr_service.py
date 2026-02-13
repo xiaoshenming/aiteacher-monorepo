@@ -843,7 +843,8 @@ class QwenCorrector:
         self.api_key = api_key
         self.model = model
         self.client: Optional[httpx.AsyncClient] = None
-        self.base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+        self.base_url = "https://dashscope.aliyuncs.com"
+        self.api_path = "/compatible-mode/v1/chat/completions"
 
     async def init(self):
         """初始化 HTTP 客户端"""
@@ -903,7 +904,7 @@ class QwenCorrector:
                 "max_tokens": 200
             }
 
-            response = await self.client.post("/", json=payload)
+            response = await self.client.post(self.api_path, json=payload)
             response.raise_for_status()
 
             result = response.json()
@@ -930,7 +931,8 @@ class QwenTranslator:
     def __init__(self, api_key: str):
         self.api_key = api_key
         self.client: Optional[httpx.AsyncClient] = None
-        self.base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+        self.base_url = "https://dashscope.aliyuncs.com"
+        self.api_path = "/compatible-mode/v1/chat/completions"
 
     async def init(self):
         """初始化 HTTP 客户端"""
@@ -974,7 +976,7 @@ class QwenTranslator:
                 }
             }
 
-            response = await self.client.post("/", json=payload)
+            response = await self.client.post(self.api_path, json=payload)
             response.raise_for_status()
 
             result = response.json()
