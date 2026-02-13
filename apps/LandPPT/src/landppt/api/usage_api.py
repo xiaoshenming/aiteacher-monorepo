@@ -8,7 +8,7 @@ import logging
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_, case
 from pydantic import BaseModel
 
 from ..database.database import get_db
@@ -77,11 +77,11 @@ async def get_usage_stats(
             func.sum(AIUsageLog.input_tokens).label("total_input_tokens"),
             func.sum(AIUsageLog.output_tokens).label("total_output_tokens"),
             func.sum(AIUsageLog.total_tokens).label("total_tokens"),
-            func.sum(func.case(
+            func.sum(case(
                 (AIUsageLog.success == True, 1),
                 else_=0
             )).label("success_count"),
-            func.sum(func.case(
+            func.sum(case(
                 (AIUsageLog.success == False, 1),
                 else_=0
             )).label("failure_count"),
