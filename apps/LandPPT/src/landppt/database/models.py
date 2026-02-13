@@ -246,3 +246,25 @@ class SpeechScript(Base):
 
     def __repr__(self):
         return f"<SpeechScript(id={self.id}, project_id='{self.project_id}', slide_index={self.slide_index})>"
+
+
+class AIUsageLog(Base):
+    """AI 使用量日志表 - 记录每次 AI 调用的详细信息"""
+    __tablename__ = "ai_usage_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    project_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True, index=True)
+    action: Mapped[str] = mapped_column(String(100), nullable=False, index=True)  # outline_generation, slide_generation, ai_edit, speech_script, etc.
+    provider: Mapped[str] = mapped_column(String(50), nullable=False)  # deepseek, openai, anthropic, etc.
+    model: Mapped[str] = mapped_column(String(100), nullable=False)
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    total_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    success: Mapped[bool] = mapped_column(Boolean, default=True)
+    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    duration_ms: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # 调用耗时(毫秒)
+    created_at: Mapped[float] = mapped_column(Float, default=time.time, index=True)
+
+    # Relationship
+    user: Mapped["User"] = relationship("User", foreign_keys=[user_id])

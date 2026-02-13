@@ -438,10 +438,41 @@
             }
         }
     </style>
+    <style>
+        /* Embed mode: hide chrome when loaded in iframe */
+        body.embed-mode .header,
+        body.embed-mode .footer,
+        body.embed-mode .fab {
+            display: none !important;
+        }
+        body.embed-mode .container {
+            padding: 0;
+            max-width: 100%;
+        }
+        body.embed-mode .main-content {
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            margin-bottom: 0;
+            padding: var(--spacing-lg);
+        }
+        body.embed-mode {
+            background: var(--surface);
+        }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 
 <body>
+    <script>
+        // Detect embed mode from URL parameter or parent frame
+        (function() {
+            var params = new URLSearchParams(window.location.search);
+            if (params.get('embed') === 'true' || window.self !== window.top) {
+                document.body.classList.add('embed-mode');
+            }
+        })();
+    </script>
     <div class="container">
         <header class="header">
             <h1>

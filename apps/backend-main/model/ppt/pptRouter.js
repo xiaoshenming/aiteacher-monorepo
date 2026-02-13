@@ -4,6 +4,7 @@ const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
 const FormData = require("form-data");
+const jwt = require("jsonwebtoken");
 // 引入鉴权中间件，只有角色为2,3,4的用户才可访问
 const authorize = require("../auth/authUtils");
 // 数据库操作模块（需提前配置好 db 模块）
@@ -17,8 +18,38 @@ const {
 
 const router = express.Router();
 
+// SSO shared secret - must match LandPPT backend
+const SSO_SECRET = "aiteacher-landppt-sso-secret-2024";
+
 // 从环境变量中获取云盘端口号
 const cloudPort = process.env.CLOUD_BACKEND_PORT;
+
+/**
+ * POST /api/ppt/sso-token
+ * Generate SSO token for LandPPT iframe integration
+ */
+router.post("/sso-token", authorize(["0", "1", "2", "3", "4"]), (req, res) => {
+  try {
+    const { username, user_id, role } = req.body;
+    if (!user_id) {
+      return res.status(400).json({ code: 400, message: "Missing user_id" });
+    }
+
+    // Fallback username to user_id if not provided
+    const finalUsername = username || `user_${user_id}`;
+
+    const token = jwt.sign(
+      { username: finalUsername, user_id, role, iat: Math.floor(Date.now() / 1000) },
+      SSO_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return res.json({ token });
+  } catch (error) {
+    console.error("SSO token generation error:", error);
+    return res.status(500).json({ code: 500, message: "Failed to generate SSO token" });
+  }
+});
 
 /**
  * POST /api/ppt/generateAndDownloadPpt

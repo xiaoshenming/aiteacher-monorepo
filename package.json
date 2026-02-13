@@ -5,7 +5,7 @@
   "description": "AI Teacher - Monorepo with Nx",
   "scripts": {
     "dev": "concurrently --names \"MAIN,CLOUD,FRONT,ASR,NX\" --prefix-colors \"bgBlue.bold,bgMagenta.bold,bgGreen.bold,bgYellow.bold,bgCyan.bold\" --prefix \"[{name}]\" --timestamp-format \"HH:mm:ss\" --prefix-length 10 \"pnpm --filter @aiteacher/backend-main run dev\" \"pnpm --filter @aiteacher/backend-cloud run dev\" \"pnpm --filter @aiteacher/frontend run dev\" \"pnpm --filter @aiteacher/service-asr run dev\" \"nx graph --port=10004\"",
-    "dev:nx": "nx run-many --target=dev --parallel=4",
+    "dev:nx": "nx run-many --target=dev --parallel=5",
     "dev:native": "pnpm -r --parallel --filter './apps/**' run dev",
     "dev:backend": "concurrently --names \"MAIN,CLOUD\" --prefix-colors \"bgBlue.bold,bgMagenta.bold\" --prefix \"[{name}]\" \"pnpm --filter @aiteacher/backend-main run dev\" \"pnpm --filter @aiteacher/backend-cloud run dev\"",
     "dev:frontend": "pnpm --filter @aiteacher/frontend run dev",

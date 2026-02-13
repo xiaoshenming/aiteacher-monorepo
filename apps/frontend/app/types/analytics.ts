@@ -77,3 +77,27 @@ export interface DateRange {
   startDate: string
   endDate: string
 }
+
+// PPT AI 使用量统计
+export interface PPTUsageStats {
+  total_calls: number
+  total_input_tokens: number
+  total_output_tokens: number
+  total_tokens: number
+  success_count: number
+  failure_count: number
+}
+
+export interface PPTUsageByModel {
+  provider: string
+  model: string
+  call_count: number
+  total_tokens: number
+  avg_duration_ms: number
+}
+
+export interface PPTUsageByAction {
+  action: string
+  call_count: number
+  total_tokens: number
+}

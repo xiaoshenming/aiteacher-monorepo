@@ -17,6 +17,7 @@ from .api.database_api import router as database_router
 from .api.global_master_template_api import router as template_api_router
 from .api.config_api import router as config_router
 from .api.image_api import router as image_router
+from .api.usage_api import router as usage_router
 
 from .web import router as web_router
 from .auth import auth_router, create_auth_middleware
@@ -88,6 +89,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# Add middleware to allow iframe embedding from aiteacher frontend
+@app.middleware("http")
+async def add_embed_headers(request, call_next):
+    response = await call_next(request)
+    # Allow embedding in iframe from aiteacher frontend
+    response.headers["X-Frame-Options"] = "ALLOWALL"
+    response.headers["Content-Security-Policy"] = "frame-ancestors *"
+    return response
+
 # Add authentication middleware
 auth_middleware = create_auth_middleware()
 app.middleware("http")(auth_middleware)
@@ -96,6 +107,7 @@ app.middleware("http")(auth_middleware)
 app.include_router(auth_router, prefix="", tags=["Authentication"])
 app.include_router(config_router, prefix="", tags=["Configuration Management"])
 app.include_router(image_router, prefix="", tags=["Image Service"])
+app.include_router(usage_router, prefix="", tags=["AI Usage Statistics"])
 
 # Web router must come before landppt_router to ensure specific endpoints take precedence
 app.include_router(web_router, prefix="", tags=["Web Interface"])

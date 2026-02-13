@@ -51,6 +51,7 @@ export default defineNuxtConfig({
     public: {
       apiBase: 'http://localhost:10001/api/',
       apiCloud: 'http://localhost:10002/api/',
+      landpptBase: 'http://localhost:10006',
     },
   },
 

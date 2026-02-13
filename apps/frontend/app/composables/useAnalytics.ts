@@ -8,6 +8,9 @@ import type {
   Recommendation,
   PopularFunction,
   DateRange,
+  PPTUsageStats,
+  PPTUsageByModel,
+  PPTUsageByAction,
 } from '~/types/analytics'
 
 /**
@@ -103,6 +106,53 @@ export function useAnalytics() {
     }))
   }
 
+  // --- PPT (LandPPT) AI Usage ---
+
+  async function fetchPPTUsageStats(userId: string, dateRange?: DateRange): Promise<PPTUsageStats> {
+    const config = useRuntimeConfig()
+    const landpptBase = config.public.landpptBase as string
+    const params: Record<string, string> = { user_id: userId }
+    if (dateRange) {
+      params.start_time = String(new Date(dateRange.startDate).getTime() / 1000)
+      params.end_time = String(new Date(dateRange.endDate).getTime() / 1000)
+    }
+    const query = new URLSearchParams(params).toString()
+    const res = await $fetch<{ success: boolean, stats: PPTUsageStats }>(
+      `${landpptBase}/api/usage/stats?${query}`,
+    )
+    return res.stats
+  }
+
+  async function fetchPPTUsageByModel(userId: string, dateRange?: DateRange): Promise<PPTUsageByModel[]> {
+    const config = useRuntimeConfig()
+    const landpptBase = config.public.landpptBase as string
+    const params: Record<string, string> = { user_id: userId }
+    if (dateRange) {
+      params.start_time = String(new Date(dateRange.startDate).getTime() / 1000)
+      params.end_time = String(new Date(dateRange.endDate).getTime() / 1000)
+    }
+    const query = new URLSearchParams(params).toString()
+    const res = await $fetch<{ success: boolean, by_model: PPTUsageByModel[] }>(
+      `${landpptBase}/api/usage/by-model?${query}`,
+    )
+    return res.by_model
+  }
+
+  async function fetchPPTUsageByAction(userId: string, dateRange?: DateRange): Promise<PPTUsageByAction[]> {
+    const config = useRuntimeConfig()
+    const landpptBase = config.public.landpptBase as string
+    const params: Record<string, string> = { user_id: userId }
+    if (dateRange) {
+      params.start_time = String(new Date(dateRange.startDate).getTime() / 1000)
+      params.end_time = String(new Date(dateRange.endDate).getTime() / 1000)
+    }
+    const query = new URLSearchParams(params).toString()
+    const res = await $fetch<{ success: boolean, by_action: PPTUsageByAction[] }>(
+      `${landpptBase}/api/usage/by-action?${query}`,
+    )
+    return res.by_action
+  }
+
   return {
     fetchDashboard,
     fetchPrepareStats,
@@ -110,5 +160,8 @@ export function useAnalytics() {
     fetchLearningStats,
     fetchRecommendations,
     fetchPopularFunctions,
+    fetchPPTUsageStats,
+    fetchPPTUsageByModel,
+    fetchPPTUsageByAction,
   }
 }

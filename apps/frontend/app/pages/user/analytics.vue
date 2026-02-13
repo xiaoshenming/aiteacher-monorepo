@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DashboardData, AIUsageStats, Recommendation, PopularFunction } from '~/types/analytics'
+import type { DashboardData, AIUsageStats, Recommendation, PopularFunction, PPTUsageStats, PPTUsageByModel, PPTUsageByAction } from '~/types/analytics'
 
 const userStore = useUserStore()
 const analytics = useAnalytics()
@@ -9,6 +9,11 @@ const dashboard = ref<DashboardData | null>(null)
 const aiUsage = ref<AIUsageStats | null>(null)
 const recommendations = ref<Recommendation[]>([])
 const popularFunctions = ref<PopularFunction[]>([])
+
+// PPT usage data
+const pptUsage = ref<PPTUsageStats | null>(null)
+const pptByModel = ref<PPTUsageByModel[]>([])
+const pptByAction = ref<PPTUsageByAction[]>([])
 
 // 日期范围
 const dateRangeOptions = [
@@ -37,17 +42,23 @@ async function loadData(): Promise<void> {
   const dateRange = getDateRange(selectedRange.value)
 
   try {
-    const [dashboardRes, aiUsageRes, recsRes, popularRes] = await Promise.allSettled([
+    const [dashboardRes, aiUsageRes, recsRes, popularRes, pptUsageRes, pptModelRes, pptActionRes] = await Promise.allSettled([
       analytics.fetchDashboard(userId, userType),
       analytics.fetchAIUsageStats(userId, dateRange),
       analytics.fetchRecommendations(userId),
       analytics.fetchPopularFunctions(),
+      analytics.fetchPPTUsageStats(userId, dateRange),
+      analytics.fetchPPTUsageByModel(userId, dateRange),
+      analytics.fetchPPTUsageByAction(userId, dateRange),
     ])
 
     if (dashboardRes.status === 'fulfilled') dashboard.value = dashboardRes.value
     if (aiUsageRes.status === 'fulfilled') aiUsage.value = aiUsageRes.value
     if (recsRes.status === 'fulfilled') recommendations.value = recsRes.value
     if (popularRes.status === 'fulfilled') popularFunctions.value = popularRes.value
+    if (pptUsageRes.status === 'fulfilled') pptUsage.value = pptUsageRes.value
+    if (pptModelRes.status === 'fulfilled') pptByModel.value = pptModelRes.value
+    if (pptActionRes.status === 'fulfilled') pptByAction.value = pptActionRes.value
   }
   finally {
     loading.value = false
@@ -67,6 +78,18 @@ function formatTokens(tokens: number): string {
 function formatMinutes(minutes: number): string {
   if (minutes >= 60) return `${(minutes / 60).toFixed(1)}`
   return minutes.toString()
+}
+
+// PPT action label mapping
+function pptActionLabel(action: string): string {
+  const map: Record<string, string> = {
+    generate_outline: '生成大纲',
+    generate_slide: '生成幻灯片',
+    generate_image: '生成图片',
+    refine_content: '优化内容',
+    translate: '翻译',
+  }
+  return map[action] || action
 }
 </script>
 
@@ -179,6 +202,86 @@ function formatMinutes(minutes: number): string {
             :recommendations="recommendations"
             :loading="loading"
           />
+        </div>
+
+        <!-- PPT AI 使用量统计 -->
+        <div
+          v-if="pptUsage"
+          class="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-5"
+        >
+          <div class="flex items-center gap-2 mb-4">
+            <UIcon name="i-lucide-presentation" class="size-5 text-primary" />
+            <h3 class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+              PPT 生成 AI 用量
+            </h3>
+          </div>
+
+          <!-- PPT stat cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+            <div class="text-center">
+              <p class="text-2xl font-bold text-teal-500">
+                {{ pptUsage.total_calls }}
+              </p>
+              <p class="text-xs text-zinc-400 mt-1">AI 调用次数</p>
+            </div>
+            <div class="text-center">
+              <p class="text-2xl font-bold text-indigo-500">
+                {{ formatTokens(pptUsage.total_tokens) }}
+              </p>
+              <p class="text-xs text-zinc-400 mt-1">Token 消耗</p>
+            </div>
+            <div class="text-center">
+              <p class="text-2xl font-bold text-green-500">
+                {{ pptUsage.success_count }}
+              </p>
+              <p class="text-xs text-zinc-400 mt-1">成功次数</p>
+            </div>
+            <div class="text-center">
+              <p class="text-2xl font-bold text-rose-500">
+                {{ pptUsage.failure_count }}
+              </p>
+              <p class="text-xs text-zinc-400 mt-1">失败次数</p>
+            </div>
+          </div>
+
+          <!-- PPT by model + by action -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- By model -->
+            <div v-if="pptByModel.length" class="rounded-lg border border-zinc-100 dark:border-zinc-700 p-3">
+              <p class="text-xs font-medium text-muted mb-2">按模型分布</p>
+              <div class="space-y-2">
+                <div
+                  v-for="item in pptByModel"
+                  :key="`${item.provider}-${item.model}`"
+                  class="flex items-center justify-between text-xs"
+                >
+                  <span class="text-highlighted truncate max-w-[60%]">{{ item.provider }}/{{ item.model }}</span>
+                  <div class="flex items-center gap-3 text-muted">
+                    <span>{{ item.call_count }}次</span>
+                    <span>{{ formatTokens(item.total_tokens) }} tokens</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- By action -->
+            <div v-if="pptByAction.length" class="rounded-lg border border-zinc-100 dark:border-zinc-700 p-3">
+              <p class="text-xs font-medium text-muted mb-2">按操作类型</p>
+              <div class="space-y-2">
+                <div
+                  v-for="item in pptByAction"
+                  :key="item.action"
+                  class="flex items-center justify-between text-xs"
+                >
+                  <span class="text-highlighted">{{ pptActionLabel(item.action) }}</span>
+                  <div class="flex items-center gap-3 text-muted">
+                    <span>{{ item.call_count }}次</span>
+                    <span>{{ formatTokens(item.total_tokens) }} tokens</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- 学生角色: 学习统计 -->

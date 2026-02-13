@@ -3,10 +3,13 @@ Authentication routes for LandPPT
 """
 
 from fastapi import APIRouter, Request, Form, Depends, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
+from typing import Optional
 import logging
+from jose import jwt as jose_jwt, JWTError
 
 from .auth_service import get_auth_service, AuthService
 from .middleware import get_current_user_optional, get_current_user_required, get_current_user
@@ -241,3 +244,82 @@ async def api_check_auth(
         "authenticated": user is not None,
         "user": user.to_dict() if user else None
     }
+
+
+class SSORequest(BaseModel):
+    """SSO login request from aiteacher frontend"""
+    token: str  # JWT token from aiteacher
+    username: str
+    user_id: str
+    role: Optional[str] = None
+
+
+# SSO shared secret - should match the one in backend-main
+SSO_SECRET = "aiteacher-landppt-sso-secret-2024"
+
+
+@router.post("/api/auth/sso")
+async def api_sso_login(
+    request: Request,
+    sso_req: SSORequest,
+    db: Session = Depends(get_db),
+    auth_service: AuthService = Depends(get_auth_service)
+):
+    """
+    SSO endpoint for aiteacher frontend integration.
+    Receives a JWT token from aiteacher, validates it,
+    and creates/finds a matching LandPPT user with a session.
+    """
+    try:
+        # Verify the SSO token
+        try:
+            payload = jose_jwt.decode(sso_req.token, SSO_SECRET, algorithms=["HS256"])
+        except JWTError as e:
+            raise HTTPException(status_code=401, detail=f"Invalid SSO token: {str(e)}")
+
+        # Validate payload matches request
+        if payload.get("username") != sso_req.username or str(payload.get("user_id")) != str(sso_req.user_id):
+            raise HTTPException(status_code=401, detail="Token payload mismatch")
+
+        # Find or create user in LandPPT
+        sso_username = f"sso_{sso_req.user_id}_{sso_req.username}"
+        user = auth_service.get_user_by_username(db, sso_username)
+
+        if not user:
+            # Create new user for this SSO identity
+            is_admin = sso_req.role == "4"  # superadmin in aiteacher
+            user = auth_service.create_user(
+                db=db,
+                username=sso_username,
+                password=f"sso_auto_{sso_req.user_id}",  # Not used for SSO login
+                is_admin=is_admin
+            )
+            logger.info(f"Created SSO user: {sso_username} (admin={is_admin})")
+
+        # Create session
+        session_id = auth_service.create_session(db, user)
+
+        # Return session info
+        response = JSONResponse(content={
+            "success": True,
+            "session_id": session_id,
+            "user": user.to_dict()
+        })
+
+        # Also set cookie for iframe usage
+        response.set_cookie(
+            key="session_id",
+            value=session_id,
+            max_age=86400,  # 24 hours
+            httponly=True,
+            secure=False,
+            samesite="none"  # Required for cross-origin iframe
+        )
+
+        return response
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"SSO login error: {e}")
+        raise HTTPException(status_code=500, detail=f"SSO login failed: {str(e)}")
