@@ -302,6 +302,10 @@ class DEEPResearchService:
 
         except Exception as e:
             logger.error(f"Tavily search failed for query '{query}': {e}")
+            # Auto-disable if API key is invalid/unauthorized
+            if "unauthorized" in str(e).lower() or "invalid api key" in str(e).lower():
+                logger.warning("Tavily API key is invalid, disabling research service")
+                self.tavily_client = None
             return []
 
     async def _analyze_search_results(self, query: str, description: str,

@@ -71,9 +71,10 @@ class AuthMiddleware:
             response = await call_next(request)
             return response
         
-        # Get session from cookie
-        session_id = request.cookies.get("session_id")
-        
+        # Get session from cookie or query parameter (for iframe embedding)
+        session_id = request.cookies.get("session_id") or request.query_params.get("session_id")
+        session_from_query = not request.cookies.get("session_id") and request.query_params.get("session_id")
+
         if not session_id:
             # No session, redirect to login
             if path.startswith("/api/"):
@@ -114,6 +115,19 @@ class AuthMiddleware:
 
                 # Continue with request
                 response = await call_next(request)
+
+                # If session was from query param, set cookie so subsequent
+                # requests (internal navigation, AJAX) are authenticated
+                if session_from_query:
+                    response.set_cookie(
+                        key="session_id",
+                        value=session_id,
+                        max_age=86400,
+                        httponly=True,
+                        secure=False,
+                        samesite="lax"
+                    )
+
                 return response
 
             finally:
@@ -160,7 +174,7 @@ def get_current_user_optional(
     Get current user if authenticated, None otherwise.
     For use with FastAPI dependency injection.
     """
-    session_id = request.cookies.get("session_id")
+    session_id = request.cookies.get("session_id") or request.query_params.get("session_id")
     if not session_id:
         return None
 
