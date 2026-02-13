@@ -1141,6 +1141,9 @@
                                         <option value="openai_image" {% if
                                             current_config.get('default_ai_image_provider')=='openai_image' %}selected{%
                                             endif %}>OpenAI 图片生成</option>
+                                        <option value="dashscope" {% if
+                                            current_config.get('default_ai_image_provider')=='dashscope' %}selected{%
+                                            endif %}>DashScope (阿里云百炼)</option>
                                     </select>
                                     <small
                                         style="color: #6c757d; margin-top: 5px; display: block;">选择默认的AI图片生成服务</small>
