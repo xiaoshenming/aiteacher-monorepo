@@ -43,3 +43,11 @@ logs/
 # Models (too large for git)
 apps/service-asr/models/
 docs
+
+# LandPPT runtime files
+apps/LandPPT/*.db
+apps/LandPPT/temp/
+apps/LandPPT/research_reports/
+
+# Misc
+*.png
