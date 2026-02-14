@@ -2,12 +2,15 @@
  * Composable for LandPPT SSO integration
  * Handles token generation and iframe session management
  */
+
+// Shared state across all useLandPPT() calls
+const ssoReady = ref(false)
+const ssoError = ref<string | null>(null)
+const sessionId = ref<string | null>(null)
+
 export function useLandPPT() {
   const config = useRuntimeConfig()
   const userStore = useUserStore()
-  const ssoReady = ref(false)
-  const ssoError = ref<string | null>(null)
-  const sessionId = ref<string | null>(null)
 
   /**
    * Perform SSO login to LandPPT

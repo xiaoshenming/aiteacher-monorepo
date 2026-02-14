@@ -44,6 +44,7 @@ class EnhancedPPTService(PPTService):
     def __init__(self, provider_name: Optional[str] = None):
         super().__init__()
         self.provider_name = provider_name
+        self._current_user_id: Optional[int] = None
         self.project_manager = DatabaseProjectManager()
         self.global_template_service = GlobalMasterTemplateService(provider_name)
 
@@ -211,11 +212,77 @@ class EnhancedPPTService(PPTService):
         """获取指定任务角色的提供者和配置"""
         return get_role_provider(role, provider_override=self.provider_name)
 
+    @staticmethod
+    def _estimate_tokens(text: str) -> int:
+        """估算文本的 token 数（当 API 不返回 token 信息时使用）。
+        中文约 1 token ≈ 1.5 字符，英文约 1 token ≈ 4 字符，取混合估算。"""
+        if not text:
+            return 0
+        chinese_chars = sum(1 for c in text if '\u4e00' <= c <= '\u9fff')
+        other_chars = len(text) - chinese_chars
+        return int(chinese_chars / 1.5 + other_chars / 4)
+
+    def _log_ai_usage(self, role: str, provider_name: Optional[str], model: Optional[str], usage: Dict[str, int],
+                      success: bool = True, error_message: Optional[str] = None,
+                      duration_ms: Optional[int] = None,
+                      user_id: Optional[int] = None, project_id: Optional[str] = None,
+                      action: Optional[str] = None,
+                      input_text: Optional[str] = None, output_text: Optional[str] = None):
+        """记录 AI 调用的 token 使用量到数据库（同步，后台执行不阻塞主流程）。
+        当 API 不返回 token 信息时，根据 input_text/output_text 估算。"""
+        try:
+            from ..database.database import SessionLocal
+            from ..database.models import AIUsageLog
+
+            input_tokens = usage.get("prompt_tokens", 0)
+            output_tokens = usage.get("completion_tokens", 0)
+            total_tokens = usage.get("total_tokens", 0)
+
+            # 当 API 未返回 token 数据时，用文本长度估算
+            if total_tokens == 0 and (input_text or output_text):
+                if input_tokens == 0 and input_text:
+                    input_tokens = self._estimate_tokens(input_text)
+                if output_tokens == 0 and output_text:
+                    output_tokens = self._estimate_tokens(output_text)
+                total_tokens = input_tokens + output_tokens
+
+            log_entry = AIUsageLog(
+                user_id=user_id or self._current_user_id or 0,
+                project_id=project_id,
+                action=action or role,
+                provider=provider_name or "unknown",
+                model=model or "unknown",
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                total_tokens=total_tokens,
+                success=success,
+                error_message=error_message,
+                duration_ms=duration_ms,
+                created_at=time.time()
+            )
+            db = SessionLocal()
+            try:
+                db.add(log_entry)
+                db.commit()
+            finally:
+                db.close()
+        except Exception as e:
+            logger.warning(f"Failed to log AI usage: {e}")
+
     async def _text_completion_for_role(self, role: str, *, prompt: str, **kwargs):
         """调用指定角色的模型进行文本补全"""
+        # 提取日志相关参数，不传给 AI provider
+        log_user_id = kwargs.pop("_user_id", None)
+        log_project_id = kwargs.pop("_project_id", None)
+        log_action = kwargs.pop("_action", None)
+
         provider, settings = self._get_role_provider(role)
         if settings.get("model"):
             kwargs.setdefault("model", settings["model"])
+
+        provider_name = settings.get("provider", "unknown")
+        model_name = settings.get("model", "unknown")
+        start_time = time.time()
 
         # For outline generation with Anthropic, use streaming to avoid timeout
         if role == "outline" and settings.get("provider") == "anthropic":
@@ -224,24 +291,71 @@ class EnhancedPPTService(PPTService):
             async for chunk in provider.stream_text_completion(prompt=prompt, **kwargs):
                 full_response += chunk
 
+            duration_ms = int((time.time() - start_time) * 1000)
+            usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+
+            # 记录使用量
+            self._log_ai_usage(
+                role=role, provider_name=provider_name, model=model_name,
+                usage=usage, duration_ms=duration_ms,
+                user_id=log_user_id, project_id=log_project_id, action=log_action,
+                input_text=prompt, output_text=full_response
+            )
+
             # Return a mock AIResponse-like object with the collected content
             from ..ai.base import AIResponse
             return AIResponse(
                 content=full_response,
                 model=settings.get("model", "anthropic"),
-                usage={"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+                usage=usage,
                 finish_reason="stop",
                 metadata={"provider": "anthropic", "streamed": True}
             )
 
-        return await provider.text_completion(prompt=prompt, **kwargs)
+        response = await provider.text_completion(prompt=prompt, **kwargs)
+        duration_ms = int((time.time() - start_time) * 1000)
+
+        # 记录使用量
+        self._log_ai_usage(
+            role=role, provider_name=provider_name, model=response.model or model_name,
+            usage=response.usage, duration_ms=duration_ms,
+            user_id=log_user_id, project_id=log_project_id, action=log_action,
+            input_text=prompt, output_text=response.content
+        )
+
+        return response
 
     async def _chat_completion_for_role(self, role: str, *, messages: List[AIMessage], **kwargs):
         """调用指定角色的模型进行对话补全"""
+        # 提取日志相关参数
+        log_user_id = kwargs.pop("_user_id", None)
+        log_project_id = kwargs.pop("_project_id", None)
+        log_action = kwargs.pop("_action", None)
+
         provider, settings = self._get_role_provider(role)
         if settings.get("model"):
             kwargs.setdefault("model", settings["model"])
-        return await provider.chat_completion(messages=messages, **kwargs)
+
+        provider_name = settings.get("provider", "unknown")
+        model_name = settings.get("model", "unknown")
+        start_time = time.time()
+
+        response = await provider.chat_completion(messages=messages, **kwargs)
+        duration_ms = int((time.time() - start_time) * 1000)
+
+        # 记录使用量
+        input_text = " ".join(
+            msg.content if isinstance(msg.content, str) else str(msg.content)
+            for msg in messages
+        )
+        self._log_ai_usage(
+            role=role, provider_name=provider_name, model=response.model or model_name,
+            usage=response.usage, duration_ms=duration_ms,
+            user_id=log_user_id, project_id=log_project_id, action=log_action,
+            input_text=input_text, output_text=response.content
+        )
+
+        return response
 
     def update_ai_config(self):
         """更新AI配置到最新状态"""
@@ -1019,11 +1133,11 @@ Please fully utilize the above research information to enrich the PPT content, e
         )
 
     # New project-based methods
-    async def create_project_with_workflow(self, request: PPTGenerationRequest) -> PPTProject:
+    async def create_project_with_workflow(self, request: PPTGenerationRequest, user_id: int = None) -> PPTProject:
         """Create a new project with complete TODO workflow"""
         try:
             # Create project with TODO board
-            project = await self.project_manager.create_project(request)
+            project = await self.project_manager.create_project(request, user_id=user_id)
 
             # Start the workflow
             await self._execute_project_workflow(project.project_id, request)

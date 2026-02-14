@@ -2,7 +2,7 @@
 LandPPT specific API endpoints
 """
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Request
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Request, Depends
 from typing import List, Optional
 import uuid
 import json
@@ -20,6 +20,8 @@ from ..services.file_processor import FileProcessor
 from ..services.deep_research_service import DEEPResearchService
 from ..services.research_report_generator import ResearchReportGenerator
 from ..core.config import ai_config
+from ..auth.middleware import get_current_user_required
+from ..database.models import User
 
 
 def filter_think_tags(content: str) -> str:
@@ -382,20 +384,20 @@ async def generate_outline(request: PPTGenerationRequest):
 # New Project Management Endpoints
 
 @router.post("/projects", response_model=PPTProject)
-async def create_project(request: PPTGenerationRequest):
+async def create_project(request: PPTGenerationRequest, user: User = Depends(get_current_user_required)):
     """Create a new PPT project with TODO workflow"""
     try:
-        project = await ppt_service.create_project_with_workflow(request)
+        project = await ppt_service.create_project_with_workflow(request, user_id=user.id)
         return project
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating project: {str(e)}")
 
 @router.get("/projects", response_model=ProjectListResponse)
-async def list_projects(page: int = 1, page_size: int = 10, status: Optional[str] = None):
+async def list_projects(page: int = 1, page_size: int = 10, status: Optional[str] = None, user: User = Depends(get_current_user_required)):
     """List projects with pagination"""
     try:
-        return await ppt_service.project_manager.list_projects(page, page_size, status)
+        return await ppt_service.project_manager.list_projects(page, page_size, status, user_id=user.id)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error listing projects: {str(e)}")
@@ -625,7 +627,8 @@ async def create_project_from_upload(
     topic: Optional[str] = Form(None),
     scenario: Optional[str] = Form(None),
     requirements: Optional[str] = Form(None),
-    language: str = Form("zh")
+    language: str = Form("zh"),
+    user: User = Depends(get_current_user_required)
 ):
     """Upload file and create project directly"""
     try:
@@ -665,7 +668,7 @@ async def create_project_from_upload(
             project_request = PPTGenerationRequest(**ppt_data)
 
             # Create project with workflow
-            project = await ppt_service.create_project_with_workflow(project_request)
+            project = await ppt_service.create_project_with_workflow(project_request, user_id=user.id)
 
             return project
 
@@ -900,7 +903,7 @@ async def upload_file_and_generate_outline(
 
 
 @router.post("/projects/{project_id}/select-template", response_model=TemplateSelectionResponse)
-async def select_global_template_for_project(project_id: str, request: TemplateSelectionRequest):
+async def select_global_template_for_project(project_id: str, request: TemplateSelectionRequest, user: User = Depends(get_current_user_required)):
     """为项目选择全局母版模板"""
     try:
         # 验证项目ID匹配
@@ -927,7 +930,7 @@ async def select_global_template_for_project(project_id: str, request: TemplateS
 
 
 @router.get("/projects/{project_id}/selected-template")
-async def get_selected_global_template(project_id: str):
+async def get_selected_global_template(project_id: str, user: User = Depends(get_current_user_required)):
     """获取项目选择的全局母版模板"""
     try:
         template = await ppt_service.get_selected_global_template(project_id)

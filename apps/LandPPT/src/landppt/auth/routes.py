@@ -313,7 +313,7 @@ async def api_sso_login(
             max_age=86400,  # 24 hours
             httponly=True,
             secure=False,
-            samesite="none"  # Required for cross-origin iframe
+            samesite="lax"
         )
 
         return response

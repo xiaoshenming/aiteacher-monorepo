@@ -32,11 +32,11 @@ class DatabaseProjectManager:
         session = AsyncSessionLocal()
         return DatabaseService(session)
     
-    async def create_project(self, request: PPTGenerationRequest) -> PPTProject:
+    async def create_project(self, request: PPTGenerationRequest, user_id: Optional[int] = None) -> PPTProject:
         """Create a new PPT project with TODO board"""
         db_service = await self._get_db_service()
         try:
-            project = await db_service.create_project(request)
+            project = await db_service.create_project(request, user_id=user_id)
             logger.info(f"Created project {project.project_id}: {project.title}")
             return project
         finally:
@@ -87,11 +87,11 @@ class DatabaseProjectManager:
             await db_service.session.close()
     
     async def list_projects(self, page: int = 1, page_size: int = 10,
-                          status: Optional[str] = None) -> ProjectListResponse:
-        """List projects with pagination"""
+                          status: Optional[str] = None, user_id: Optional[int] = None) -> ProjectListResponse:
+        """List projects with pagination, optionally filtered by user_id"""
         db_service = await self._get_db_service()
         try:
-            return await db_service.list_projects(page, page_size, status)
+            return await db_service.list_projects(page, page_size, status, user_id=user_id)
         finally:
             await db_service.session.close()
     

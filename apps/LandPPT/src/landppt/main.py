@@ -58,6 +58,12 @@ async def startup_event():
         await init_db()
         logger.info("Database initialized successfully")
 
+        # Run pending migrations
+        from .database.migrations import migration_manager
+        logger.info("Running database migrations...")
+        await migration_manager.migrate_up()
+        logger.info("Database migrations completed")
+
         # Only import templates if database file didn't exist before (first time setup)
         if not db_exists:
             logger.info("First time setup detected - importing templates from examples...")
@@ -83,7 +89,12 @@ async def shutdown_event():
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify actual origins
+    allow_origins=[
+        "http://localhost:10003",
+        "http://127.0.0.1:10003",
+        "http://localhost:10006",
+        "http://127.0.0.1:10006",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

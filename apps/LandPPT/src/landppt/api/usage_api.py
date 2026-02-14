@@ -13,6 +13,7 @@ from pydantic import BaseModel
 
 from ..database.database import get_db
 from ..database.models import AIUsageLog, User
+from ..auth.middleware import get_current_user_required
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -65,12 +66,12 @@ async def log_ai_usage(
 
 @router.get("/api/usage/stats")
 async def get_usage_stats(
-    user_id: Optional[int] = Query(None, description="Filter by user ID"),
     start_time: Optional[float] = Query(None, description="Start timestamp"),
     end_time: Optional[float] = Query(None, description="End timestamp"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user_required)
 ):
-    """Get aggregated AI usage statistics"""
+    """Get aggregated AI usage statistics for the authenticated user"""
     try:
         query = db.query(
             func.count(AIUsageLog.id).label("total_calls"),
@@ -87,17 +88,13 @@ async def get_usage_stats(
             )).label("failure_count"),
         )
 
-        filters = []
-        if user_id is not None:
-            filters.append(AIUsageLog.user_id == user_id)
+        filters = [AIUsageLog.user_id == user.id]
         if start_time is not None:
             filters.append(AIUsageLog.created_at >= start_time)
         if end_time is not None:
             filters.append(AIUsageLog.created_at <= end_time)
 
-        if filters:
-            query = query.filter(and_(*filters))
-
+        query = query.filter(and_(*filters))
         result = query.first()
 
         return {
@@ -118,27 +115,24 @@ async def get_usage_stats(
 
 @router.get("/api/usage/details")
 async def get_usage_details(
-    user_id: Optional[int] = Query(None, description="Filter by user ID"),
     start_time: Optional[float] = Query(None, description="Start timestamp"),
     end_time: Optional[float] = Query(None, description="End timestamp"),
     limit: int = Query(100, description="Max results"),
     offset: int = Query(0, description="Offset"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user_required)
 ):
-    """Get detailed AI usage logs"""
+    """Get detailed AI usage logs for the authenticated user"""
     try:
         query = db.query(AIUsageLog)
 
-        filters = []
-        if user_id is not None:
-            filters.append(AIUsageLog.user_id == user_id)
+        filters = [AIUsageLog.user_id == user.id]
         if start_time is not None:
             filters.append(AIUsageLog.created_at >= start_time)
         if end_time is not None:
             filters.append(AIUsageLog.created_at <= end_time)
 
-        if filters:
-            query = query.filter(and_(*filters))
+        query = query.filter(and_(*filters))
 
         total = query.count()
         logs = query.order_by(AIUsageLog.created_at.desc()).offset(offset).limit(limit).all()
@@ -172,12 +166,12 @@ async def get_usage_details(
 
 @router.get("/api/usage/by-model")
 async def get_usage_by_model(
-    user_id: Optional[int] = Query(None, description="Filter by user ID"),
     start_time: Optional[float] = Query(None, description="Start timestamp"),
     end_time: Optional[float] = Query(None, description="End timestamp"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user_required)
 ):
-    """Get AI usage grouped by provider/model"""
+    """Get AI usage grouped by provider/model for the authenticated user"""
     try:
         query = db.query(
             AIUsageLog.provider,
@@ -187,17 +181,13 @@ async def get_usage_by_model(
             func.avg(AIUsageLog.duration_ms).label("avg_duration_ms"),
         ).group_by(AIUsageLog.provider, AIUsageLog.model)
 
-        filters = []
-        if user_id is not None:
-            filters.append(AIUsageLog.user_id == user_id)
+        filters = [AIUsageLog.user_id == user.id]
         if start_time is not None:
             filters.append(AIUsageLog.created_at >= start_time)
         if end_time is not None:
             filters.append(AIUsageLog.created_at <= end_time)
 
-        if filters:
-            query = query.filter(and_(*filters))
-
+        query = query.filter(and_(*filters))
         results = query.all()
 
         return {
@@ -220,12 +210,12 @@ async def get_usage_by_model(
 
 @router.get("/api/usage/by-action")
 async def get_usage_by_action(
-    user_id: Optional[int] = Query(None, description="Filter by user ID"),
     start_time: Optional[float] = Query(None, description="Start timestamp"),
     end_time: Optional[float] = Query(None, description="End timestamp"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user_required)
 ):
-    """Get AI usage grouped by action type"""
+    """Get AI usage grouped by action type for the authenticated user"""
     try:
         query = db.query(
             AIUsageLog.action,
@@ -233,17 +223,13 @@ async def get_usage_by_action(
             func.sum(AIUsageLog.total_tokens).label("total_tokens"),
         ).group_by(AIUsageLog.action)
 
-        filters = []
-        if user_id is not None:
-            filters.append(AIUsageLog.user_id == user_id)
+        filters = [AIUsageLog.user_id == user.id]
         if start_time is not None:
             filters.append(AIUsageLog.created_at >= start_time)
         if end_time is not None:
             filters.append(AIUsageLog.created_at <= end_time)
 
-        if filters:
-            query = query.filter(and_(*filters))
-
+        query = query.filter(and_(*filters))
         results = query.all()
 
         return {

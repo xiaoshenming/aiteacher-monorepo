@@ -108,47 +108,58 @@ export function useAnalytics() {
 
   // --- PPT (LandPPT) AI Usage ---
 
-  async function fetchPPTUsageStats(userId: string, dateRange?: DateRange): Promise<PPTUsageStats> {
+  function _getLandPPTSessionId(): string | null {
+    const landppt = useLandPPT()
+    return landppt.sessionId.value
+  }
+
+  async function fetchPPTUsageStats(_userId: string, dateRange?: DateRange): Promise<PPTUsageStats> {
     const config = useRuntimeConfig()
     const landpptBase = config.public.landpptBase as string
-    const params: Record<string, string> = { user_id: userId }
+    const params: Record<string, string> = {}
     if (dateRange) {
       params.start_time = String(new Date(dateRange.startDate).getTime() / 1000)
       params.end_time = String(new Date(dateRange.endDate).getTime() / 1000)
     }
+    const sid = _getLandPPTSessionId()
+    if (sid) params.session_id = sid
     const query = new URLSearchParams(params).toString()
     const res = await $fetch<{ success: boolean, stats: PPTUsageStats }>(
-      `${landpptBase}/api/usage/stats?${query}`,
+      `${landpptBase}/api/usage/stats${query ? `?${query}` : ''}`,
     )
     return res.stats
   }
 
-  async function fetchPPTUsageByModel(userId: string, dateRange?: DateRange): Promise<PPTUsageByModel[]> {
+  async function fetchPPTUsageByModel(_userId: string, dateRange?: DateRange): Promise<PPTUsageByModel[]> {
     const config = useRuntimeConfig()
     const landpptBase = config.public.landpptBase as string
-    const params: Record<string, string> = { user_id: userId }
+    const params: Record<string, string> = {}
     if (dateRange) {
       params.start_time = String(new Date(dateRange.startDate).getTime() / 1000)
       params.end_time = String(new Date(dateRange.endDate).getTime() / 1000)
     }
+    const sid = _getLandPPTSessionId()
+    if (sid) params.session_id = sid
     const query = new URLSearchParams(params).toString()
     const res = await $fetch<{ success: boolean, by_model: PPTUsageByModel[] }>(
-      `${landpptBase}/api/usage/by-model?${query}`,
+      `${landpptBase}/api/usage/by-model${query ? `?${query}` : ''}`,
     )
     return res.by_model
   }
 
-  async function fetchPPTUsageByAction(userId: string, dateRange?: DateRange): Promise<PPTUsageByAction[]> {
+  async function fetchPPTUsageByAction(_userId: string, dateRange?: DateRange): Promise<PPTUsageByAction[]> {
     const config = useRuntimeConfig()
     const landpptBase = config.public.landpptBase as string
-    const params: Record<string, string> = { user_id: userId }
+    const params: Record<string, string> = {}
     if (dateRange) {
       params.start_time = String(new Date(dateRange.startDate).getTime() / 1000)
       params.end_time = String(new Date(dateRange.endDate).getTime() / 1000)
     }
+    const sid = _getLandPPTSessionId()
+    if (sid) params.session_id = sid
     const query = new URLSearchParams(params).toString()
     const res = await $fetch<{ success: boolean, by_action: PPTUsageByAction[] }>(
-      `${landpptBase}/api/usage/by-action?${query}`,
+      `${landpptBase}/api/usage/by-action${query ? `?${query}` : ''}`,
     )
     return res.by_action
   }

@@ -39,28 +39,32 @@ class ProjectRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
     
-    async def list_projects(self, page: int = 1, page_size: int = 10, status: Optional[str] = None) -> List[Project]:
-        """List projects with pagination"""
+    async def list_projects(self, page: int = 1, page_size: int = 10, status: Optional[str] = None, user_id: Optional[int] = None) -> List[Project]:
+        """List projects with pagination, optionally filtered by user_id"""
         stmt = select(Project).options(
             selectinload(Project.todo_board).selectinload(TodoBoard.stages),
             selectinload(Project.versions),
             selectinload(Project.slides)
         )
-        
+
+        if user_id is not None:
+            stmt = stmt.where(Project.user_id == user_id)
         if status:
             stmt = stmt.where(Project.status == status)
-        
+
         stmt = stmt.order_by(Project.updated_at.desc())
         stmt = stmt.offset((page - 1) * page_size).limit(page_size)
-        
+
         result = await self.session.execute(stmt)
         return result.scalars().all()
-    
-    async def count_projects(self, status: Optional[str] = None) -> int:
-        """Count total projects"""
+
+    async def count_projects(self, status: Optional[str] = None, user_id: Optional[int] = None) -> int:
+        """Count total projects, optionally filtered by user_id"""
         from sqlalchemy import func
 
         stmt = select(func.count(Project.id))
+        if user_id is not None:
+            stmt = stmt.where(Project.user_id == user_id)
         if status:
             stmt = stmt.where(Project.status == status)
 

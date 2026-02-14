@@ -107,10 +107,10 @@ class DatabaseService:
             updated_at=db_project.updated_at
         )
     
-    async def create_project(self, request: PPTGenerationRequest) -> PPTProject:
+    async def create_project(self, request: PPTGenerationRequest, user_id: Optional[int] = None) -> PPTProject:
         """Create a new project with todo board"""
         project_id = str(uuid.uuid4())
-        
+
         # Create project
         project_data = {
             "project_id": project_id,
@@ -125,6 +125,9 @@ class DatabaseService:
                 "created_with_network_mode": request.network_mode
             }
         }
+
+        if user_id is not None:
+            project_data["user_id"] = user_id
         
         db_project = await self.project_repo.create(project_data)
         
@@ -181,11 +184,11 @@ class DatabaseService:
             return None
         return self._convert_db_project_to_api(db_project)
     
-    async def list_projects(self, page: int = 1, page_size: int = 10, 
-                          status: Optional[str] = None) -> ProjectListResponse:
-        """List projects with pagination"""
-        db_projects = await self.project_repo.list_projects(page, page_size, status)
-        total = await self.project_repo.count_projects(status)
+    async def list_projects(self, page: int = 1, page_size: int = 10,
+                          status: Optional[str] = None, user_id: Optional[int] = None) -> ProjectListResponse:
+        """List projects with pagination, optionally filtered by user_id"""
+        db_projects = await self.project_repo.list_projects(page, page_size, status, user_id=user_id)
+        total = await self.project_repo.count_projects(status, user_id=user_id)
         
         projects = [self._convert_db_project_to_api(db_project) for db_project in db_projects]
         

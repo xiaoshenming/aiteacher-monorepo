@@ -3,6 +3,7 @@ import type { DashboardData, AIUsageStats, Recommendation, PopularFunction, PPTU
 
 const userStore = useUserStore()
 const analytics = useAnalytics()
+const landppt = useLandPPT()
 
 const loading = ref(true)
 const dashboard = ref<DashboardData | null>(null)
@@ -42,6 +43,11 @@ async function loadData(): Promise<void> {
   const dateRange = getDateRange(selectedRange.value)
 
   try {
+    // Ensure LandPPT SSO session exists before fetching PPT usage data
+    if (!landppt.ssoReady.value) {
+      await landppt.ssoLogin()
+    }
+
     const [dashboardRes, aiUsageRes, recsRes, popularRes, pptUsageRes, pptModelRes, pptActionRes] = await Promise.allSettled([
       analytics.fetchDashboard(userId, userType),
       analytics.fetchAIUsageStats(userId, dateRange),

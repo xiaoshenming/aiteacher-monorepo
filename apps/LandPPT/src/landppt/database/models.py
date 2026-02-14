@@ -73,9 +73,10 @@ class UserSession(Base):
 class Project(Base):
     """Project model for storing PPT projects"""
     __tablename__ = "projects"
-    
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     project_id: Mapped[str] = mapped_column(String(36), unique=True, index=True)
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     scenario: Mapped[str] = mapped_column(String(100), nullable=False)
     topic: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -93,6 +94,7 @@ class Project(Base):
     updated_at: Mapped[float] = mapped_column(Float, default=time.time, onupdate=time.time)
     
     # Relationships
+    owner: Mapped[Optional["User"]] = relationship("User", foreign_keys=[user_id])
     todo_board: Mapped[Optional["TodoBoard"]] = relationship("TodoBoard", back_populates="project", uselist=False)
     versions: Mapped[List["ProjectVersion"]] = relationship("ProjectVersion", back_populates="project")
     slides: Mapped[List["SlideData"]] = relationship("SlideData", back_populates="project")

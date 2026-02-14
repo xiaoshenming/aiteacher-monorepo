@@ -247,6 +247,26 @@ async def _extract_slides_from_html(slides_html: str, existing_slides_data: list
         else:
             return []
 
+
+async def _verify_project_owner(project_id: str, user: User) -> None:
+    """Verify that the current user owns the project. Raises 403 if not.
+    Admin users can access all projects."""
+    if user.is_admin:
+        return
+    from ..database.database import AsyncSessionLocal
+    from ..database.repositories import ProjectRepository
+    session = AsyncSessionLocal()
+    try:
+        repo = ProjectRepository(session)
+        db_project = await repo.get_by_id(project_id)
+        if not db_project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        if db_project.user_id is not None and db_project.user_id != user.id:
+            raise HTTPException(status_code=403, detail="无权访问此项目")
+    finally:
+        await session.close()
+
+
 @router.get("/home", response_class=HTMLResponse)
 async def web_home(
     request: Request,
@@ -255,7 +275,7 @@ async def web_home(
     """Main web interface home page - redirect to dashboard for existing users"""
     # Check if user has projects, if so redirect to dashboard
     try:
-        projects_response = await ppt_service.project_manager.list_projects(page=1, page_size=1)
+        projects_response = await ppt_service.project_manager.list_projects(page=1, page_size=1, user_id=user.id)
         if projects_response.total > 0:
             # User has projects, redirect to dashboard
             from fastapi.responses import RedirectResponse
@@ -691,8 +711,8 @@ async def web_dashboard(
 ):
     """Project dashboard with overview"""
     try:
-        # Get project statistics
-        projects_response = await ppt_service.project_manager.list_projects(page=1, page_size=100)
+        # Get project statistics (filtered by current user)
+        projects_response = await ppt_service.project_manager.list_projects(page=1, page_size=100, user_id=user.id)
         projects = projects_response.projects
 
         total_projects = len(projects)
@@ -737,7 +757,7 @@ async def web_projects_list(
     """List all projects"""
     try:
         projects_response = await ppt_service.project_manager.list_projects(
-            page=page, page_size=10, status=status
+            page=page, page_size=10, status=status, user_id=user.id
         )
 
         return templates.TemplateResponse("projects_list.html", {
@@ -763,6 +783,7 @@ async def web_project_detail(
 ):
     """Project detail page"""
     try:
+        await _verify_project_owner(project_id, user)
         project = await ppt_service.project_manager.get_project(project_id)
         if not project:
             return templates.TemplateResponse("error.html", {
@@ -808,6 +829,8 @@ async def web_project_todo_board(
                 "request": request,
                 "error": error_msg
             })
+
+        await _verify_project_owner(project_id, user)
 
         # Check if project exists first
         project = await ppt_service.project_manager.get_project(project_id)
@@ -869,6 +892,7 @@ async def web_project_fullscreen(
 ):
     """Fullscreen preview of project PPT with modern presentation interface"""
     try:
+        await _verify_project_owner(project_id, user)
         # 直接从数据库获取最新的项目数据，确保数据实时性
         from ..services.db_project_manager import DatabaseProjectManager
         db_manager = DatabaseProjectManager()
@@ -1008,6 +1032,7 @@ async def get_project_slides_data(
 ):
     """获取项目最新的幻灯片数据 - 用于分享演示实时更新"""
     try:
+        await _verify_project_owner(project_id, user)
         # 直接从数据库获取最新数据
         from ..services.db_project_manager import DatabaseProjectManager
         db_manager = DatabaseProjectManager()
@@ -1045,6 +1070,7 @@ async def generate_share_link(
 ):
     """Generate a public share link for a project"""
     try:
+        await _verify_project_owner(project_id, user)
         from ..services.share_service import ShareService
         share_service = ShareService(db)
 
@@ -1214,7 +1240,7 @@ async def web_create_project(
         )
 
         # Create project with TODO board (without starting workflow yet)
-        project = await ppt_service.project_manager.create_project(project_request)
+        project = await ppt_service.project_manager.create_project(project_request, user_id=user.id)
 
         # Update project status to in_progress
         await ppt_service.project_manager.update_project_status(project.project_id, "in_progress")
@@ -1239,6 +1265,7 @@ async def start_project_workflow(
 ):
     """Start the AI workflow for a project (only if requirements are confirmed)"""
     try:
+        await _verify_project_owner(project_id, user)
         # Get project
         project = await ppt_service.project_manager.get_project(project_id)
         if not project:
@@ -1328,18 +1355,22 @@ async def stream_outline_generation(
 ):
     """Stream outline generation for a project"""
     try:
+        await _verify_project_owner(project_id, user)
         project = await ppt_service.project_manager.get_project(project_id)
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
 
         async def generate():
             try:
+                ppt_service._current_user_id = user.id
                 async for chunk in ppt_service.generate_outline_streaming(project_id):
                     yield chunk
             except Exception as e:
                 import json
                 error_response = {'error': str(e)}
                 yield f"data: {json.dumps(error_response)}\n\n"
+            finally:
+                ppt_service._current_user_id = None
 
         return StreamingResponse(generate(), media_type="text/plain")
 
@@ -1390,7 +1421,11 @@ async def generate_outline(
         page_count_settings = confirmed_requirements.get('page_count_settings', {})
 
         # Generate outline using AI with page count settings
-        outline = await ppt_service.generate_outline(project_request, page_count_settings)
+        ppt_service._current_user_id = user.id
+        try:
+            outline = await ppt_service.generate_outline(project_request, page_count_settings)
+        finally:
+            ppt_service._current_user_id = None
 
         # Convert outline to dict format
         outline_dict = {
@@ -1680,7 +1715,11 @@ async def generate_file_outline(
                         )
 
                         # Generate outline from file using summeryfile
-                        outline_response = await ppt_service.generate_outline_from_file(file_request)
+                        ppt_service._current_user_id = user.id
+                        try:
+                            outline_response = await ppt_service.generate_outline_from_file(file_request)
+                        finally:
+                            ppt_service._current_user_id = None
 
                         if outline_response.success and outline_response.outline:
                             # Format the generated outline
@@ -1762,6 +1801,7 @@ async def confirm_project_outline(
 ):
     """Confirm project outline and enable PPT generation"""
     try:
+        await _verify_project_owner(project_id, user)
         success = await ppt_service.confirm_project_outline(project_id)
         if success:
             return {"status": "success", "message": "Outline confirmed"}
@@ -1847,14 +1887,18 @@ async def confirm_project_requirements(
         if content_source == "file" and file_upload:
             # Process uploaded files (support multiple files) and generate outline
             # 使用项目创建时的 network_mode 和 language 参数
-            file_outline = await _process_uploaded_files_for_outline(
-                file_upload, topic, target_audience, page_count_mode, min_pages, max_pages,
-                fixed_pages, ppt_style, custom_style_prompt,
-                file_processing_mode, content_analysis_depth, project.requirements,
-                enable_web_search=network_mode,  # 使用项目的 network_mode
-                scenario=project.scenario,  # 传递场景参数
-                language=language  # 传递用户选择的语言参数
-            )
+            ppt_service._current_user_id = user.id
+            try:
+                file_outline = await _process_uploaded_files_for_outline(
+                    file_upload, topic, target_audience, page_count_mode, min_pages, max_pages,
+                    fixed_pages, ppt_style, custom_style_prompt,
+                    file_processing_mode, content_analysis_depth, project.requirements,
+                    enable_web_search=network_mode,  # 使用项目的 network_mode
+                    scenario=project.scenario,  # 传递场景参数
+                    language=language  # 传递用户选择的语言参数
+                )
+            finally:
+                ppt_service._current_user_id = None
 
             # Update topic if it was extracted from file
             if file_outline and file_outline.get('title') and not topic.strip():
@@ -2151,6 +2195,7 @@ async def get_project_data(
 ):
     """Get project data for real-time updates"""
     try:
+        await _verify_project_owner(project_id, user)
         project = await ppt_service.project_manager.get_project(project_id)
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
@@ -2176,6 +2221,7 @@ async def update_project_slides(
 ):
     """Update project slides data"""
     try:
+        await _verify_project_owner(project_id, user)
         logger.info(f"🔄 开始更新项目 {project_id} 的幻灯片数据")
 
         data = await request.json()
@@ -2264,9 +2310,10 @@ async def update_project_slides(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/api/projects/{project_id}/regenerate-html")
-async def regenerate_project_html(project_id: str):
+async def regenerate_project_html(project_id: str, user: User = Depends(get_current_user_required)):
     """Regenerate project HTML with fixed encoding"""
     try:
+        await _verify_project_owner(project_id, user)
         project = await ppt_service.project_manager.get_project(project_id)
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
@@ -2319,9 +2366,10 @@ async def regenerate_project_html(project_id: str):
         return {"success": False, "error": str(e)}
 
 @router.post("/api/projects/{project_id}/slides/{slide_number}/regenerate")
-async def regenerate_slide(project_id: str, slide_number: int):
+async def regenerate_slide(project_id: str, slide_number: int, user: User = Depends(get_current_user_required)):
     """Regenerate a specific slide"""
     try:
+        await _verify_project_owner(project_id, user)
         project = await ppt_service.project_manager.get_project(project_id)
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
@@ -2501,9 +2549,10 @@ async def regenerate_slide(project_id: str, slide_number: int):
         return {"success": False, "error": str(e)}
 
 @router.post("/api/projects/{project_id}/slides/batch-regenerate")
-async def batch_regenerate_slides(project_id: str, payload: SlideBatchRegenerateRequest):
+async def batch_regenerate_slides(project_id: str, payload: SlideBatchRegenerateRequest, user: User = Depends(get_current_user_required)):
     """Regenerate multiple slides (or all slides) in one request."""
     try:
+        await _verify_project_owner(project_id, user)
         project = await ppt_service.project_manager.get_project(project_id)
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
@@ -5351,7 +5400,7 @@ async def save_single_slide_content(
         }
 
 @router.get("/api/projects/{project_id}/slides/stream")
-async def stream_slides_generation(project_id: str):
+async def stream_slides_generation(project_id: str, user: User = Depends(get_current_user_required)):
     """Stream slides generation process"""
     try:
         # Guard: free-template must be confirmed before starting generation
@@ -5377,8 +5426,12 @@ async def stream_slides_generation(project_id: str):
             pass
 
         async def generate_slides_stream():
-            async for chunk in ppt_service.generate_slides_streaming(project_id):
-                yield chunk
+            ppt_service._current_user_id = user.id
+            try:
+                async for chunk in ppt_service.generate_slides_streaming(project_id):
+                    yield chunk
+            finally:
+                ppt_service._current_user_id = None
 
         return StreamingResponse(
             generate_slides_stream(),
@@ -5503,9 +5556,10 @@ async def batch_save_slides(
 
 
 @router.get("/api/projects/{project_id}/export/pdf")
-async def export_project_pdf(project_id: str, individual: bool = False):
+async def export_project_pdf(project_id: str, individual: bool = False, user: User = Depends(get_current_user_required)):
     """Export project as PDF using Pyppeteer"""
     try:
+        await _verify_project_owner(project_id, user)
         project = await ppt_service.project_manager.get_project(project_id)
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
@@ -5626,14 +5680,15 @@ async def set_slide_user_edited_status(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/api/projects/{project_id}/export/pdf/individual")
-async def export_project_pdf_individual(project_id: str):
+async def export_project_pdf_individual(project_id: str, user: User = Depends(get_current_user_required)):
     """Export project as individual PDF files for each slide"""
-    return await export_project_pdf(project_id, individual=True)
+    return await export_project_pdf(project_id, individual=True, user=user)
 
 @router.get("/api/projects/{project_id}/export/pptx")
-async def export_project_pptx(project_id: str):
+async def export_project_pptx(project_id: str, user: User = Depends(get_current_user_required)):
     """Export project as PPTX by first generating PDF then converting to PowerPoint"""
     try:
+        await _verify_project_owner(project_id, user)
         project = await ppt_service.project_manager.get_project(project_id)
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
@@ -5767,9 +5822,10 @@ async def export_project_pptx(project_id: str):
 
 
 @router.post("/api/projects/{project_id}/export/pptx-images")
-async def export_project_pptx_from_images(project_id: str, request: ImagePPTXExportRequest):
+async def export_project_pptx_from_images(project_id: str, request: ImagePPTXExportRequest, user: User = Depends(get_current_user_required)):
     """Export project as PPTX using high-quality Playwright screenshots"""
     try:
+        await _verify_project_owner(project_id, user)
         from io import BytesIO
         from pptx import Presentation
         from pptx.util import Inches
@@ -6024,9 +6080,10 @@ async def download_task_result(task_id: str):
 
 
 @router.get("/api/projects/{project_id}/export/html")
-async def export_project_html(project_id: str):
+async def export_project_html(project_id: str, user: User = Depends(get_current_user_required)):
     """Export project as HTML ZIP package with slideshow index"""
     try:
+        await _verify_project_owner(project_id, user)
         project = await ppt_service.project_manager.get_project(project_id)
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
@@ -7459,6 +7516,7 @@ async def template_selection_page(
 ):
     """Template selection page for PPT generation"""
     try:
+        await _verify_project_owner(project_id, user)
         # Get project info
         project = await ppt_service.project_manager.get_project(project_id)
         if not project:

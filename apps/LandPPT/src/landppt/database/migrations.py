@@ -77,7 +77,16 @@ class DatabaseMigration:
             "up": self._migration_006_up,
             "down": self._migration_006_down
         })
-    
+
+        # Migration 007: Add user_id column to projects table for user data isolation
+        self.migrations.append({
+            "version": "007",
+            "name": "add_user_id_to_projects",
+            "description": "Add user_id column to projects table for per-user data isolation",
+            "up": self._migration_007_up,
+            "down": self._migration_007_down
+        })
+
     async def _migration_001_up(self, session: AsyncSession):
         """Create initial schema"""
         logger.info("Running migration 001: Creating initial schema")
@@ -506,6 +515,111 @@ class DatabaseMigration:
         except Exception as e:
             await session.rollback()
             logger.error(f"Migration 006 rollback failed: {e}")
+            raise
+
+    async def _migration_007_up(self, session: AsyncSession):
+        """Migration 007: Add user_id column to projects table for user data isolation"""
+        try:
+            logger.info("Running migration 007: Adding user_id to projects table")
+
+            # Check if user_id column already exists
+            result = await session.execute(text("""
+                PRAGMA table_info(projects)
+            """))
+            columns = result.fetchall()
+            column_names = [col[1] for col in columns]
+
+            if 'user_id' not in column_names:
+                await session.execute(text("""
+                    ALTER TABLE projects
+                    ADD COLUMN user_id INTEGER REFERENCES users(id)
+                """))
+                logger.info("Added user_id column to projects table")
+            else:
+                logger.info("user_id column already exists in projects table")
+
+            # Create index on user_id for fast per-user queries
+            await session.execute(text("""
+                CREATE INDEX IF NOT EXISTS idx_projects_user_id
+                ON projects(user_id)
+            """))
+
+            # Assign existing projects to the first admin user (or first user) so they are not orphaned
+            await session.execute(text("""
+                UPDATE projects
+                SET user_id = (
+                    SELECT id FROM users ORDER BY is_admin DESC, id ASC LIMIT 1
+                )
+                WHERE user_id IS NULL
+            """))
+
+            await session.commit()
+            logger.info("Migration 007 completed successfully")
+
+        except Exception as e:
+            await session.rollback()
+            logger.error(f"Migration 007 failed: {e}")
+            raise
+
+    async def _migration_007_down(self, session: AsyncSession):
+        """Migration 007 rollback: Remove user_id column from projects table"""
+        try:
+            logger.info("Rolling back migration 007: Removing user_id from projects table")
+
+            await session.execute(text("DROP INDEX IF EXISTS idx_projects_user_id"))
+
+            # SQLite doesn't support DROP COLUMN in older versions, recreate table
+            await session.execute(text("""
+                CREATE TABLE projects_backup AS
+                SELECT id, project_id, title, scenario, topic, requirements, status,
+                       outline, slides_html, slides_data, confirmed_requirements,
+                       project_metadata, version, share_token, share_enabled,
+                       created_at, updated_at
+                FROM projects
+            """))
+
+            await session.execute(text("DROP TABLE projects"))
+
+            await session.execute(text("""
+                CREATE TABLE projects (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    project_id VARCHAR(36) UNIQUE NOT NULL,
+                    title VARCHAR(255) NOT NULL,
+                    scenario VARCHAR(100) NOT NULL,
+                    topic VARCHAR(255) NOT NULL,
+                    requirements TEXT,
+                    status VARCHAR(50) DEFAULT 'draft',
+                    outline JSON,
+                    slides_html TEXT,
+                    slides_data JSON,
+                    confirmed_requirements JSON,
+                    project_metadata JSON,
+                    version INTEGER DEFAULT 1,
+                    share_token VARCHAR(64) UNIQUE,
+                    share_enabled BOOLEAN DEFAULT 0,
+                    created_at FLOAT NOT NULL,
+                    updated_at FLOAT NOT NULL
+                )
+            """))
+
+            await session.execute(text("""
+                INSERT INTO projects
+                SELECT * FROM projects_backup
+            """))
+
+            await session.execute(text("DROP TABLE projects_backup"))
+
+            # Recreate indexes
+            await session.execute(text("CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status)"))
+            await session.execute(text("CREATE INDEX IF NOT EXISTS idx_projects_scenario ON projects(scenario)"))
+            await session.execute(text("CREATE INDEX IF NOT EXISTS idx_projects_created_at ON projects(created_at)"))
+
+            await session.commit()
+            logger.info("Migration 007 rollback completed")
+
+        except Exception as e:
+            await session.rollback()
+            logger.error(f"Migration 007 rollback failed: {e}")
             raise
 
     async def _create_migration_table(self, session: AsyncSession):
