@@ -662,22 +662,22 @@ onBeforeUnmount(() => {
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
-        <template #trailing>
-          <UButton
-            v-if="!isRecording"
-            icon="i-lucide-circle"
-            color="error"
-            label="开始录制"
-            @click="showStartModal = true"
-          />
-          <div v-else class="flex items-center gap-2">
-            <span class="flex items-center gap-1.5 text-sm font-medium text-[var(--ui-error)]">
-              <span class="relative flex size-2.5">
-                <span class="absolute inline-flex size-full animate-ping rounded-full bg-[var(--ui-error)] opacity-75" />
-                <span class="relative inline-flex size-2.5 rounded-full bg-[var(--ui-error)]" />
-              </span>
-              录制中 {{ formatDuration(recordingDuration) }}
+      </UDashboardNavbar>
+    </template>
+
+    <template #body>
+      <div class="flex flex-col gap-4 p-5 h-full">
+        <!-- 录制中状态条 -->
+        <div v-if="isRecording" class="flex items-center justify-between gap-4 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/50 animate-pulse-subtle">
+          <div class="flex items-center gap-3">
+            <span class="relative flex size-3">
+              <span class="absolute inline-flex size-full animate-ping rounded-full bg-red-500 opacity-75" />
+              <span class="relative inline-flex size-3 rounded-full bg-red-500" />
             </span>
+            <span class="text-sm font-semibold text-red-600 dark:text-red-400">录制中</span>
+            <span class="font-mono text-sm font-bold text-red-700 dark:text-red-300 tabular-nums">{{ formatDuration(recordingDuration) }}</span>
+          </div>
+          <div class="flex items-center gap-2">
             <UButton
               :icon="isPaused ? 'i-lucide-play' : 'i-lucide-pause'"
               variant="soft"
@@ -689,87 +689,148 @@ onBeforeUnmount(() => {
               icon="i-lucide-square"
               color="error"
               size="sm"
-              label="停止"
+              label="停止录制"
               @click="stopRecording"
             />
           </div>
-        </template>
-      </UDashboardNavbar>
-    </template>
-
-    <template #body>
-      <div class="p-6 space-y-4">
-        <div class="flex gap-3 items-center">
-          <UInput v-model="search" placeholder="搜索录制..." icon="i-lucide-search" class="w-64" />
-          <USelectMenu v-model="statusFilter" :items="statusOptions" class="w-36" />
         </div>
 
-        <UTable :data="filteredRecordings" :columns="columns" :loading="loading">
-          <template #duration-cell="{ row }">
-            {{ formatDuration(row.original.duration) }}
-          </template>
-          <template #file_size-cell="{ row }">
-            {{ formatFileSize(row.original.file_size) }}
-          </template>
-          <template #sync_status-cell="{ row }">
-            <UBadge :color="(statusColors[row.original.sync_status] as any) || 'neutral'" variant="subtle">
-              {{ statusLabels[row.original.sync_status] || row.original.sync_status }}
-            </UBadge>
-          </template>
-          <template #created_at-cell="{ row }">
-            {{ formatDate(row.original.created_at) }}
-          </template>
-          <template #actions-cell="{ row }">
-            <div class="flex gap-2">
-              <UButton
-                v-if="getMediaUrl(row.original)"
-                size="xs"
-                variant="ghost"
-                icon="i-lucide-play"
-                title="播放"
-                @click="handlePlay(row.original)"
-              />
-              <UButton
-                v-if="row.original.sync_status === 'synced'"
-                size="xs"
-                variant="ghost"
-                icon="i-lucide-file-text"
-                title="转录"
-                @click="handleTranscribe(row.original.id)"
-              />
-              <UButton
-                v-if="row.original.sync_status === 'synced'"
-                size="xs"
-                variant="ghost"
-                icon="i-lucide-captions"
-                title="查看转录"
-                @click="handleViewTranscript(row.original)"
-              />
-              <UButton
-                v-if="row.original.sync_status === 'synced'"
-                size="xs"
-                variant="ghost"
-                icon="i-lucide-sparkles"
-                title="AI笔记"
-                @click="handleViewNotes(row.original)"
-              />
-              <UButton
-                size="xs"
-                variant="ghost"
-                color="error"
-                icon="i-lucide-trash-2"
-                title="删除"
-                @click="handleDelete(row.original.id)"
-              />
+        <!-- 顶部操作栏 -->
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-4 text-sm">
+            <div class="flex items-center gap-1.5">
+              <UIcon name="i-lucide-video" class="text-teal-500" />
+              <span class="font-semibold">{{ recordings.length }}</span>
+              <span class="text-[var(--ui-text-dimmed)]">录制</span>
             </div>
-          </template>
-        </UTable>
+            <div class="flex items-center gap-1.5">
+              <UIcon name="i-lucide-clock" class="text-amber-500" />
+              <span class="font-semibold">{{ formatDuration(recordings.reduce((sum, r) => sum + (r.duration || 0), 0)) }}</span>
+            </div>
+          </div>
+          <div class="flex-1" />
+          <UInput v-model="search" placeholder="搜索录制..." icon="i-lucide-search" size="sm" class="w-48" />
+          <USelectMenu v-model="statusFilter" :items="statusOptions" size="sm" class="w-32" />
+          <UButton
+            v-if="!isRecording"
+            icon="i-lucide-circle"
+            color="error"
+            size="sm"
+            label="开始录制"
+            @click="showStartModal = true"
+          />
+        </div>
 
-        <div v-if="!loading && filteredRecordings.length === 0" class="text-center py-12 text-[var(--ui-text-dimmed)]">
-          <UIcon name="i-lucide-video" class="text-4xl mb-3" />
-          <p class="text-lg mb-2">暂无录制记录</p>
-          <p class="text-sm mb-4">点击右上角「开始录制」按钮来录制您的课堂</p>
-          <UButton icon="i-lucide-circle" color="error" label="开始录制" @click="showStartModal = true" />
+        <!-- 录制卡片网格 -->
+        <div v-if="filteredRecordings.length" class="flex-1 overflow-y-auto">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+            <div
+              v-for="rec in filteredRecordings"
+              :key="rec.id"
+              class="group flex flex-col rounded-xl border border-[var(--ui-border)] bg-[var(--ui-bg)] overflow-hidden hover:shadow-md hover:border-teal-300 dark:hover:border-teal-700 transition-all duration-200"
+            >
+              <!-- 卡片顶部：缩略图/图标区域 -->
+              <div class="relative aspect-video bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center cursor-pointer" @click="getMediaUrl(rec) ? handlePlay(rec) : undefined">
+                <UIcon name="i-lucide-film" class="text-4xl text-slate-300 dark:text-slate-600" />
+                <!-- 时长标签 -->
+                <span v-if="rec.duration" class="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/70 text-white text-xs font-mono tabular-nums">
+                  {{ formatDuration(rec.duration) }}
+                </span>
+                <!-- 播放按钮悬浮 -->
+                <div v-if="getMediaUrl(rec)" class="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors">
+                  <div class="size-10 rounded-full bg-white/90 dark:bg-white/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                    <UIcon name="i-lucide-play" class="text-lg text-slate-800 ml-0.5" />
+                  </div>
+                </div>
+                <!-- 状态角标 -->
+                <UBadge
+                  :color="(statusColors[rec.sync_status] as any) || 'neutral'"
+                  variant="subtle"
+                  size="xs"
+                  class="absolute top-2 left-2"
+                >
+                  {{ statusLabels[rec.sync_status] || rec.sync_status }}
+                </UBadge>
+              </div>
+
+              <!-- 卡片内容 -->
+              <div class="flex-1 flex flex-col p-3 gap-2">
+                <h3 class="text-sm font-semibold leading-snug line-clamp-2" :title="rec.title">{{ rec.title }}</h3>
+                <div class="flex items-center gap-3 text-xs text-[var(--ui-text-dimmed)] mt-auto">
+                  <span>{{ formatDate(rec.created_at) }}</span>
+                  <span v-if="rec.file_size">{{ formatFileSize(rec.file_size) }}</span>
+                </div>
+              </div>
+
+              <!-- 卡片操作栏 -->
+              <div class="flex items-center gap-0.5 px-2 py-1.5 border-t border-[var(--ui-border)] bg-[var(--ui-bg-elevated)]/50">
+                <UButton
+                  v-if="getMediaUrl(rec)"
+                  size="xs"
+                  variant="ghost"
+                  icon="i-lucide-play"
+                  title="播放"
+                  @click="handlePlay(rec)"
+                />
+                <UButton
+                  v-if="rec.sync_status === 'synced'"
+                  size="xs"
+                  variant="ghost"
+                  icon="i-lucide-file-text"
+                  title="转录"
+                  @click="handleTranscribe(rec.id)"
+                />
+                <UButton
+                  v-if="rec.sync_status === 'synced'"
+                  size="xs"
+                  variant="ghost"
+                  icon="i-lucide-captions"
+                  title="查看转录"
+                  @click="handleViewTranscript(rec)"
+                />
+                <UButton
+                  v-if="rec.sync_status === 'synced'"
+                  size="xs"
+                  variant="ghost"
+                  icon="i-lucide-sparkles"
+                  title="AI笔记"
+                  @click="handleViewNotes(rec)"
+                />
+                <div class="flex-1" />
+                <UButton
+                  size="xs"
+                  variant="ghost"
+                  color="error"
+                  icon="i-lucide-trash-2"
+                  title="删除"
+                  @click="handleDelete(rec.id)"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 空状态 -->
+        <div v-else-if="!loading" class="flex-1 flex flex-col items-center justify-center py-16 gap-4">
+          <div class="flex items-center justify-center size-16 rounded-2xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)]">
+            <UIcon name="i-lucide-video" class="text-3xl text-[var(--ui-text-dimmed)]" />
+          </div>
+          <div class="text-center">
+            <p class="text-base font-semibold mb-1">暂无录制记录</p>
+            <p class="text-sm text-[var(--ui-text-dimmed)]">点击「开始录制」按钮录制您的课堂</p>
+          </div>
+          <UButton
+            icon="i-lucide-circle"
+            color="error"
+            label="开始录制"
+            size="sm"
+            @click="showStartModal = true"
+          />
+        </div>
+
+        <!-- 加载状态 -->
+        <div v-else class="flex-1 flex items-center justify-center">
+          <UIcon name="i-lucide-loader-2" class="animate-spin text-2xl text-teal-500" />
         </div>
       </div>
     </template>
@@ -778,73 +839,58 @@ onBeforeUnmount(() => {
   <!-- 开始录制模态框 -->
   <UModal v-model:open="showStartModal" title="开始录制">
     <template #content>
-      <div class="p-6 space-y-4">
-        <UInput v-model="newTitle" placeholder="请输入录制标题" autofocus @keyup.enter="handleStartRecording" />
+      <div class="p-5 space-y-4">
+        <div class="space-y-1.5">
+          <label class="text-sm font-medium text-[var(--ui-text-muted)]">录制标题</label>
+          <UInput v-model="newTitle" placeholder="例如：第三章 数据结构与算法" autofocus @keyup.enter="handleStartRecording" />
+        </div>
 
         <!-- 录制源选择 -->
         <div class="space-y-2">
-          <p class="text-sm font-medium">录制模式</p>
-          <div class="flex gap-3">
+          <label class="text-sm font-medium text-[var(--ui-text-muted)]">录制模式</label>
+          <div class="grid grid-cols-3 gap-2">
             <label v-for="opt in [
               { value: 'camera', label: '摄像头', icon: 'i-lucide-camera' },
               { value: 'screen', label: '屏幕共享', icon: 'i-lucide-monitor' },
               { value: 'both', label: '双路录制', icon: 'i-lucide-picture-in-picture-2' },
             ]" :key="opt.value"
-              class="flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors"
+              class="flex flex-col items-center gap-1.5 p-3 rounded-lg border cursor-pointer transition-colors"
               :class="recordingSource === opt.value
-                ? 'border-[var(--ui-primary)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]'
-                : 'border-[var(--ui-border)] hover:border-[var(--ui-border-hover)]'"
+                ? 'border-teal-500 bg-teal-50 dark:bg-teal-950/30'
+                : 'border-[var(--ui-border)] hover:bg-[var(--ui-bg-elevated)]'"
             >
               <input type="radio" v-model="recordingSource" :value="opt.value" class="sr-only" />
-              <UIcon :name="opt.icon" class="text-base" />
-              <span class="text-sm">{{ opt.label }}</span>
+              <UIcon :name="opt.icon" class="text-lg" :class="recordingSource === opt.value ? 'text-teal-600 dark:text-teal-400' : 'text-[var(--ui-text-dimmed)]'" />
+              <span class="text-xs font-medium">{{ opt.label }}</span>
             </label>
           </div>
-          <p class="text-xs text-[var(--ui-text-dimmed)]">
-            {{ recordingSource === 'camera' ? '仅录制摄像头画面和麦克风音频'
-              : recordingSource === 'screen' ? '录制屏幕内容，同时捕获麦克风音频'
-              : '屏幕画面 + 摄像头画中画，可拖拽调整摄像头位置' }}
-          </p>
         </div>
 
         <!-- 预览区域 -->
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <p class="text-sm font-medium">画面预览</p>
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-sm font-medium text-[var(--ui-text-muted)]">画面预览</label>
             <UButton size="xs" variant="soft" :label="previewStream ? '重新预览' : '开启预览'" icon="i-lucide-eye" @click="preparePreview" />
           </div>
-          <div ref="previewContainer" class="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+          <div ref="previewContainer" class="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-[var(--ui-border)]">
             <video ref="previewVideo" autoplay muted playsinline class="w-full h-full object-contain" />
-
-            <!-- 双路录制：可拖拽摄像头叠加层 -->
             <div
               v-if="recordingSource === 'both' && userStreamRaw"
               :style="cameraStyle"
               @mousedown="startDragging"
             >
-              <video
-                ref="cameraOverlayVideo"
-                autoplay
-                muted
-                playsinline
-                class="w-full h-full object-cover pointer-events-none"
-              />
-              <div
-                class="absolute right-0 bottom-0 w-5 h-5 bg-[var(--ui-primary)] cursor-nwse-resize rounded-tl z-[11]"
-                @mousedown.stop="startResizing"
-                title="拖拽缩放"
-              />
+              <video ref="cameraOverlayVideo" autoplay muted playsinline class="w-full h-full object-cover pointer-events-none" />
+              <div class="absolute right-0 bottom-0 w-5 h-5 bg-teal-500 cursor-nwse-resize rounded-tl z-[11]" @mousedown.stop="startResizing" title="拖拽缩放" />
               <span class="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded pointer-events-none">摄像头</span>
             </div>
-
-            <!-- 无预览时的提示 -->
-            <div v-if="!previewStream" class="absolute inset-0 flex items-center justify-center bg-black/70 text-white text-sm">
-              点击「开启预览」配置画面
+            <div v-if="!previewStream" class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white gap-2">
+              <UIcon name="i-lucide-monitor-play" class="text-2xl text-white/40" />
+              <span class="text-xs text-white/60">点击「开启预览」配置画面</span>
             </div>
           </div>
         </div>
 
-        <div class="flex justify-end gap-2">
+        <div class="flex justify-end gap-2 pt-3 border-t border-[var(--ui-border)]">
           <UButton variant="ghost" label="取消" @click="showStartModal = false; cleanupStreams()" />
           <UButton
             icon="i-lucide-circle"
@@ -862,36 +908,40 @@ onBeforeUnmount(() => {
   <!-- 查看转录模态框 -->
   <UModal v-model:open="showTranscriptModal" :title="'转录内容 - ' + transcriptTitle">
     <template #content>
-      <div class="p-6 space-y-4">
-        <div v-if="transcriptLoading" class="flex justify-center py-8">
-          <UIcon name="i-lucide-loader-2" class="animate-spin text-2xl" />
+      <div class="p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 min-w-0">
+            <UIcon name="i-lucide-captions" class="text-indigo-500 shrink-0" />
+            <h3 class="text-sm font-semibold truncate">{{ transcriptTitle }}</h3>
+          </div>
+          <UBadge v-if="transcriptStatus" :color="transcriptStatus === 'completed' ? 'success' : transcriptStatus === 'failed' ? 'error' : 'warning'" variant="subtle" size="sm">
+            {{ transcriptStatus === 'completed' ? '已完成' : transcriptStatus === 'failed' ? '失败' : '处理中' }}
+          </UBadge>
+        </div>
+
+        <div v-if="transcriptLoading" class="flex items-center justify-center py-10 gap-2">
+          <UIcon name="i-lucide-loader-2" class="animate-spin text-xl text-indigo-500" />
+          <span class="text-sm text-[var(--ui-text-dimmed)]">加载中...</span>
         </div>
         <template v-else>
-          <!-- Status badge -->
-          <div v-if="transcriptStatus" class="flex items-center gap-2">
-            <UBadge :color="transcriptStatus === 'completed' ? 'success' : transcriptStatus === 'failed' ? 'error' : 'warning'" variant="subtle">
-              {{ transcriptStatus === 'completed' ? '转录完成' : transcriptStatus === 'failed' ? '转录失败' : '处理中...' }}
-            </UBadge>
-          </div>
-
-          <!-- Segments with timestamps -->
-          <div v-if="transcriptSegments.length" class="max-h-96 overflow-y-auto space-y-2">
-            <div v-for="(seg, i) in transcriptSegments" :key="i" class="flex gap-3 text-sm">
-              <span class="text-[var(--ui-text-dimmed)] shrink-0 font-mono">{{ formatTimestamp(seg.start) }}</span>
-              <span v-if="seg.speaker" class="text-[var(--ui-primary)] shrink-0">{{ seg.speaker }}:</span>
+          <div v-if="transcriptSegments.length" class="max-h-96 overflow-y-auto space-y-0.5 rounded-lg border border-[var(--ui-border)] p-2">
+            <div v-for="(seg, i) in transcriptSegments" :key="i"
+              class="flex gap-3 text-sm px-2 py-1.5 rounded hover:bg-[var(--ui-bg-elevated)] transition-colors">
+              <span class="text-teal-600 dark:text-teal-400 shrink-0 font-mono text-xs mt-0.5">{{ formatTimestamp(seg.start) }}</span>
+              <span v-if="seg.speaker" class="text-indigo-600 dark:text-indigo-400 shrink-0 font-medium">{{ seg.speaker }}:</span>
               <span>{{ seg.text }}</span>
             </div>
           </div>
-
-          <!-- Full text fallback -->
-          <div v-else-if="transcriptFullText" class="max-h-96 overflow-y-auto">
+          <div v-else-if="transcriptFullText" class="max-h-96 overflow-y-auto rounded-lg border border-[var(--ui-border)] p-3">
             <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ transcriptFullText }}</p>
           </div>
-
-          <p v-else class="text-[var(--ui-text-dimmed)] text-center py-4">暂无转录内容，请先点击「转录」按钮</p>
+          <div v-else class="flex flex-col items-center py-8 gap-2 text-[var(--ui-text-dimmed)]">
+            <UIcon name="i-lucide-file-question" class="text-2xl" />
+            <p class="text-sm">暂无转录内容</p>
+          </div>
         </template>
-        <div class="flex justify-end">
-          <UButton variant="ghost" label="关闭" @click="showTranscriptModal = false" />
+        <div class="flex justify-end pt-2 border-t border-[var(--ui-border)]">
+          <UButton variant="ghost" label="关闭" size="sm" @click="showTranscriptModal = false" />
         </div>
       </div>
     </template>
@@ -900,76 +950,79 @@ onBeforeUnmount(() => {
   <!-- AI笔记模态框 -->
   <UModal v-model:open="showNotesModal" :title="'AI笔记 - ' + notesTitle">
     <template #content>
-      <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-        <div v-if="notesLoading" class="flex justify-center py-8">
-          <UIcon name="i-lucide-loader-2" class="animate-spin text-2xl" />
+      <div class="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+        <div class="flex items-center gap-2">
+          <UIcon name="i-lucide-sparkles" class="text-amber-500" />
+          <h3 class="text-sm font-semibold truncate">{{ notesTitle }}</h3>
+        </div>
+
+        <div v-if="notesLoading" class="flex items-center justify-center py-10 gap-2">
+          <UIcon name="i-lucide-sparkles" class="animate-pulse text-xl text-amber-500" />
+          <span class="text-sm text-[var(--ui-text-dimmed)]">加载中...</span>
         </div>
         <template v-else-if="notesData">
-          <!-- Processing state -->
-          <div v-if="notesData.status === 'pending' || notesData.status === 'processing' || notesData.status === 'waiting'" class="flex flex-col items-center py-8 gap-3">
-            <UIcon name="i-lucide-sparkles" class="text-3xl text-[var(--ui-primary)] animate-pulse" />
-            <p class="text-sm text-[var(--ui-text-dimmed)]">AI 正在归纳笔记，请稍候...</p>
+          <!-- Processing -->
+          <div v-if="notesData.status === 'pending' || notesData.status === 'processing' || notesData.status === 'waiting'" class="flex flex-col items-center py-10 gap-3">
+            <UIcon name="i-lucide-sparkles" class="text-2xl text-amber-500 animate-pulse" />
+            <p class="text-sm text-[var(--ui-text-dimmed)]">AI 正在归纳笔记...</p>
           </div>
 
-          <!-- Failed state -->
-          <div v-else-if="notesData.status === 'failed'" class="text-center py-8">
-            <UIcon name="i-lucide-circle-x" class="text-3xl text-[var(--ui-error)] mb-2" />
-            <p class="text-sm text-[var(--ui-text-dimmed)]">笔记生成失败: {{ notesData.error_message || '未知错误' }}</p>
+          <!-- Failed -->
+          <div v-else-if="notesData.status === 'failed'" class="flex flex-col items-center py-8 gap-2 text-[var(--ui-text-dimmed)]">
+            <UIcon name="i-lucide-circle-x" class="text-2xl text-red-500" />
+            <p class="text-sm">笔记生成失败</p>
+            <p class="text-xs">{{ notesData.error_message || '未知错误' }}</p>
           </div>
 
-          <!-- Completed notes -->
+          <!-- Completed -->
           <template v-else-if="notesData.status === 'completed'">
-            <!-- Keywords -->
             <div v-if="parsedKeywords.length" class="space-y-2">
-              <h4 class="text-sm font-semibold text-[var(--ui-text-dimmed)] uppercase tracking-wider">核心关键词</h4>
-              <div class="flex flex-wrap gap-2">
-                <UBadge v-for="(kw, i) in parsedKeywords" :key="i" color="primary" variant="subtle">
-                  {{ kw }}
-                </UBadge>
+              <h4 class="text-xs font-semibold text-[var(--ui-text-dimmed)] uppercase tracking-wider">关键词</h4>
+              <div class="flex flex-wrap gap-1.5">
+                <UBadge v-for="(kw, i) in parsedKeywords" :key="i" color="primary" variant="subtle" size="sm">{{ kw }}</UBadge>
               </div>
             </div>
 
-            <!-- Summary -->
             <div v-if="notesData.summary" class="space-y-2">
-              <h4 class="text-sm font-semibold text-[var(--ui-text-dimmed)] uppercase tracking-wider">课程摘要</h4>
+              <h4 class="text-xs font-semibold text-[var(--ui-text-dimmed)] uppercase tracking-wider">摘要</h4>
               <div class="p-3 bg-[var(--ui-bg-elevated)] rounded-lg text-sm leading-relaxed">{{ notesData.summary }}</div>
             </div>
 
-            <!-- Outline -->
             <div v-if="parsedOutline" class="space-y-2">
-              <h4 class="text-sm font-semibold text-[var(--ui-text-dimmed)] uppercase tracking-wider">结构大纲</h4>
+              <h4 class="text-xs font-semibold text-[var(--ui-text-dimmed)] uppercase tracking-wider">大纲</h4>
               <div class="p-3 bg-[var(--ui-bg-elevated)] rounded-lg text-sm leading-relaxed whitespace-pre-wrap">{{ parsedOutline }}</div>
             </div>
 
-            <!-- Key points -->
             <div v-if="parsedKeyPoints.length" class="space-y-2">
-              <h4 class="text-sm font-semibold text-[var(--ui-text-dimmed)] uppercase tracking-wider">核心知识点</h4>
+              <h4 class="text-xs font-semibold text-[var(--ui-text-dimmed)] uppercase tracking-wider">知识点</h4>
               <ul class="space-y-1.5">
-                <li v-for="(point, i) in parsedKeyPoints" :key="i" class="flex gap-2 text-sm p-2 bg-[var(--ui-bg-elevated)] rounded">
-                  <span class="font-bold text-[var(--ui-primary)] shrink-0">{{ i + 1 }}.</span>
+                <li v-for="(point, i) in parsedKeyPoints" :key="i" class="flex gap-2 text-sm p-2 bg-[var(--ui-bg-elevated)] rounded-lg">
+                  <span class="text-teal-600 dark:text-teal-400 font-bold shrink-0">{{ i + 1 }}.</span>
                   <span>{{ point }}</span>
                 </li>
               </ul>
             </div>
 
-            <!-- Quiz -->
             <div v-if="parsedQuiz.length" class="space-y-2">
-              <h4 class="text-sm font-semibold text-[var(--ui-text-dimmed)] uppercase tracking-wider">课后测验</h4>
+              <h4 class="text-xs font-semibold text-[var(--ui-text-dimmed)] uppercase tracking-wider">测验</h4>
               <div v-for="(q, i) in parsedQuiz" :key="i" class="p-3 bg-[var(--ui-bg-elevated)] rounded-lg space-y-2">
                 <p class="text-sm font-medium">{{ i + 1 }}. {{ q.question }}</p>
                 <div v-for="(opt, j) in q.options" :key="j" class="text-sm pl-4 text-[var(--ui-text-dimmed)]">
                   {{ String.fromCharCode(65 + j) }}. {{ opt }}
                 </div>
                 <details>
-                  <summary class="text-xs text-[var(--ui-primary)] cursor-pointer">查看答案</summary>
-                  <p class="text-sm mt-1 text-[var(--ui-text-highlighted)]">参考答案: {{ q.answer }}</p>
+                  <summary class="text-xs text-teal-600 dark:text-teal-400 cursor-pointer">查看答案</summary>
+                  <p class="text-sm mt-1 pl-4">参考答案: {{ q.answer }}</p>
                 </details>
               </div>
             </div>
           </template>
         </template>
 
-        <p v-else class="text-[var(--ui-text-dimmed)] text-center py-4">暂无AI笔记</p>
+        <div v-else class="flex flex-col items-center py-8 gap-2 text-[var(--ui-text-dimmed)]">
+          <UIcon name="i-lucide-notebook-pen" class="text-2xl" />
+          <p class="text-sm">暂无 AI 笔记</p>
+        </div>
 
         <div class="flex justify-end gap-2 pt-2 border-t border-[var(--ui-border)]">
           <UButton
@@ -980,7 +1033,7 @@ onBeforeUnmount(() => {
             size="sm"
             @click="handleRegenerateNotes"
           />
-          <UButton variant="ghost" label="关闭" @click="showNotesModal = false" />
+          <UButton variant="ghost" label="关闭" size="sm" @click="showNotesModal = false" />
         </div>
       </div>
     </template>
@@ -989,19 +1042,21 @@ onBeforeUnmount(() => {
   <!-- 视频播放模态框 -->
   <UModal v-model:open="showPlayerModal" :title="playerTitle">
     <template #content>
-      <div class="p-4">
-        <video
-          v-if="showPlayerModal && playerUrl"
-          :src="playerUrl"
-          controls
-          autoplay
-          class="w-full rounded-lg bg-black"
-          style="max-height: 70vh;"
-        >
-          您的浏览器不支持视频播放
-        </video>
-        <div class="flex justify-end mt-3">
-          <UButton variant="ghost" label="关闭" @click="showPlayerModal = false; playerUrl = ''" />
+      <div class="p-4 space-y-3">
+        <div class="rounded-lg overflow-hidden border border-[var(--ui-border)] bg-black">
+          <video
+            v-if="showPlayerModal && playerUrl"
+            :src="playerUrl"
+            controls
+            autoplay
+            class="w-full bg-black"
+            style="max-height: 65vh;"
+          >
+            您的浏览器不支持视频播放
+          </video>
+        </div>
+        <div class="flex justify-end">
+          <UButton variant="ghost" label="关闭" size="sm" @click="showPlayerModal = false; playerUrl = ''" />
         </div>
       </div>
     </template>
