@@ -28,8 +28,33 @@ const CustomImage = Image.extend({
 const modelValue = defineModel<string>({ default: '' })
 
 const editorRef = ref()
+const generateDialogOpen = ref(false)
 
-const { extension: completionExtension, handlers: aiHandlers, isLoading: aiLoading } = useEditorCompletion(editorRef)
+const { extension: completionExtension, handlers: aiHandlers, isLoading: aiLoading, triggerGenerate, stop: stopGenerate } = useEditorCompletion(editorRef)
+
+// Override aiGenerate handler to open dialog instead of direct execution
+aiHandlers.aiGenerate.execute = (editor: Editor) => {
+  generateDialogOpen.value = true
+  return editor.chain()
+}
+
+function onGenerate(prompt: string) {
+  const editor = editorRef.value?.editor
+  if (!editor) return
+  triggerGenerate(editor, prompt)
+}
+
+function onStopGenerate() {
+  stopGenerate()
+  generateDialogOpen.value = false
+}
+
+// Close dialog when generation finishes
+watch(aiLoading, (loading) => {
+  if (!loading && generateDialogOpen.value) {
+    generateDialogOpen.value = false
+  }
+})
 
 const customHandlers = {
   imageUpload: {
@@ -162,5 +187,14 @@ function onUpdate(value: string) {
     <!-- 菜单 -->
     <UEditorEmojiMenu :editor="editor" :items="emojiItems" />
     <UEditorSuggestionMenu :editor="editor" :items="suggestionItems" />
+
+    <!-- AI 生成对话框 -->
+    <EditorAIGenerateDialog
+      v-model="generateDialogOpen"
+      :editor="editor"
+      :loading="aiLoading"
+      @generate="onGenerate"
+      @stop="onStopGenerate"
+    />
   </UEditor>
 </template>

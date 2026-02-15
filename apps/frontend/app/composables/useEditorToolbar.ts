@@ -33,6 +33,10 @@ export function useEditorToolbar<T extends EditorCustomHandlers>(_customHandlers
       align: 'start'
     },
     items: [{
+      kind: 'aiGenerate',
+      label: 'AI 智能生成',
+      icon: 'i-lucide-wand-sparkles'
+    }, {
       kind: 'aiFix',
       label: '修正拼写语法',
       icon: 'i-lucide-spell-check'

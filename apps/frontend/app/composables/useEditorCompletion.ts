@@ -2,10 +2,10 @@ import type { Editor } from '@tiptap/vue-3'
 import { Completion } from '~/components/editor/CompletionExtension'
 import type { CompletionStorage } from '~/components/editor/CompletionExtension'
 
-type CompletionMode = 'continue' | 'fix' | 'extend' | 'reduce' | 'simplify' | 'summarize' | 'translate'
+type CompletionMode = 'continue' | 'fix' | 'extend' | 'reduce' | 'simplify' | 'summarize' | 'translate' | 'generate'
 
 /** Map our mode names to backend-cloud assistant-stream command names */
-const MODE_TO_COMMAND: Record<CompletionMode, string> = {
+const MODE_TO_COMMAND: Partial<Record<CompletionMode, string>> = {
   continue: '续写',
   fix: '校阅',
   extend: '扩写',
@@ -43,22 +43,25 @@ export function useEditorCompletion(editorRef: Ref<{ editor: Editor | undefined 
     completionText.value = ''
 
     const isContinueMode = mode.value === 'continue'
+    const isGenerateMode = mode.value === 'generate'
 
     // Choose endpoint based on mode
-    const baseURL = isContinueMode
+    const baseURL = (isContinueMode || isGenerateMode)
       ? (config.public.apiBase as string)
       : (config.public.apiCloud as string)
 
-    const url = isContinueMode
-      ? 'ai/editor-completion'
-      : 'editor/assistant-stream'
+    const url = isGenerateMode
+      ? 'ai/generate-lesson-plan'
+      : isContinueMode
+        ? 'ai/editor-completion'
+        : 'editor/assistant-stream'
 
-    const body = isContinueMode
+    const body = (isContinueMode || isGenerateMode)
       ? { prompt, model: 'deepseek-chat' }
       : {
           command: mode.value === 'translate'
             ? `翻译成${language.value || '英文'}`
-            : MODE_TO_COMMAND[mode.value],
+            : MODE_TO_COMMAND[mode.value] || mode.value,
           input: prompt,
           lang: 'zh-CN',
           model: 'deepseek-chat'
@@ -151,7 +154,7 @@ export function useEditorCompletion(editorRef: Ref<{ editor: Editor | undefined 
       editor.view.dispatch(editor.state.tr.setMeta('completionUpdate', true))
     } else if (insertState.value) {
       // Transform modes — wait for full completion (handled in onStreamFinish)
-      const transformModes: CompletionMode[] = ['fix', 'extend', 'reduce', 'simplify', 'summarize', 'translate']
+      const transformModes: CompletionMode[] = ['fix', 'extend', 'reduce', 'simplify', 'summarize', 'translate', 'generate']
       if (transformModes.includes(mode.value)) {
         return
       }
@@ -191,7 +194,7 @@ export function useEditorCompletion(editorRef: Ref<{ editor: Editor | undefined 
     }
 
     // For transform modes, insert the full completion with markdown parsing
-    const transformModes: CompletionMode[] = ['fix', 'extend', 'reduce', 'simplify', 'summarize', 'translate']
+    const transformModes: CompletionMode[] = ['fix', 'extend', 'reduce', 'simplify', 'summarize', 'translate', 'generate']
     if (transformModes.includes(mode.value) && insertState.value && completionText.value) {
       if (insertState.value.deleteRange) {
         editor.chain().focus().deleteRange(insertState.value.deleteRange).run()
@@ -259,6 +262,19 @@ export function useEditorCompletion(editorRef: Ref<{ editor: Editor | undefined 
     }
   }
 
+  function triggerGenerate(editor: Editor, prompt: string) {
+    if (isLoading.value) return
+
+    mode.value = 'generate'
+    getCompletionStorage()?.clearSuggestion()
+
+    const { state } = editor
+    const pos = state.selection.from
+    insertState.value = { pos }
+
+    streamCompletion(prompt)
+  }
+
   // Configure Completion extension
   const extension = Completion.configure({
     onTrigger: (editor) => {
@@ -278,6 +294,15 @@ export function useEditorCompletion(editorRef: Ref<{ editor: Editor | undefined 
 
   // Create handlers for toolbar
   const handlers = {
+    aiGenerate: {
+      canExecute: () => !isLoading.value,
+      execute: (editor: Editor) => {
+        // This is a placeholder — actual execution opens the dialog in LessonPlanEditor
+        return editor.chain()
+      },
+      isActive: () => !!(isLoading.value && mode.value === 'generate'),
+      isDisabled: () => !!isLoading.value
+    },
     aiContinue: {
       canExecute: () => !isLoading.value,
       execute: (editor: Editor) => {
@@ -347,6 +372,8 @@ export function useEditorCompletion(editorRef: Ref<{ editor: Editor | undefined 
     extension,
     handlers,
     isLoading,
-    mode
+    mode,
+    triggerGenerate,
+    stop
   }
 }

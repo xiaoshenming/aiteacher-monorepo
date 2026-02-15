@@ -495,4 +495,143 @@ ${templateInfo.guide}
   }
 });
 
+// AI 智能生成教案接口（SSE 流式）
+router.post("/generate-lesson-plan", authorize(["2", "3", "4"]), async (req, res) => {
+  const { prompt, model = "deepseek-chat" } = req.body;
+  const userId = req.user?.id;
+  const userType = req.user?.role || 'teacher';
+
+  if (!prompt || typeof prompt !== "string" || prompt.trim().length === 0) {
+    return res.status(400).json({
+      code: 400,
+      message: "Prompt must be a non-empty string.",
+      data: null,
+    });
+  }
+
+  try {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+
+    const sendEvent = (data, event = "message") => {
+      res.write(`event: ${event}\n`);
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    };
+
+    const systemPrompt = `你是一位经验丰富的中小学教师和教案设计专家。请根据用户的需求，生成一份完整、专业、结构清晰的教案。
+
+输出格式要求（Markdown）：
+
+# [课程标题]
+
+## 一、基本信息
+- **学科：** [学科]
+- **年级：** [年级]
+- **课时：** [课时安排]
+- **教材版本：** [版本]
+
+## 二、教学目标
+### 知识与技能
+- [目标1]
+- [目标2]
+
+### 过程与方法
+- [目标1]
+
+### 情感态度与价值观
+- [目标1]
+
+## 三、教学重难点
+### 教学重点
+- [重点1]
+
+### 教学难点
+- [难点1]
+
+## 四、教学准备
+- [准备内容]
+
+## 五、教学过程
+
+### （一）导入新课（约5分钟）
+[具体教学活动描述]
+
+### （二）新课讲授（约20分钟）
+[具体教学活动描述，包含师生互动]
+
+### （三）巩固练习（约10分钟）
+[练习内容和形式]
+
+### （四）课堂小结（约3分钟）
+[总结要点]
+
+### （五）作业布置（约2分钟）
+[作业内容]
+
+## 六、板书设计
+[板书内容]
+
+## 七、教学反思
+[预设反思要点]
+
+注意事项：
+1. 内容要专业、准确，符合新课标要求
+2. 教学过程要详细具体，包含教师活动和学生活动
+3. 注重启发式教学，体现学生主体地位
+4. 根据用户指定的学科和年级调整难度和深度
+5. 使用 Markdown 格式输出，结构清晰`;
+
+    let fullResponse = '';
+    await getAIResponseStreamCustom({
+      prompt: prompt,
+      systemPrompt: systemPrompt,
+      callback: (chunk) => {
+        fullResponse += chunk;
+        sendEvent({
+          code: 200,
+          message: "STREAMING",
+          data: {
+            chunk,
+            done: false,
+          },
+        });
+      },
+      model: model,
+      maxTokens: 4096
+    });
+
+    sendEvent(
+      {
+        code: 200,
+        message: "COMPLETED",
+        data: {
+          done: true,
+        },
+      },
+      "done"
+    );
+
+    // 记录使用统计
+    const estimatedTokens = Math.ceil((prompt.length + fullResponse.length) / 4);
+    if (userId) {
+      await recordAIUsage(userId, userType, model, 'generate_lesson_plan', estimatedTokens);
+    }
+
+    res.end();
+  } catch (error) {
+    console.error("Error generating lesson plan:", error);
+    res.write(`event: error\n`);
+    res.write(
+      `data: ${JSON.stringify({
+        code: 500,
+        message: "Error generating lesson plan",
+        data: null,
+      })}\n\n`
+    );
+    res.end();
+  }
+});
+
 module.exports = router;

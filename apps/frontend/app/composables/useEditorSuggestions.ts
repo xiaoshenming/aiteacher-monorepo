@@ -5,6 +5,10 @@ export function useEditorSuggestions<T extends EditorCustomHandlers>(_customHand
     type: 'label',
     label: 'AI'
   }, {
+    kind: 'aiGenerate',
+    label: 'AI 智能生成',
+    icon: 'i-lucide-wand-sparkles'
+  }, {
     kind: 'aiContinue',
     label: '续写',
     icon: 'i-lucide-sparkles'
