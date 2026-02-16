@@ -29,6 +29,7 @@ export function useEditorCompletion(editorRef: Ref<{ editor: Editor | undefined 
   const insertState = ref<{
     pos: number
     deleteRange?: { from: number, to: number }
+    originalPos?: number  // generate 模式记录起始位置
   }>()
 
   function getCompletionStorage() {
@@ -154,12 +155,12 @@ export function useEditorCompletion(editorRef: Ref<{ editor: Editor | undefined 
       editor.view.dispatch(editor.state.tr.setMeta('completionUpdate', true))
     } else if (insertState.value) {
       // Transform modes — wait for full completion (handled in onStreamFinish)
-      const transformModes: CompletionMode[] = ['fix', 'extend', 'reduce', 'simplify', 'summarize', 'translate', 'generate']
+      const transformModes: CompletionMode[] = ['fix', 'extend', 'reduce', 'simplify', 'summarize', 'translate']
       if (transformModes.includes(mode.value)) {
         return
       }
 
-      // Direct streaming insertion for continue mode without inline suggestion
+      // Direct streaming insertion for continue / generate mode
       if (insertState.value.deleteRange) {
         editor.chain().focus().deleteRange(insertState.value.deleteRange).run()
         insertState.value.deleteRange = undefined
@@ -193,8 +194,27 @@ export function useEditorCompletion(editorRef: Ref<{ editor: Editor | undefined 
       return
     }
 
+    // For generate mode: delete streamed plain text, re-insert as markdown rich text
+    if (mode.value === 'generate' && insertState.value && completionText.value) {
+      const originalPos = insertState.value.originalPos ?? insertState.value.pos
+      const endPos = insertState.value.pos
+      // Only replace if we actually inserted text (endPos > originalPos)
+      if (endPos > originalPos) {
+        editor.chain()
+          .focus()
+          .deleteRange({ from: originalPos, to: endPos })
+          .run()
+      }
+      editor.chain()
+        .focus()
+        .insertContentAt(originalPos, completionText.value, { contentType: 'markdown' })
+        .run()
+      insertState.value = undefined
+      return
+    }
+
     // For transform modes, insert the full completion with markdown parsing
-    const transformModes: CompletionMode[] = ['fix', 'extend', 'reduce', 'simplify', 'summarize', 'translate', 'generate']
+    const transformModes: CompletionMode[] = ['fix', 'extend', 'reduce', 'simplify', 'summarize', 'translate']
     if (transformModes.includes(mode.value) && insertState.value && completionText.value) {
       if (insertState.value.deleteRange) {
         editor.chain().focus().deleteRange(insertState.value.deleteRange).run()
@@ -270,7 +290,7 @@ export function useEditorCompletion(editorRef: Ref<{ editor: Editor | undefined 
 
     const { state } = editor
     const pos = state.selection.from
-    insertState.value = { pos }
+    insertState.value = { pos, originalPos: pos }
 
     streamCompletion(prompt)
   }

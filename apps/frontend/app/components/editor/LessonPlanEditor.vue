@@ -99,6 +99,8 @@ const extensions = computed(() => [
 function onUpdate(value: string) {
   modelValue.value = value
 }
+
+defineExpose({ editor: computed(() => editorRef.value?.editor) })
 </script>
 
 <template>
@@ -198,3 +200,42 @@ function onUpdate(value: string) {
     />
   </UEditor>
 </template>
+
+<style scoped>
+:deep(.tiptap table) {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+:deep(.tiptap table th),
+:deep(.tiptap table td) {
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  min-width: 80px;
+}
+
+:deep(.tiptap table th) {
+  background-color: #f3f4f6;
+  font-weight: 600;
+}
+
+.dark :deep(.tiptap table th),
+.dark :deep(.tiptap table td) {
+  border-color: #4b5563;
+}
+
+.dark :deep(.tiptap table th) {
+  background-color: #374151;
+}
+
+:deep(.tiptap table tr:hover td) {
+  background-color: #f9fafb;
+}
+
+.dark :deep(.tiptap table tr:hover td) {
+  background-color: #1f2937;
+}
+</style>

@@ -3,6 +3,7 @@ const route = useRoute()
 const router = useRouter()
 const lessonPlans = useLessonPlans()
 const toast = useToast()
+const { exportMarkdown, exportWord, exportPDF } = useEditorExport()
 
 const planId = computed(() => Number(route.params.id))
 const loading = ref(true)
@@ -10,6 +11,7 @@ const saving = ref(false)
 const planName = ref('')
 const planContent = ref('')
 const lastSavedContent = ref('')
+const editorComponent = ref<{ editor: import('@tiptap/vue-3').Editor | undefined }>()
 
 async function loadPlan() {
   loading.value = true
@@ -65,6 +67,33 @@ function goBack() {
 
 onMounted(() => loadPlan())
 
+const exportItems = computed(() => [
+  [{
+    label: '导出 Markdown',
+    icon: 'i-lucide-file-text',
+    onSelect: () => {
+      const editor = editorComponent.value?.editor
+      if (editor) exportMarkdown(editor, planName.value || '教案')
+    }
+  },
+  {
+    label: '导出 Word',
+    icon: 'i-lucide-file-type',
+    onSelect: () => {
+      const editor = editorComponent.value?.editor
+      if (editor) exportWord(editor, planName.value || '教案')
+    }
+  },
+  {
+    label: '导出 PDF',
+    icon: 'i-lucide-printer',
+    onSelect: () => {
+      const editor = editorComponent.value?.editor
+      if (editor) exportPDF(editor, planName.value || '教案')
+    }
+  }]
+])
+
 onBeforeUnmount(() => {
   clearTimeout(autoSaveTimer)
   // 离开前保存未保存的内容
@@ -112,6 +141,14 @@ onBeforeUnmount(() => {
             <span v-else class="text-xs text-teal-500">
               已保存
             </span>
+            <UDropdownMenu :items="exportItems">
+              <button
+                class="px-3 py-1.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+              >
+                <UIcon name="i-lucide-download" class="w-4 h-4" />
+                导出
+              </button>
+            </UDropdownMenu>
             <button
               :disabled="!hasUnsavedChanges || saving"
               class="px-3 py-1.5 text-sm font-medium text-white bg-teal-500 hover:bg-teal-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
@@ -132,7 +169,7 @@ onBeforeUnmount(() => {
 
       <!-- 编辑器区域 -->
       <div v-else class="h-full">
-        <EditorLessonPlanEditor v-model="planContent" />
+        <EditorLessonPlanEditor ref="editorComponent" v-model="planContent" />
       </div>
     </template>
   </UDashboardPanel>
