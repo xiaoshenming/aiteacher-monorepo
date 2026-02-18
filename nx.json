@@ -49,7 +49,7 @@
         "projects": ["frontend"]
       },
       "services": {
-        "projects": ["service-asr"]
+        "projects": ["service-asr", "LandPPT"]
       }
     }
   }
