@@ -131,7 +131,7 @@ onMounted(loadUsers)
       <div class="p-6 space-y-4">
         <div class="flex gap-3 items-center">
           <UInput v-model="search" placeholder="搜索姓名或邮箱..." icon="i-lucide-search" class="w-64" />
-          <USelectMenu v-model="roleFilter" :items="roleOptions" class="w-40" />
+          <USelectMenu v-model="roleFilter" :items="roleOptions" value-key="value" class="w-40" />
         </div>
 
         <UTable :data="filteredUsers" :columns="columns" :loading="loading">
@@ -149,13 +149,13 @@ onMounted(loadUsers)
 
       <!-- 新增用户弹窗 -->
       <UModal v-model:open="showAddModal">
-        <template #default>
+        <template #content>
           <div class="p-6 space-y-4">
             <h3 class="text-lg font-semibold text-highlighted">新增用户</h3>
             <UInput v-model="form.name" placeholder="姓名" />
             <UInput v-model="form.email" placeholder="邮箱" type="email" />
             <UInput v-model="form.password" placeholder="密码" type="password" />
-            <USelectMenu v-model="form.role" :items="roleOptions.slice(1)" />
+            <USelectMenu v-model="form.role" :items="roleOptions.slice(1)" value-key="value" />
             <div class="flex justify-end gap-2">
               <UButton variant="ghost" label="取消" @click="showAddModal = false" />
               <UButton label="确认" @click="submitAdd" />
@@ -166,13 +166,13 @@ onMounted(loadUsers)
 
       <!-- 编辑用户弹窗 -->
       <UModal v-model:open="showEditModal">
-        <template #default>
+        <template #content>
           <div class="p-6 space-y-4">
             <h3 class="text-lg font-semibold text-highlighted">编辑用户</h3>
             <UInput v-model="form.name" placeholder="姓名" />
             <UInput v-model="form.email" placeholder="邮箱" type="email" />
             <UInput v-model="form.password" placeholder="新密码（留空不修改）" type="password" />
-            <USelectMenu v-model="form.role" :items="roleOptions.slice(1)" />
+            <USelectMenu v-model="form.role" :items="roleOptions.slice(1)" value-key="value" />
             <div class="flex justify-end gap-2">
               <UButton variant="ghost" label="取消" @click="showEditModal = false" />
               <UButton label="保存" @click="submitEdit" />

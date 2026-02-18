@@ -12,7 +12,14 @@ export function useAdminSystem() {
   }
 
   async function fetchAuthRequests() {
-    return await apiFetch<AuthRequest[]>('authentication/requests')
+    const res = await apiFetch<{ code: number, data: { total: number, requests: any[] } }>('authentication/requests')
+    const statusMap: Record<number, string> = { 0: 'pending', 1: 'approved', 2: 'rejected', 3: 'expired' }
+    return (res.data?.requests || []).map((r: any) => ({
+      ...r,
+      user_id: r.teacher_id,
+      reason: r.request_message,
+      status: statusMap[r.status] || 'pending',
+    })) as AuthRequest[]
   }
 
   async function approveAuth(id: number) {

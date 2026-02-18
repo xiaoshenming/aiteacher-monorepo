@@ -328,101 +328,107 @@ const conversationGroups = computed(() => {
                 </UContainer>
               </div>
 
-              <div class="shrink-0 border-t border-default">
+              <div class="shrink-0 bg-gradient-to-t from-default via-default to-transparent pt-4 pb-4 px-4">
                 <UContainer>
-                  <UChatPrompt
-                    v-model="input"
-                    variant="subtle"
-                    placeholder="输入你的问题..."
-                    autofocus
-                    :ui="{ base: 'px-1.5' }"
-                    @submit="handleSubmit"
-                  >
-                    <template #footer>
-                      <ClientOnly>
-                        <div class="flex items-center gap-2">
-                          <USelectMenu
-                            v-model="currentModel"
-                            :items="modelOptions"
-                            value-key="value"
-                            size="xs"
-                            variant="ghost"
-                            color="neutral"
-                            class="w-auto"
-                          />
-                        </div>
-                      </ClientOnly>
-                      <UChatPromptSubmit
-                        :status="chatStatus"
-                        color="neutral"
-                        size="sm"
-                        @stop="handleStop"
-                      />
-                    </template>
-                  </UChatPrompt>
+                  <div class="rounded-2xl border border-default bg-elevated shadow-lg ring-1 ring-black/5 dark:ring-white/5 overflow-hidden">
+                    <UChatPrompt
+                      v-model="input"
+                      variant="subtle"
+                      placeholder="输入你的问题..."
+                      autofocus
+                      :ui="{ base: 'px-4 py-3' }"
+                      @submit="handleSubmit"
+                    >
+                      <template #footer>
+                        <ClientOnly>
+                          <div class="flex items-center gap-2">
+                            <USelectMenu
+                              v-model="currentModel"
+                              :items="modelOptions"
+                              value-key="value"
+                              size="xs"
+                              variant="ghost"
+                              color="neutral"
+                              class="w-auto"
+                            />
+                          </div>
+                        </ClientOnly>
+                        <UChatPromptSubmit
+                          :status="chatStatus"
+                          color="neutral"
+                          size="sm"
+                          @stop="handleStop"
+                        />
+                      </template>
+                    </UChatPrompt>
+                  </div>
                 </UContainer>
               </div>
             </template>
 
             <!-- 无消息时：欢迎界面 -->
             <template v-else>
-              <UContainer class="flex-1 flex flex-col justify-center gap-6 py-8">
-                <div class="text-center">
-                  <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
-                    <UIcon name="i-lucide-bot" class="size-8 text-primary" />
+              <div class="flex-1 flex flex-col justify-center bg-gradient-to-b from-primary/5 via-transparent to-primary/5">
+                <UContainer class="flex flex-col gap-6 py-8">
+                  <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
+                      <UIcon name="i-lucide-bot" class="size-8 text-primary" />
+                    </div>
+                    <h2 class="text-2xl font-bold text-highlighted mb-2">
+                      AI 教学助手
+                    </h2>
+                    <p class="text-muted max-w-md mx-auto">
+                      我可以帮你设计教案、生成试卷、解答教学问题。试试下面的快捷问题，或直接输入你的问题。
+                    </p>
                   </div>
-                  <h2 class="text-2xl font-bold text-highlighted mb-2">
-                    AI 教学助手
-                  </h2>
-                  <p class="text-muted max-w-md mx-auto">
-                    我可以帮你设计教案、生成试卷、解答教学问题。试试下面的快捷问题，或直接输入你的问题。
-                  </p>
-                </div>
 
-                <UChatPrompt
-                  v-model="input"
-                  variant="subtle"
-                  placeholder="输入你的问题..."
-                  autofocus
-                  :ui="{ base: 'px-1.5' }"
-                  @submit="handleSubmit"
-                >
-                  <template #footer>
-                    <ClientOnly>
-                      <div class="flex items-center gap-2">
-                        <USelectMenu
-                          v-model="currentModel"
-                          :items="modelOptions"
-                          value-key="value"
-                          size="xs"
-                          variant="ghost"
+                  <div class="rounded-2xl border border-default bg-elevated shadow-lg ring-1 ring-black/5 dark:ring-white/5 overflow-hidden">
+                    <UChatPrompt
+                      v-model="input"
+                      variant="subtle"
+                      placeholder="输入你的问题..."
+                      autofocus
+                      :ui="{ base: 'px-4 py-3' }"
+                      @submit="handleSubmit"
+                    >
+                      <template #footer>
+                        <ClientOnly>
+                          <div class="flex items-center gap-2">
+                            <USelectMenu
+                              v-model="currentModel"
+                              :items="modelOptions"
+                              value-key="value"
+                              size="xs"
+                              variant="ghost"
+                              color="neutral"
+                              class="w-auto"
+                            />
+                          </div>
+                        </ClientOnly>
+                        <UChatPromptSubmit
+                          :status="chatStatus"
                           color="neutral"
-                          class="w-auto"
+                          size="sm"
                         />
-                      </div>
-                    </ClientOnly>
-                    <UChatPromptSubmit
-                      :status="chatStatus"
-                      color="neutral"
-                      size="sm"
-                    />
-                  </template>
-                </UChatPrompt>
+                      </template>
+                    </UChatPrompt>
+                  </div>
 
-                <div class="flex flex-wrap justify-center gap-2">
-                  <UButton
-                    v-for="q in quickQuestions"
-                    :key="q.label"
-                    :icon="q.icon"
-                    :label="q.label"
-                    size="sm"
-                    color="neutral"
-                    variant="outline"
-                    class="rounded-full"
-                    @click="sendQuickQuestion(q.label)"
-                  />
-                </div>
-              </UContainer>
+                  <div class="flex flex-wrap justify-center gap-2">
+                    <UButton
+                      v-for="q in quickQuestions"
+                      :key="q.label"
+                      :icon="q.icon"
+                      :label="q.label"
+                      size="sm"
+                      color="neutral"
+                      variant="outline"
+                      class="rounded-full"
+                      @click="sendQuickQuestion(q.label)"
+                    />
+                  </div>
+                </UContainer>
+              </div>
             </template>
           </template>
 

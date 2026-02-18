@@ -6,6 +6,8 @@ const saving = ref(false)
 
 // LandPPT connection status
 const landpptStatus = ref<'connected' | 'disconnected' | 'checking'>('checking')
+const retryCountdown = ref(0)
+let retryTimer: ReturnType<typeof setInterval> | null = null
 
 // AI Provider config
 interface ProviderConfig {
@@ -30,7 +32,29 @@ const generalSettings = ref({
   enable_streaming: true,
 })
 
+function startAutoRetry() {
+  if (retryTimer) return
+  retryCountdown.value = 30
+  retryTimer = setInterval(() => {
+    retryCountdown.value--
+    if (retryCountdown.value <= 0) {
+      clearInterval(retryTimer!)
+      retryTimer = null
+      checkLandPPTStatus()
+    }
+  }, 1000)
+}
+
+function stopAutoRetry() {
+  if (retryTimer) {
+    clearInterval(retryTimer)
+    retryTimer = null
+  }
+  retryCountdown.value = 0
+}
+
 async function checkLandPPTStatus() {
+  stopAutoRetry()
   landpptStatus.value = 'checking'
   try {
     const landpptBase = config.public.landpptBase as string
@@ -39,6 +63,7 @@ async function checkLandPPTStatus() {
   }
   catch {
     landpptStatus.value = 'disconnected'
+    startAutoRetry()
   }
 }
 
@@ -157,6 +182,10 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+onUnmounted(() => {
+  stopAutoRetry()
+})
 </script>
 
 <template>
@@ -190,22 +219,107 @@ onMounted(async () => {
 
     <template #body>
       <div class="p-6 space-y-6 max-w-4xl">
-        <!-- Disconnected warning -->
-        <div
-          v-if="landpptStatus === 'disconnected'"
-          class="p-4 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/10"
-        >
-          <div class="flex items-center gap-2 mb-2">
-            <UIcon name="i-lucide-alert-triangle" class="size-5 text-amber-500" />
-            <span class="font-medium text-amber-700 dark:text-amber-400">LandPPT 服务未连接</span>
+        <!-- Feature introduction -->
+        <div class="flex items-start gap-4 p-5 rounded-xl bg-primary/5 border border-primary/10">
+          <div class="shrink-0 size-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <UIcon name="i-lucide-presentation" class="size-5 text-primary" />
           </div>
-          <p class="text-sm text-amber-600 dark:text-amber-500">
-            请确认 LandPPT 服务已在端口 10006 启动。启动后点击重试。
-          </p>
-          <UButton label="重试连接" icon="i-lucide-refresh-cw" size="sm" class="mt-3" variant="outline" @click="checkLandPPTStatus" />
+          <div>
+            <h3 class="font-semibold text-highlighted text-base">AI PPT 生成服务</h3>
+            <p class="text-sm text-muted mt-1">
+              通过 LandPPT 服务，教师可以使用 AI 自动生成教学 PPT。支持多种 AI 提供商（OpenAI、DeepSeek、Kimi 等）。
+            </p>
+          </div>
         </div>
 
+        <!-- Disconnected state -->
+        <template v-if="landpptStatus === 'disconnected'">
+          <div class="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10 overflow-hidden">
+            <!-- Status header -->
+            <div class="flex items-center gap-3 px-5 py-4 border-b border-amber-200 dark:border-amber-800">
+              <div class="size-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                <UIcon name="i-lucide-unplug" class="size-5 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div>
+                <p class="font-semibold text-amber-700 dark:text-amber-400">LandPPT 服务未连接</p>
+                <p class="text-xs text-amber-600/70 dark:text-amber-500/70 mt-0.5">
+                  服务地址：{{ config.public.landpptBase || 'http://localhost:10006' }}
+                </p>
+              </div>
+            </div>
+
+            <div class="p-5 space-y-4">
+              <!-- Startup instructions -->
+              <div>
+                <p class="text-sm font-medium text-highlighted mb-2">启动步骤</p>
+                <ol class="space-y-2 text-sm text-muted">
+                  <li class="flex items-start gap-2">
+                    <span class="shrink-0 size-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-medium mt-0.5">1</span>
+                    <span>进入 LandPPT 项目目录</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="shrink-0 size-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-medium mt-0.5">2</span>
+                    <span>安装依赖：<code class="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-xs">pnpm install</code></span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="shrink-0 size-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-medium mt-0.5">3</span>
+                    <span>启动服务：<code class="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-xs">pnpm dev</code>（默认端口 10006）</span>
+                  </li>
+                </ol>
+              </div>
+
+              <!-- Retry actions -->
+              <div class="flex items-center gap-3 pt-2">
+                <UButton label="重试连接" icon="i-lucide-refresh-cw" size="sm" variant="soft" @click="checkLandPPTStatus" />
+                <span v-if="retryCountdown > 0" class="text-xs text-muted">
+                  {{ retryCountdown }}s 后自动重试
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Service info cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="p-4 rounded-xl border border-default bg-default">
+              <div class="flex items-center gap-2 mb-2">
+                <UIcon name="i-lucide-cpu" class="size-4 text-primary" />
+                <span class="text-sm font-medium text-highlighted">多模型支持</span>
+              </div>
+              <p class="text-xs text-muted">支持 OpenAI、DeepSeek、Kimi、Anthropic 等多种 AI 提供商</p>
+            </div>
+            <div class="p-4 rounded-xl border border-default bg-default">
+              <div class="flex items-center gap-2 mb-2">
+                <UIcon name="i-lucide-zap" class="size-4 text-primary" />
+                <span class="text-sm font-medium text-highlighted">AI 智能生成</span>
+              </div>
+              <p class="text-xs text-muted">根据教学主题自动生成结构化 PPT，包含大纲、内容和排版</p>
+            </div>
+            <div class="p-4 rounded-xl border border-default bg-default">
+              <div class="flex items-center gap-2 mb-2">
+                <UIcon name="i-lucide-settings-2" class="size-4 text-primary" />
+                <span class="text-sm font-medium text-highlighted">灵活配置</span>
+              </div>
+              <p class="text-xs text-muted">可自定义 API Key、模型参数、生成策略等配置项</p>
+            </div>
+          </div>
+        </template>
+
+        <!-- Checking state -->
+        <div v-else-if="landpptStatus === 'checking'" class="flex items-center justify-center py-12">
+          <div class="flex items-center gap-3 text-muted">
+            <UIcon name="i-lucide-loader-2" class="size-5 animate-spin" />
+            <span class="text-sm">正在检测 LandPPT 服务...</span>
+          </div>
+        </div>
+
+        <!-- Connected state -->
         <template v-if="landpptStatus === 'connected'">
+          <!-- Usage tip -->
+          <div class="flex items-center gap-2 px-4 py-3 rounded-lg bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800 text-sm text-green-700 dark:text-green-400">
+            <UIcon name="i-lucide-lightbulb" class="size-4 shrink-0" />
+            <span>配置 AI 提供商的 API Key 后，教师即可在 PPT 工具中使用 AI 生成功能</span>
+          </div>
+
           <!-- Default provider -->
           <UCard>
             <template #header>

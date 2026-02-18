@@ -10,7 +10,8 @@ const search = ref('')
 async function load() {
   loading.value = true
   try {
-    teachers.value = await apiFetch<AdminUser[]>('teachers')
+    const res = await apiFetch<{ code: number, data: { teachers: AdminUser[] } }>('teachers')
+    teachers.value = res.data?.teachers || []
   }
   catch {
     // silent

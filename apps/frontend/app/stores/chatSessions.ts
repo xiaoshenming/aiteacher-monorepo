@@ -37,9 +37,16 @@ function generateTitle(content: string): string {
   return trimmed.length > 30 ? `${trimmed.slice(0, 30)}...` : trimmed
 }
 
-// IndexedDB keys
-const IDB_CONVERSATIONS_KEY = 'aiteacher-chat-conversations'
-const IDB_ACTIVE_ID_KEY = 'aiteacher-chat-active-id'
+// IndexedDB keys (带用户ID隔离)
+const IDB_KEY_PREFIX = 'aiteacher-chat'
+
+function getIDBKeys(userId: string | null) {
+  const suffix = userId || 'anonymous'
+  return {
+    conversations: `${IDB_KEY_PREFIX}-conversations-${suffix}`,
+    activeId: `${IDB_KEY_PREFIX}-active-id-${suffix}`,
+  }
+}
 
 // 旧 localStorage keys（用于迁移后清理）
 const OLD_LS_KEYS = ['aiteacher-chat-sessions', 'chatSessions']
@@ -76,7 +83,7 @@ function deserializeConversations(conversations: ChatConversation[]): ChatConver
 /**
  * 从旧 localStorage 迁移数据到 IndexedDB（一次性）
  */
-async function migrateFromLocalStorage(): Promise<{ conversations: ChatConversation[], activeId: string | null } | null> {
+async function migrateFromLocalStorage(userId: string | null): Promise<{ conversations: ChatConversation[], activeId: string | null } | null> {
   try {
     const raw = localStorage.getItem('aiteacher-chat-sessions')
     if (!raw) return null
@@ -87,9 +94,10 @@ async function migrateFromLocalStorage(): Promise<{ conversations: ChatConversat
     const conversations = deserializeConversations(parsed.conversations)
     const activeId = parsed.activeConversationId || null
 
-    // 写入 IndexedDB
-    await set(IDB_CONVERSATIONS_KEY, serializeConversations(conversations))
-    await set(IDB_ACTIVE_ID_KEY, activeId)
+    // 写入 IndexedDB（带用户隔离）
+    const keys = getIDBKeys(userId)
+    await set(keys.conversations, serializeConversations(conversations))
+    await set(keys.activeId, activeId)
 
     // 清理所有旧 localStorage keys
     for (const key of OLD_LS_KEYS) {
@@ -106,11 +114,12 @@ async function migrateFromLocalStorage(): Promise<{ conversations: ChatConversat
 /**
  * 从 IndexedDB 加载数据
  */
-async function loadFromIDB(): Promise<{ conversations: ChatConversation[], activeId: string | null }> {
+async function loadFromIDB(userId: string | null): Promise<{ conversations: ChatConversation[], activeId: string | null }> {
   try {
+    const keys = getIDBKeys(userId)
     const [rawConversations, activeId] = await Promise.all([
-      get<ChatConversation[]>(IDB_CONVERSATIONS_KEY),
-      get<string | null>(IDB_ACTIVE_ID_KEY),
+      get<ChatConversation[]>(keys.conversations),
+      get<string | null>(keys.activeId),
     ])
 
     if (rawConversations?.length) {
@@ -121,7 +130,7 @@ async function loadFromIDB(): Promise<{ conversations: ChatConversation[], activ
     }
 
     // IndexedDB 为空，尝试从 localStorage 迁移
-    const migrated = await migrateFromLocalStorage()
+    const migrated = await migrateFromLocalStorage(userId)
     if (migrated) return migrated
 
     return { conversations: [], activeId: null }
@@ -134,11 +143,12 @@ async function loadFromIDB(): Promise<{ conversations: ChatConversation[], activ
 /**
  * 保存到 IndexedDB
  */
-async function saveToIDB(conversations: ChatConversation[], activeId: string | null): Promise<void> {
+async function saveToIDB(userId: string | null, conversations: ChatConversation[], activeId: string | null): Promise<void> {
   try {
+    const keys = getIDBKeys(userId)
     await Promise.all([
-      set(IDB_CONVERSATIONS_KEY, serializeConversations(conversations)),
-      set(IDB_ACTIVE_ID_KEY, activeId),
+      set(keys.conversations, serializeConversations(conversations)),
+      set(keys.activeId, activeId),
     ])
   }
   catch {
@@ -158,6 +168,7 @@ export const useChatSessionsStore = defineStore('chatSessions', () => {
   const activeConversationId = ref<string | null>(null)
   const _isStreaming = ref(false)
   const _hydrated = ref(false)
+  const _currentUserId = ref<string | null>(null)
 
   const activeConversation = computed(() =>
     conversations.value.find(c => c.id === activeConversationId.value) ?? null,
@@ -167,10 +178,22 @@ export const useChatSessionsStore = defineStore('chatSessions', () => {
     [...conversations.value].sort((a, b) => b.updatedAt - a.updatedAt),
   )
 
+  /** 获取当前用户 ID */
+  function _getUserId(): string | null {
+    try {
+      const userStore = useUserStore()
+      return userStore.userInfo?.id || null
+    }
+    catch {
+      return null
+    }
+  }
+
   /** 从 IndexedDB 恢复数据（异步，页面加载时调用） */
   async function hydrate(): Promise<void> {
     if (!import.meta.client || _hydrated.value) return
-    const data = await loadFromIDB()
+    _currentUserId.value = _getUserId()
+    const data = await loadFromIDB(_currentUserId.value)
     conversations.value = data.conversations
     activeConversationId.value = data.activeId
 
@@ -186,10 +209,22 @@ export const useChatSessionsStore = defineStore('chatSessions', () => {
     _hydrated.value = true
   }
 
+  /** 切换用户时重新加载数据 */
+  async function switchUser(): Promise<void> {
+    const newUserId = _getUserId()
+    if (newUserId === _currentUserId.value) return
+    _hydrated.value = false
+    _currentUserId.value = newUserId
+    const data = await loadFromIDB(newUserId)
+    conversations.value = data.conversations
+    activeConversationId.value = data.activeId
+    _hydrated.value = true
+  }
+
   /** 持久化到 IndexedDB */
   function persist(): void {
     if (import.meta.client) {
-      saveToIDB(conversations.value, activeConversationId.value)
+      saveToIDB(_currentUserId.value, conversations.value, activeConversationId.value)
     }
   }
 
@@ -371,6 +406,7 @@ export const useChatSessionsStore = defineStore('chatSessions', () => {
     sortedConversations,
     _hydrated,
     hydrate,
+    switchUser,
     createConversation,
     deleteConversation,
     renameConversation,

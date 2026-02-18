@@ -532,11 +532,12 @@ async function getSchoolTeachers(userId) {
     throw new Error("用户尚未绑定schoolId，无法获取教师列表");
   }
   
-  // 只查询角色为2(教师)的用户，只返回id、name和email字段
+  // 查询角色为2(教师)的用户，JOIN school表获取学校名
 const [rows] = await connection.query(
-  `SELECT u.id, u.username as name, u.email 
+  `SELECT u.id, u.username, u.username as name, u.email, s.schoolName as school, u.createTime as created_at
    FROM user u
    JOIN loginverification lv ON u.id = lv.uid
+   LEFT JOIN school s ON u.schoolId = s.id
    WHERE u.schoolId = ? AND lv.role = '2'
    ORDER BY u.username ASC`,
   [userSchoolId]

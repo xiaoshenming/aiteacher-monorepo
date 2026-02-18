@@ -162,10 +162,10 @@ const userActions = computed(() => ({
 }))
 
 const quickQuestions = [
-  { label: '分析本月平台使用数据', icon: 'i-lucide-bar-chart-3' },
-  { label: '查看教师活跃度排名', icon: 'i-lucide-users' },
-  { label: '生成系统安全报告', icon: 'i-lucide-shield' },
-  { label: '优化平台配置建议', icon: 'i-lucide-settings' },
+  { label: '查看全平台运行状态', icon: 'i-lucide-activity' },
+  { label: '分析用户增长趋势', icon: 'i-lucide-trending-up' },
+  { label: '生成安全审计报告', icon: 'i-lucide-shield' },
+  { label: '优化系统性能建议', icon: 'i-lucide-zap' },
 ]
 
 function sendQuickQuestion(text: string): void {
@@ -198,7 +198,7 @@ const conversationGroups = computed(() => {
 <template>
   <UDashboardPanel :ui="{ body: 'p-0 sm:p-0' }">
     <template #header>
-      <UDashboardNavbar title="AI 助手">
+      <UDashboardNavbar title="AI 超管助手">
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
@@ -313,7 +313,6 @@ const conversationGroups = computed(() => {
                           </div>
                         </div>
                         <template v-else-if="message.role === 'assistant' && message.content">
-                          <!-- 流式传输中用纯文本渲染，完成后才用 MDC 渲染（避免每个 chunk 都触发 highlight API） -->
                           <MDC v-if="chatStatus !== 'streaming' || message.id !== chatStore.activeConversation?.messages[chatStore.activeConversation.messages.length - 1]?.id" :value="message.content" class="prose prose-sm dark:prose-invert max-w-none *:first:mt-0 *:last:mb-0" />
                           <div v-else class="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">{{ message.content }}</div>
                         </template>
@@ -373,10 +372,10 @@ const conversationGroups = computed(() => {
                       <UIcon name="i-lucide-bot" class="size-8 text-primary" />
                     </div>
                     <h2 class="text-2xl font-bold text-highlighted mb-2">
-                      AI 管理助手
+                      AI 超管助手
                     </h2>
                     <p class="text-muted max-w-md mx-auto">
-                      我可以帮你分析平台数据、生成报告、优化系统配置。试试下面的快捷问题。
+                      全平台运维监控、用户增长分析、安全审计、性能优化，超级管理员专属 AI 助手。
                     </p>
                   </div>
 
@@ -436,10 +435,10 @@ const conversationGroups = computed(() => {
               <UIcon name="i-lucide-bot" class="size-10 text-primary" />
             </div>
             <h2 class="text-2xl font-bold text-highlighted">
-              AI 管理助手
+              AI 超管助手
             </h2>
             <p class="text-muted text-center max-w-md">
-              平台数据分析、系统优化建议、智能报告生成，管理员专属 AI 助手。
+              全平台运维监控、用户增长分析、安全审计、性能优化，超级管理员专属 AI 助手。
             </p>
             <UButton
               icon="i-lucide-plus"

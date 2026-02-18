@@ -205,6 +205,12 @@ function getSuperAdminNav(closeSidebar: () => void): DashboardNavItem[][] {
       onSelect: closeSidebar,
     },
     {
+      label: 'AI助手',
+      icon: 'i-lucide-bot',
+      to: '/superadmin/ai',
+      onSelect: closeSidebar,
+    },
+    {
       label: 'PPT 服务配置',
       icon: 'i-lucide-presentation',
       to: '/superadmin/ppt-config',

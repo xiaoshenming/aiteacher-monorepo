@@ -73,7 +73,7 @@ const validateAIChat = [
   body('model')
     .optional()
     .isString().withMessage('模型名称必须是字符串')
-    .isIn(['deepseek-chat', 'gpt-3.5-turbo', 'gpt-4']).withMessage('不支持的模型类型'),
+    .isIn(['deepseek-chat', 'deepseek-reasoner', 'gpt-3.5-turbo', 'gpt-4']).withMessage('不支持的模型类型'),
   handleValidationErrors
 ];
 
