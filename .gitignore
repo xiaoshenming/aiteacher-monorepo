@@ -49,5 +49,8 @@ apps/LandPPT/*.db
 apps/LandPPT/temp/
 apps/LandPPT/research_reports/
 
+# Backups
+apps/backend-main/backups/
+
 # Misc
 *.png
