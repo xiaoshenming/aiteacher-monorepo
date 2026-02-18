@@ -20,8 +20,9 @@
     },
     "start": {
       "executor": "nx:run-commands",
+      "dependsOn": ["build"],
       "options": {
-        "command": "nuxt start",
+        "command": "NITRO_PORT=10003 node .output/server/index.mjs",
         "cwd": "apps/frontend"
       }
     },

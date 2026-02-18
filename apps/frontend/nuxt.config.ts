@@ -128,6 +128,30 @@ export default defineNuxtConfig({
     components: ['DatasetComponent', 'GridComponent', 'TooltipComponent', 'LegendComponent'],
   },
 
+  nitro: {
+    rollupConfig: {
+      plugins: [
+        {
+          name: 'fix-estree-walker-default',
+          resolveId(id: string) {
+            if (id === 'estree-walker') {
+              return '\0estree-walker-shim'
+            }
+          },
+          load(id: string) {
+            if (id === '\0estree-walker-shim') {
+              return [
+                `import { walk, asyncWalk } from '/home/ming/data/Project/NodeProject/chap2/aiteacher-monorepo/node_modules/.pnpm/estree-walker@3.0.3/node_modules/estree-walker/src/index.js';`,
+                `export { walk, asyncWalk };`,
+                `export default { walk, asyncWalk };`,
+              ].join('\n')
+            }
+          },
+        },
+      ],
+    },
+  },
+
   vite: {
     resolve: {
       dedupe: ['vue', '@vue/runtime-core', '@vue/runtime-dom', '@vue/server-renderer', '@vue/reactivity', '@vue/shared'],
