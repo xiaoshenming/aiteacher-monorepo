@@ -7,6 +7,8 @@ const {
   autoRefresh,
   cpuGaugeOption,
   memGaugeOption,
+  diskGaugeOption,
+  uptimeRingOption,
   formatBytes,
   formatUptime,
   getUsageColor,
@@ -51,32 +53,25 @@ const {
             />
           </ClientOnly>
 
-          <UCard>
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-sm text-muted">磁盘使用率</span>
-              <UIcon name="i-lucide-hard-drive" class="text-lg text-primary" />
-            </div>
-            <div class="text-2xl font-bold" :class="getUsageColor(systemData?.disk.usage ?? 0)">
-              {{ systemData?.disk.usage ?? '-' }}%
-            </div>
-            <UProgress :value="systemData?.disk.usage ?? 0" :color="getProgressColor(systemData?.disk.usage ?? 0)" class="mt-2" />
-            <p class="text-xs text-muted mt-1">
-              {{ systemData?.disk.used ?? '-' }} / {{ systemData?.disk.total ?? '-' }}
-            </p>
-          </UCard>
+          <!-- 磁盘 Gauge -->
+          <ClientOnly>
+            <DashboardChartLazy
+              title="磁盘使用率"
+              :subtitle="systemData ? `${systemData.disk.used} / ${systemData.disk.total}` : '-'"
+              :option="diskGaugeOption"
+              height="220px"
+            />
+          </ClientOnly>
 
-          <UCard>
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-sm text-muted">系统运行时间</span>
-              <UIcon name="i-lucide-clock" class="text-lg text-primary" />
-            </div>
-            <div class="text-2xl font-bold text-highlighted">
-              {{ systemData ? formatUptime(systemData.system.uptime) : '-' }}
-            </div>
-            <p class="text-xs text-muted mt-3">
-              进程运行: {{ systemData ? formatUptime(systemData.system.processUptime) : '-' }}
-            </p>
-          </UCard>
+          <!-- 运行时间 Gauge -->
+          <ClientOnly>
+            <DashboardChartLazy
+              title="系统运行时间"
+              :subtitle="systemData ? `进程: ${formatUptime(systemData.system.processUptime)}` : '-'"
+              :option="uptimeRingOption"
+              height="220px"
+            />
+          </ClientOnly>
         </div>
 
         <!-- 服务状态 -->

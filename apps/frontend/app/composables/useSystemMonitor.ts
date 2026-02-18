@@ -110,6 +110,41 @@ export function useSystemMonitor() {
 
   const cpuGaugeOption = computed(() => buildGaugeOption('CPU', systemData.value?.cpu.usage ?? 0))
   const memGaugeOption = computed(() => buildGaugeOption('内存', systemData.value?.memory.usage ?? 0))
+  const diskGaugeOption = computed(() => buildGaugeOption('磁盘', systemData.value?.disk.usage ?? 0))
+
+  const uptimeRingOption = computed(() => {
+    const sys = systemData.value?.system
+    if (!sys) return {}
+    const processPercent = sys.uptime > 0 ? Math.min(Math.round((sys.processUptime / sys.uptime) * 100), 100) : 0
+    return {
+      series: [
+        {
+          type: 'gauge',
+          startAngle: 220,
+          endAngle: -40,
+          min: 0,
+          max: 100,
+          radius: '90%',
+          progress: { show: true, width: 14, roundCap: true, itemStyle: { color: '#6366f1' } },
+          pointer: { show: false },
+          axisLine: { lineStyle: { width: 14, color: [[1, '#e5e7eb']] } },
+          axisTick: { show: false },
+          splitLine: { show: false },
+          axisLabel: { show: false },
+          title: { show: true, offsetCenter: [0, '70%'], fontSize: 14, color: '#9ca3af' },
+          detail: {
+            valueAnimation: true,
+            offsetCenter: [0, '30%'],
+            fontSize: 20,
+            fontWeight: 'bold',
+            formatter: () => formatUptime(sys.uptime),
+            color: '#6366f1',
+          },
+          data: [{ value: processPercent, name: '运行时间' }],
+        },
+      ],
+    }
+  })
 
   // --- 数据获取 ---
   async function fetchData() {
@@ -156,6 +191,8 @@ export function useSystemMonitor() {
     autoRefresh,
     cpuGaugeOption,
     memGaugeOption,
+    diskGaugeOption,
+    uptimeRingOption,
     formatBytes,
     formatUptime,
     getUsageColor,
