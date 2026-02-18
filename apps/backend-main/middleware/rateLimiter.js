@@ -21,7 +21,7 @@ const globalLimiter = rateLimit({
  */
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 分钟
-  max: 5,
+  max: process.env.NODE_ENV === 'production' ? 5 : 50,
   message: {
     code: 429,
     message: "登录/注册请求过于频繁，请 15 分钟后再试",
