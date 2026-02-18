@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-AI Teacher — 智慧教育平台 monorepo，Nx + pnpm 管理。四个应用：Nuxt 4 前端、两个 Express 5 后端、一个 FastAPI 语音识别服务。
+AI Teacher — 智慧教育平台 monorepo，Nx + pnpm 管理。五个应用：Nuxt 4 前端、两个 Express 5 后端、FastAPI 语音识别服务、FastAPI PPT 生成服务。
 
 ## 常用命令
 
@@ -17,6 +17,7 @@ pnpm nx dev frontend          # 前端 :10003
 pnpm nx dev backend-main      # 主后端 :10001
 pnpm nx dev backend-cloud     # 云存储后端 :10002
 pnpm nx dev service-asr       # 语音识别 :10005
+pnpm nx dev LandPPT           # PPT 生成 :10006
 
 # 只启动后端
 pnpm dev:backend
@@ -47,23 +48,29 @@ mysql -h 127.0.0.1 -u ming -pming aiteacher -e "SQL语句"
 ```
 frontend (Nuxt 4, :10003)
   ├──→ backend-main (:10001)   用户、课程、AI、教案、消息
-  └──→ backend-cloud (:10002)  文件管理、编辑器、数据分析
+  ├──→ backend-cloud (:10002)  文件管理、编辑器、数据分析
+  └──→ LandPPT (:10006)       AI PPT 生成
 
 backend-main ──→ MySQL + Redis + RabbitMQ
 backend-cloud ──→ MySQL + Redis
 backend-cloud ──→ service-asr (:10005)  语音识别
+LandPPT ──→ SQLite + 多 AI 提供商
 ```
 
 ### 前端 (apps/frontend)
 
 - Nuxt 4 + Vue 3，UI 用 Nuxt UI 4 + Tailwind CSS 4
-- 状态管理：Pinia（stores 在 `app/stores/`）
-- API 请求：`app/composables/useApi.ts` 提供 `apiFetch`（→ backend-main）和 `cloudFetch`（→ backend-cloud），自动附加 JWT
-- 路由守卫：`app/middleware/auth.ts`，未登录跳转 `/login`
+- 状态管理：Pinia + pinia-plugin-persistedstate（stores 在 `app/stores/`）
+- API 请求：`app/composables/useApi.ts` 提供 `apiFetch`（→ backend-main）、`cloudFetch`（→ backend-cloud），自动附加 JWT
+- LandPPT 集成：`app/composables/useLandPPT.ts`
+- 路由守卫：`app/middleware/auth.global.ts`（全局）、`auth.ts`、`role-guard.ts`
 - 富文本编辑器：Tiptap 3，组件在 `app/components/editor/`
 - 3D 渲染：TresJS（Three.js）
-- 图表：ECharts（nuxt-echarts）
-- 页面结构：`/login`、`/dashboard`、`/user/*`（教师）、`/admin/*`、`/superadmin/*`
+- 图表：ECharts 6（nuxt-echarts），支持 Bar/Line/Pie/Radar/Gauge
+- 文档预览：@vue-office（docx/excel/pdf/pptx）
+- PWA 支持：@vite-pwa/nuxt
+- Markdown 渲染：@nuxtjs/mdc + Shiki 代码高亮
+- 页面结构：`/login`、`/dashboard`、`/user/*`（教师）、`/admin/*`、`/superadmin/*`、`/student/*`
 
 ### 主后端 (apps/backend-main)
 
@@ -76,14 +83,22 @@ backend-cloud ──→ service-asr (:10005)  语音识别
 - AI 集成：OpenAI SDK 调用 DeepSeek API，WebSocket 流式输出（`model/ai/wxsocket.js`）
 - 日志：Winston（`utils/logger.js`），输出到 `logs/`
 - API 文档：Swagger UI 在 `/api-docs`
-- 路由模块在 `model/` 下按功能分目录，每个目录含 Router 文件
+- 监控：Prometheus 指标在 `/metrics`（prom-client）
+- 限流：express-rate-limit（globalLimiter、authLimiter、aiLimiter），配置在 `middleware/rateLimiter.js`
+- 路由模块在 `model/` 下按功能分目录：
+  - `user/` 用户管理、`course/` 课程、`class/` 班级、`ai/` AI 对话
+  - `edu/` 教育模块（lessonPlans 教案、questionBank 题库、assignment 作业、resource 资源）
+  - `ppt/` PPT 生成、`question/` 题目生成、`schedule/` 课程表
+  - `rabbitmq/` 消息通知、`news/` 新闻、`admin/` 管理员
+  - `email/` 邮件验证、`wx/` 微信集成、`static/` 文件上传
 
 ### 云存储后端 (apps/backend-cloud)
 
 - Express 5，JavaScript（CommonJS）
 - 文件上传：Multer 2.0
-- 路由在 `router/` 下：pcApi（PC 云盘）、mobileApi（移动端）、umoEditorApi（编辑器）、analytics（统计）、recording（录制）
-- ASR 任务队列：`asrQueue.js`，异步调用 service-asr
+- AI 集成：OpenAI SDK 调用 DeepSeek API（编辑器 AI 文本变换）
+- 路由在 `router/` 下：pcApi（PC 云盘）、mobileApi（移动端）、umoEditorApi（编辑器）、analytics（统计）、recording（录制）、apidownload（文件下载）
+- ASR 任务队列：`utils/asrQueue.js`，2 个 Worker 异步调用 service-asr
 
 ### 语音识别 (apps/service-asr)
 
@@ -91,13 +106,24 @@ backend-cloud ──→ service-asr (:10005)  语音识别
 - FunASR（阿里达摩院）：Nano 模型（高精度转写）+ SenseVoice（实时流式）
 - 模型缓存在 `./models` 目录
 
+### PPT 生成 (apps/LandPPT)
+
+- Python FastAPI + Uvicorn，uv 管理依赖
+- AI 驱动 PPT 生成，支持多 AI 提供商：OpenAI、DeepSeek、Kimi、MiniMax、Anthropic、Google Gemini、Ollama、302.AI
+- 研究功能：Tavily / SearXNG 联网搜索
+- 图片服务：Pixabay、Unsplash、SiliconFlow、Pollinations
+- 数据库：SQLAlchemy + SQLite（landppt.db）
+- 启动命令：`uv run python run.py`
+- 代码在 `src/landppt/` 下：`ai/`（AI 提供商）、`api/`（路由）、`services/`（业务逻辑）、`database/`（模型）
+
 ## 关键约定
 
 - 后端使用原生 SQL 查询，不使用 ORM。新增表或字段需手动写 SQL
 - 前端 API 调用统一通过 `useApi()` composable，不要直接用 `$fetch`
 - 环境变量在各应用的 `.env` 文件中，前端运行时配置在 `nuxt.config.ts` 的 `runtimeConfig`
-- Vue 版本锁定为 3.5.28（根 package.json pnpm overrides）
+- Vue 版本锁定为 3.5.28，TypeScript 锁定为 5.9.3（根 package.json pnpm overrides）
 - 所有 Nx 命令用 `pnpm nx` 前缀执行
+- LandPPT 使用 uv 管理 Python 依赖，不使用 pip
 
 <!-- nx configuration start-->
 <!-- Leave the start & end comments to automatically receive updates. -->

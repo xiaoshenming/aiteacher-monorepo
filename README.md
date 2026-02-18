@@ -1,18 +1,20 @@
 # AI Teacher Monorepo
 
-智慧教育平台，集成 AI 对话、语音识别、富文本教案编辑、3D 可视化等功能。使用 Nx + pnpm 管理多应用架构。
+智慧教育平台，集成 AI 对话、AI PPT 生成、语音识别、富文本教案编辑、3D 可视化等功能。使用 Nx + pnpm 管理多应用架构。
 
 ## 项目结构
 
 ```
 aiteacher-monorepo/
 ├── apps/
-│   ├── backend-main/       # 主后端服务 (Express, :10001)
-│   ├── backend-cloud/      # 云存储后端 (Express, :10002)
+│   ├── backend-main/       # 主后端服务 (Express 5, :10001)
+│   ├── backend-cloud/      # 云存储后端 (Express 5, :10002)
+│   ├── frontend/           # 前端应用 (Nuxt 4, :10003)
 │   ├── service-asr/        # 语音识别服务 (FastAPI, :10005)
-│   └── frontend/           # 前端应用 (Nuxt 4, :10003)
+│   └── LandPPT/            # AI PPT 生成服务 (FastAPI, :10006)
 ├── packages/               # 共享包
 ├── logs/                   # 日志目录
+├── docs/                   # 文档目录
 ├── docker-compose.yml      # Docker 编排
 ├── nx.json                 # Nx 工作区配置
 ├── pnpm-workspace.yaml     # pnpm 工作区
@@ -23,12 +25,13 @@ aiteacher-monorepo/
 
 | 层级 | 技术 |
 |------|------|
-| 前端 | Nuxt 4 + Vue 3、Nuxt UI 4 + Tailwind CSS 4、TresJS (Three.js)、Tiptap 富文本编辑器、ECharts、Pinia |
-| 主后端 | Express 5、MySQL、Redis、RabbitMQ、WebSocket、JWT |
-| 云存储后端 | Express 5、MySQL、Redis、Multer 文件上传 |
+| 前端 | Nuxt 4 + Vue 3、Nuxt UI 4 + Tailwind CSS 4、TresJS (Three.js)、Tiptap 3 富文本编辑器、ECharts 6、Pinia、PWA、@vue-office 文档预览 |
+| 主后端 | Express 5、MySQL、Redis、RabbitMQ、WebSocket、JWT、Prometheus 监控 |
+| 云存储后端 | Express 5、MySQL、Redis、Multer 文件上传、DeepSeek AI 文本变换 |
 | 语音识别 | Python FastAPI、FunASR（阿里达摩院）、WebSocket 流式识别 |
-| AI 集成 | DeepSeek API、阿里百炼 DASHSCOPE、AIPPT |
-| 工具链 | Nx 22、pnpm 10、Docker |
+| PPT 生成 | Python FastAPI、LangChain + LangGraph、多 AI 提供商（OpenAI/DeepSeek/Kimi/MiniMax/Anthropic/Gemini/Ollama/302.AI）、Tavily/SearXNG 研究、SQLite |
+| AI 集成 | DeepSeek API（OpenAI SDK）、阿里百炼 DASHSCOPE |
+| 工具链 | Nx 22、pnpm 10、Docker、uv (Python) |
 
 ## 服务端口
 
@@ -39,6 +42,7 @@ aiteacher-monorepo/
 | frontend | 10003 | 3001 | 前端应用 |
 | Nx Graph | 10004 | — | Nx 依赖可视化 |
 | service-asr | 10005 | 8766 | 语音识别 |
+| LandPPT | 10006 | — | AI PPT 生成 |
 
 ## 快速开始
 
@@ -46,7 +50,8 @@ aiteacher-monorepo/
 
 - Node.js 18+
 - pnpm 10+
-- Python 3.10+（语音识别服务）
+- Python 3.11+（LandPPT）、Python 3.8+（语音识别）
+- uv（Python 包管理，LandPPT 使用）
 - MySQL、Redis、RabbitMQ
 
 ### 安装依赖
@@ -57,24 +62,32 @@ pnpm install
 
 ### 环境变量
 
-每个服务需要对应的 `.env` 文件：
+每个服务需要对应的 `.env` 文件（参考各应用下的 `.env.example`）：
 
-- `apps/backend-main/.env` — MySQL、Redis、RabbitMQ、JWT 密钥、AI API Key
-- `apps/backend-cloud/.env` — MySQL、Redis、JWT 密钥
+- `apps/backend-main/.env` — MySQL、Redis、RabbitMQ、JWT 密钥、DeepSeek API Key
+- `apps/backend-cloud/.env` — MySQL、Redis、JWT 密钥、DeepSeek API Key
 - `apps/service-asr/.env` — 模型配置
+- `apps/LandPPT/.env` — AI 提供商 API Key、研究服务、图片服务、SQLite 路径
 - `apps/frontend/.env`（可选）— API 地址覆盖
 
 ### 启动服务
 
 ```bash
-# 启动所有服务
-pnpm dev
+# 启动所有服务（推荐）
+pnpm dev:nx
 
 # 只启动后端
 pnpm dev:backend
 
 # 只启动前端
 pnpm dev:frontend
+
+# 启动单个应用
+pnpm nx dev frontend
+pnpm nx dev backend-main
+pnpm nx dev backend-cloud
+pnpm nx dev service-asr
+pnpm nx dev LandPPT
 
 # pnpm 原生并行启动（调试用）
 pnpm dev:native
@@ -97,9 +110,12 @@ pnpm dev:native
 - **多角色仪表盘** — 教师、学生、管理员、超级管理员四套独立界面
 - **AI 对话** — 基于 DeepSeek 的智能问答，支持流式输出
 - **教案管理** — Tiptap 富文本编辑器，支持 AI 内联补全、文本变换、图片上传、代码高亮、表格、任务列表
+- **AI PPT 生成** — 集成 LandPPT，支持研究报告生成和多模板
 - **3D 可视化** — TresJS + Three.js 场景渲染
-- **数据分析** — ECharts 图表展示
+- **数据分析** — ECharts 图表展示（柱状图、折线图、饼图、雷达图、仪表盘）
+- **文档预览** — 支持 Word、Excel、PDF、PPT 在线预览
 - **主题切换** — 亮色/暗色模式，圆形波纹过渡动画
+- **PWA 支持** — 离线缓存、可安装为桌面应用
 
 ### 主后端 (apps/backend-main)
 
@@ -110,12 +126,17 @@ pnpm dev:native
 | 班级管理 | `/api/classes` | 班级与学生管理 |
 | AI 功能 | `/api/ai` | AI 对话、编辑器补全 |
 | 教案管理 | `/api/lessonPlans` | 教案 CRUD |
+| 题库管理 | `/api/questionBank` | 题库 CRUD |
+| 作业管理 | `/api/assignment` | 作业布置与批改 |
+| 资源管理 | `/api/resource` | 教学资源管理 |
 | 题目生成 | `/api/bridge` | 智能出题 |
 | PPT 生成 | `/api/ppt` | AI 生成 PPT |
 | 课程表 | `/api/course-schedule` | 排课管理 |
 | 消息通知 | `/api/notifications` | RabbitMQ 消息队列 |
 | 新闻资讯 | `/api/news` | 新闻管理 |
+| 管理员 | `/api/admin` | 管理员功能 |
 | API 文档 | `/api-docs` | Swagger UI |
+| 监控指标 | `/metrics` | Prometheus 指标 |
 
 ### 云存储后端 (apps/backend-cloud)
 
@@ -126,12 +147,36 @@ pnpm dev:native
 | 编辑器 | `/api/editor` | 图片上传、AI 文本变换 |
 | 数据分析 | `/api/analytics` | 统计分析 |
 | 课堂录制 | `/api/recording` | 录制管理 |
+| 文件下载 | `/api/download` | 文件下载服务 |
 
 ### 语音识别 (apps/service-asr)
 
 - **高精度转写** — FunASR Nano 模型，适用于录音后处理
 - **实时流式识别** — SenseVoice 模型，低延迟、多语言、情感识别
 - **WebSocket 接口** — 支持实时音频流输入
+
+### AI PPT 生成 (apps/LandPPT)
+
+- **多 AI 提供商** — OpenAI、DeepSeek、Kimi、MiniMax、Anthropic、Google Gemini、Ollama、302.AI
+- **研究报告** — Tavily / SearXNG 联网搜索，自动生成研究报告
+- **图片服务** — Pixabay、Unsplash 搜索 + SiliconFlow、Pollinations AI 生成
+- **模板管理** — 支持自定义 PPT 模板
+- **OpenAI 兼容 API** — 可作为独立 AI 服务调用
+
+## 项目依赖关系
+
+```
+frontend ──→ backend-main (API :10001)
+         ──→ backend-cloud (文件/编辑器 :10002)
+         ──→ LandPPT (PPT 生成 :10006)
+
+backend-cloud ──→ service-asr (语音识别 :10005)
+
+backend-main ──→ MySQL + Redis + RabbitMQ
+backend-cloud ──→ MySQL + Redis
+service-asr ──→ FunASR 模型（本地缓存）
+LandPPT ──→ SQLite + 多 AI 提供商 + Tavily/SearXNG
+```
 
 ## 生产部署
 
@@ -142,6 +187,7 @@ pnpm dev:native
 ```bash
 NUXT_PUBLIC_API_BASE=https://your-domain.com/api/
 NUXT_PUBLIC_API_CLOUD=https://your-domain.com/cloud-api/
+NUXT_PUBLIC_LANDPPT_BASE=https://your-domain.com/landppt/
 ```
 
 ### Docker
@@ -150,18 +196,7 @@ NUXT_PUBLIC_API_CLOUD=https://your-domain.com/cloud-api/
 docker-compose up -d
 ```
 
-## 项目依赖关系
-
-```
-frontend ──→ backend-main (API :10001)
-         ──→ backend-cloud (文件/编辑器 :10002)
-
-backend-cloud ──→ service-asr (语音识别 :10005)
-
-backend-main ──→ MySQL + Redis + RabbitMQ
-backend-cloud ──→ MySQL + Redis
-service-asr ──→ FunASR 模型（本地缓存）
-```
+> 注：LandPPT 目前未包含在 docker-compose.yml 中，需单独部署。
 
 ## 开源许可
 
