@@ -3,6 +3,7 @@
   "defaultBase": "main",
   "defaultProject": "frontend",
   "parallel": 5,
+  "packageManager": "pnpm",
   "targetDefaults": {
     "build": {
       "dependsOn": ["^build"],
