@@ -34,10 +34,12 @@ async function fetchBackups() {
   loading.value = true
   try {
     const res = await apiFetch<{ code: number, data: { backups: BackupItem[] } }>('admin/backups')
-    backups.value = res.data.backups
+    if (res.code === 200 && res.data?.backups) {
+      backups.value = res.data.backups
+    }
   }
   catch {
-    // error handled by apiFetch
+    // API 不可用，保持空列表
   }
   finally {
     loading.value = false
