@@ -26,7 +26,7 @@ function parseScheduleData(raw: unknown): ScheduleCell[][] {
 const editData = ref<ScheduleCell[][]>(parseScheduleData(props.schedule.schedule_data))
 
 function handleCellUpdate(row: number, col: number, cell: ScheduleCell) {
-  editData.value[row][col] = cell
+  editData.value[row]![col] = cell
 }
 
 function addRow() {

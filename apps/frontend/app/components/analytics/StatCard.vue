@@ -23,12 +23,12 @@ const colorMap: Record<string, { bg: string, icon: string }> = {
     <div class="flex items-start justify-between">
       <div
         class="w-10 h-10 rounded-lg flex items-center justify-center"
-        :class="colorMap[color ?? 'teal'].bg"
+        :class="colorMap[color ?? 'teal']?.bg"
       >
         <UIcon
           :name="icon"
           class="w-5 h-5"
-          :class="colorMap[color ?? 'teal'].icon"
+          :class="colorMap[color ?? 'teal']?.icon"
         />
       </div>
 
