@@ -64,24 +64,27 @@ const {
         <div v-if="!loading && backups.length === 0" class="text-center text-gray-500 py-12">
           暂无备份记录
         </div>
+        <div v-if="!loading && backups.length === 0" class="text-center text-gray-500 py-12">
+          暂无备份记录
+        </div>
+
+        <UModal v-model:open="showDeleteConfirm">
+          <template #content>
+            <div class="p-6">
+              <h3 class="text-lg font-semibold mb-2">
+                确认删除
+              </h3>
+              <p class="text-sm text-gray-500 mb-4">
+                确定要删除备份文件 {{ pendingDeleteName }} 吗？此操作不可恢复。
+              </p>
+              <div class="flex justify-end gap-2">
+                <UButton variant="ghost" label="取消" @click="showDeleteConfirm = false" />
+                <UButton color="error" label="删除" @click="doDelete" />
+              </div>
+            </div>
+          </template>
+        </UModal>
       </div>
     </template>
-
-    <UModal v-model:open="showDeleteConfirm">
-      <template #content>
-        <div class="p-6">
-          <h3 class="text-lg font-semibold mb-2">
-            确认删除
-          </h3>
-          <p class="text-sm text-gray-500 mb-4">
-            确定要删除备份文件 {{ pendingDeleteName }} 吗？此操作不可恢复。
-          </p>
-          <div class="flex justify-end gap-2">
-            <UButton variant="ghost" label="取消" @click="showDeleteConfirm = false" />
-            <UButton color="error" label="删除" @click="doDelete" />
-          </div>
-        </div>
-      </template>
-    </UModal>
   </UDashboardPanel>
 </template>
