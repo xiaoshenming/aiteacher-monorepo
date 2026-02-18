@@ -1,3 +1,9 @@
+<script setup lang="ts">
+const links = [
+  { label: '立即体验', color: 'primary' as const, to: '/login', trailingIcon: 'i-lucide-arrow-right', size: 'lg' as const },
+]
+</script>
+
 <template>
   <section id="about" class="border-t border-default">
     <UPageSection
@@ -5,9 +11,7 @@
       title="为什么选择 AI教学助手？"
       description="我们深知教师的时间宝贵。AI教学助手将繁琐的备课、出题、批改工作交给人工智能，让教师专注于最重要的事——教学本身。"
       orientation="horizontal"
-      :links="[
-        { label: '立即体验', color: 'primary' as const, to: '/login', trailingIcon: 'i-lucide-arrow-right', size: 'lg' as const },
-      ]"
+      :links="links"
       :features="[
         { icon: 'i-lucide-clock', title: '节省 60% 备课时间', description: 'AI 自动生成教学计划和课件大纲' },
         { icon: 'i-lucide-target', title: '精准学情分析', description: 'AI 精准分析每位学生的学习状况' },
