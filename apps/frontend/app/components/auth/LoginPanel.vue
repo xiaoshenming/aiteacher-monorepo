@@ -60,6 +60,13 @@ onUnmounted(() => {
 
 <template>
   <div class="relative min-h-screen overflow-hidden bg-gray-100 dark:bg-gray-900 transition-colors duration-500">
+    <!-- Color mode toggle -->
+    <div class="fixed top-4 right-4 z-50">
+      <div class="rounded-full bg-white/20 dark:bg-gray-800/50 backdrop-blur-sm">
+        <LayoutColorModeToggle />
+      </div>
+    </div>
+
     <!-- Background image with gradient overlay -->
     <div class="fixed inset-0 z-0">
       <img
@@ -158,7 +165,7 @@ onUnmounted(() => {
 :is(.dark) :deep(.auth-input) {
   background: var(--color-gray-700);
   border-color: var(--color-gray-600);
-  color: white;
+  color: var(--color-gray-100);
 }
 
 :is(.dark) :deep(.auth-input)::placeholder {
@@ -167,8 +174,8 @@ onUnmounted(() => {
 
 :is(.dark) :deep(.auth-input):focus {
   border-color: var(--color-teal-400);
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
-  background: var(--color-gray-700);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+  background: var(--color-gray-600);
 }
 
 /* Icon scale on focus */

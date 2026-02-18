@@ -107,7 +107,7 @@ export default defineNuxtConfig({
       viewport: 'width=device-width',
       title: 'AI教学助手',
       link: [
-        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'icon', type: 'image/png', href: '/logo.png' },
       ],
       htmlAttrs: {
         lang: 'zh-CN',

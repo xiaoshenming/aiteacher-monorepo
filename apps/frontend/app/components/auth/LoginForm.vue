@@ -14,7 +14,7 @@ const emit = defineEmits<{
   <div class="w-full max-w-sm mx-auto">
     <!-- Logo -->
     <div class="flex items-center gap-2 mb-2">
-      <NuxtImg src="/favicon.svg" alt="AI教学助手" class="h-7 w-7" />
+      <NuxtImg src="/logo.png" alt="AI教学助手" class="h-7 w-7" />
       <span class="text-sm font-medium text-muted">AI教学助手</span>
     </div>
 

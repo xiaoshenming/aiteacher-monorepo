@@ -19,7 +19,7 @@ const items = computed(() => [{
   <UHeader>
     <template #left>
       <NuxtLink to="/" class="flex items-center gap-2">
-        <NuxtImg src="/favicon.svg" alt="AI教学助手" class="h-6 w-6" />
+        <NuxtImg src="/logo.png" alt="AI教学助手" class="h-6 w-6" />
         <span class="font-semibold text-sm">AI教学助手</span>
       </NuxtLink>
     </template>

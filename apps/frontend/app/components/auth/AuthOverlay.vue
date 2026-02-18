@@ -26,7 +26,7 @@ const emit = defineEmits<{
         :class="[!isRegisterMode ? 'translate-x-0 pointer-events-auto opacity-100' : 'translate-x-[20%] opacity-0 pointer-events-none']"
       >
         <div class="mb-6">
-          <NuxtImg src="/favicon.svg" alt="" class="h-12 w-12 mx-auto mb-4 drop-shadow-lg" />
+          <NuxtImg src="/logo.png" alt="" class="h-12 w-12 mx-auto mb-4 drop-shadow-lg" />
         </div>
         <h3 class="text-2xl font-bold mb-3">
           还没有账号？
@@ -45,7 +45,7 @@ const emit = defineEmits<{
         :class="[isRegisterMode ? 'translate-x-0 pointer-events-auto opacity-100' : '-translate-x-[20%] opacity-0 pointer-events-none']"
       >
         <div class="mb-6">
-          <NuxtImg src="/favicon.svg" alt="" class="h-12 w-12 mx-auto mb-4 drop-shadow-lg" />
+          <NuxtImg src="/logo.png" alt="" class="h-12 w-12 mx-auto mb-4 drop-shadow-lg" />
         </div>
         <h3 class="text-2xl font-bold mb-3">
           已有账号？
