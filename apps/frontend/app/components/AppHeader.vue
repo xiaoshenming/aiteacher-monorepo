@@ -42,13 +42,13 @@ const items = computed(() => [{
           color="primary"
           trailing-icon="i-lucide-arrow-right"
           class="hidden lg:inline-flex"
-          to="/dashboard"
+          :to="userStore.roleHome"
         />
         <UButton
           icon="i-lucide-layout-dashboard"
           color="primary"
           variant="ghost"
-          to="/dashboard"
+          :to="userStore.roleHome"
           class="lg:hidden"
           aria-label="进入控制台"
         />
@@ -92,7 +92,7 @@ const items = computed(() => [{
         <UButton
           label="进入控制台"
           color="primary"
-          to="/dashboard"
+          :to="userStore.roleHome"
           block
         />
       </template>

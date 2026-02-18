@@ -1,27 +1,19 @@
 <script setup lang="ts">
 const userStore = useUserStore()
+
+// 自动跳转到角色对应的后台首页
+if (userStore.isLoggedIn && userStore.roleHome !== '/dashboard') {
+  await navigateTo(userStore.roleHome, { replace: true })
+}
 </script>
 
 <template>
   <section class="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900" aria-label="仪表盘">
     <div class="text-center space-y-4">
-      <div class="w-16 h-16 mx-auto rounded-full bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center">
-        <UIcon name="i-lucide-layout-dashboard" class="text-3xl text-teal-600 dark:text-teal-400" />
-      </div>
-      <h1 class="text-2xl font-bold text-default">
-        仪表盘
-      </h1>
+      <UIcon name="i-lucide-loader-circle" class="text-4xl text-primary animate-spin" />
       <p class="text-muted">
-        欢迎，{{ userStore.userInfo.name || '用户' }}！角色：{{ userStore.roleLabel }}
+        正在跳转...
       </p>
-      <div class="pt-4">
-        <button
-          class="px-4 py-2 rounded-lg bg-teal-500 text-white hover:bg-teal-600 transition-colors cursor-pointer"
-          @click="userStore.logout(); navigateTo('/login')"
-        >
-          退出登录
-        </button>
-      </div>
     </div>
   </section>
 </template>

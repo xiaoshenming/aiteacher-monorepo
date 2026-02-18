@@ -22,6 +22,12 @@ const userMenuItems = computed(() => [
     onSelect: startViewTransitionFromCenter,
   }],
   [{
+    label: '返回首页',
+    icon: 'i-lucide-home',
+    onSelect: () => {
+      navigateTo('/')
+    },
+  }, {
     label: '退出登录',
     icon: 'i-lucide-log-out',
     onSelect: () => {
