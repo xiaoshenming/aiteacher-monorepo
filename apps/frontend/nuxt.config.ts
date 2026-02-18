@@ -39,7 +39,13 @@ export default defineNuxtConfig({
     },
   },
 
-  routeRules: {},
+  routeRules: {
+    '/dashboard': { ssr: false },
+    '/user/**': { ssr: false },
+    '/admin/**': { ssr: false },
+    '/superadmin/**': { ssr: false },
+    '/student/**': { ssr: false },
+  },
 
   compatibilityDate: '2025-06-09',
 

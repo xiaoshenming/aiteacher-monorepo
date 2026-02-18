@@ -2,9 +2,14 @@ const express = require("express");
 const router = express.Router();
 const courseUtils = require("./courseUtils");
 const authorize = require("../auth/authUtils");
+const {
+  validateCreateCourse,
+  validateAddAssistant,
+  validateId
+} = require("../../middleware/validators");
 
 // 创建新课程（仅教师）
-router.post("/", authorize(["2", "3", "4"]), async (req, res) => {
+router.post("/", authorize(["2", "3", "4"]), validateCreateCourse, async (req, res) => {
   try {
     const result = await courseUtils.createCourse(req.user.id, req.body);
     res.status(201).json({
@@ -28,7 +33,7 @@ router.get("/", authorize(["2", "3", "4"]), async (req, res) => {
 });
 
 // 获取课程详情
-router.get("/:courseId", authorize(["2", "3", "4"]), async (req, res) => {
+router.get("/:courseId", authorize(["2", "3", "4"]), validateId, async (req, res) => {
   try {
     const courseDetails = await courseUtils.getCourseDetails(
       req.params.courseId,
@@ -44,6 +49,8 @@ router.get("/:courseId", authorize(["2", "3", "4"]), async (req, res) => {
 router.post(
   "/:courseId/assistants",
   authorize(["2", "3", "4"]),
+  validateId,
+  validateAddAssistant,
   async (req, res) => {
     try {
       const { assistantId } = req.body;

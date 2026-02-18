@@ -79,10 +79,10 @@ const roleOption = {
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ClientOnly>
-            <DashboardChart title="用户增长趋势" subtitle="近6个月" :option="growthOption" />
+            <DashboardChartLazy title="用户增长趋势" subtitle="近6个月" :option="growthOption" />
           </ClientOnly>
           <ClientOnly>
-            <DashboardChart title="角色分布" subtitle="全平台" :option="roleOption" />
+            <DashboardChartLazy title="角色分布" subtitle="全平台" :option="roleOption" />
           </ClientOnly>
         </div>
       </div>

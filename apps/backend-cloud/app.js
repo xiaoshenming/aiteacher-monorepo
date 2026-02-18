@@ -5,6 +5,7 @@ const path = require("path");
 const cookieParser = require("cookie-parser")
 // 导入工具类
 const authenticate = require("./utils/auth-middleware.js")
+const { globalLimiter } = require("./middleware/rateLimiter")
 // 导入路由
 const testRouter = require("./router/test.js")
 const pcApiRouter = require("./router/pcApi.js")
@@ -23,18 +24,39 @@ ASRTaskQueue.startWorker(2).catch(err => {
 // 创建一个服务器对象
 const app = express()
 
+// CORS 配置 - 限制为前端域名白名单
+const allowedOrigins = [
+  'http://localhost:10003', // 开发环境
+  process.env.FRONTEND_URL, // 生产环境（从环境变量读取）
+].filter(Boolean); // 过滤掉 undefined
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // 允许无 origin 的请求（如 Postman、服务器端请求）
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS 拒绝来源: ${origin}`);
+      callback(new Error('不允许的 CORS 来源'));
+    }
+  },
+  credentials: true, // 支持 Cookie
+  optionsSuccessStatus: 200
+};
+
 // 重要：先设置请求体大小限制，然后再使用其他中间件
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
 // 添加跨域，解析数据的中间件
-app.use(cors())
-// 这两行已移至上方
-// app.use(express.json())
-// app.use(express.urlencoded({extended:false}))
-
+app.use(cors(corsOptions))
 // 添加cookie解析
 app.use(cookieParser())
+
+// 全局限流：100 req/15min
+app.use(globalLimiter)
 
 
 // 路径鉴权，不通过全局中间件

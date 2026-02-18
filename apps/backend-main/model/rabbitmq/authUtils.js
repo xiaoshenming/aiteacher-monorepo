@@ -2,6 +2,7 @@
 const amqp = require("amqplib");
 const db = require("../../config/db");
 const redis = require("../../config/redis");
+const logger = require("../../utils/logger");
 require("dotenv").config();
 
 let authChannel = null;
@@ -20,10 +21,10 @@ async function connectAuthChannel() {
     await authChannel.assertExchange(AUTH_EXCHANGE, "direct", {
       durable: true,
     });
-    console.log("[RabbitMQ] Auth Exchange 就绪:", AUTH_EXCHANGE);
+    logger.info("[RabbitMQ] Auth Exchange 就绪:", AUTH_EXCHANGE);
     return authChannel;
   } catch (error) {
-    console.error("[RabbitMQ] Auth 通道连接失败:", error);
+    logger.error("[RabbitMQ] Auth 通道连接失败:", error);
     setTimeout(connectAuthChannel, 5000);
   }
 }
@@ -42,7 +43,7 @@ async function publishAuthRequest(messageObj) {
     Buffer.from(JSON.stringify(messageObj)),
     { persistent: true }
   );
-  console.log("[AuthUtils] 发布认证请求:", messageObj);
+  logger.info("[AuthUtils] 发布认证请求:", messageObj);
 }
 
 /**
@@ -52,14 +53,14 @@ async function publishAuthRequest(messageObj) {
 async function publishAuthApproval(messageObj) {
   try {
     const { requestId, admin_id } = messageObj;
-    console.log(messageObj);
-    
+    logger.info("[AuthUtils] 处理认证审批:", messageObj);
+
     // 查询认证申请记录
     const [reqRows] = await db
       .promise()
       .query("SELECT * FROM authentication_requests WHERE id = ?", [requestId]);
     if (reqRows.length === 0) {
-      console.error("[AuthUtils] 认证申请未找到:", requestId);
+      logger.error("[AuthUtils] 认证申请未找到:", requestId);
       return;
     }
     const authRequest = reqRows[0];
@@ -69,7 +70,7 @@ async function publishAuthApproval(messageObj) {
       .promise()
       .query("SELECT uid FROM loginverification WHERE id = ?", [admin_id]);
     if (adminLvRows.length === 0) {
-      console.error("[AuthUtils] 管理员未找到:", admin_id);
+      logger.error("[AuthUtils] 管理员未找到:", admin_id);
       return;
     }
     const admin_uid = adminLvRows[0].uid;
@@ -78,18 +79,18 @@ async function publishAuthApproval(messageObj) {
       .promise()
       .query("SELECT schoolId FROM user WHERE id = ?", [admin_uid]);
     if (adminUserRows.length === 0) {
-      console.error("[AuthUtils] 管理员信息未找到，uid:", admin_uid);
+      logger.error("[AuthUtils] 管理员信息未找到，uid:", admin_uid);
       return;
     }
     const adminSchoolId = adminUserRows[0].schoolId;
     // 校验学校是否匹配
     if (authRequest.school_id !== adminSchoolId) {
-      console.error("[AuthUtils] 学校不匹配，无权限审批");
+      logger.error("[AuthUtils] 学校不匹配，无权限审批");
       return;
     }
     // 检查认证申请状态是否为待处理
     if (authRequest.status !== 0) {
-      console.error("[AuthUtils] 认证申请已处理");
+      logger.error("[AuthUtils] 认证申请已处理");
       return;
     }
     // 开启事务更新认证记录和教师信息
@@ -111,7 +112,7 @@ async function publishAuthApproval(messageObj) {
       await connectionDb.commit();
     } catch (err) {
       await connectionDb.rollback();
-      console.error("[AuthUtils] 事务错误:", err);
+      logger.error("[AuthUtils] 事务错误:", err);
       return;
     }
     // 清除教师在 Redis 中的 JWT（PC 与移动端）
@@ -124,11 +125,11 @@ async function publishAuthApproval(messageObj) {
       const teacherLvId = teacherLvRows[0].id;
       await redis.del(`user_${teacherLvId}_pc_token`);
       await redis.del(`user_${teacherLvId}_mobile_token`);
-      console.log(`[AuthUtils] 已清除教师 JWT，teacher_lv_id: ${teacherLvId}`);
+      logger.info(`[AuthUtils] 已清除教师 JWT，teacher_lv_id: ${teacherLvId}`);
     }
-    console.log("[AuthUtils] 认证审批成功，requestId:", requestId);
+    logger.info("[AuthUtils] 认证审批成功，requestId:", requestId);
   } catch (error) {
-    console.error("[AuthUtils] 认证审批处理出错:", error);
+    logger.error("[AuthUtils] 认证审批处理出错:", error);
   }
 }
 

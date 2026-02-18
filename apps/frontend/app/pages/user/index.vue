@@ -157,12 +157,12 @@ const quickActions = [
         <!-- Charts -->
         <ClientOnly>
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <DashboardChart
+            <DashboardChartLazy
               title="成绩分布"
               subtitle="班级"
               :option="scoreDistOption"
             />
-            <DashboardChart
+            <DashboardChartLazy
               title="学情趋势"
               subtitle="近8周"
               :option="trendOption"

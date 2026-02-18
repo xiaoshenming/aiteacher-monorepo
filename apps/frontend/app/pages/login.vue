@@ -325,7 +325,7 @@ onUnmounted(() => {
             <div class="w-full max-w-sm mx-auto">
               <!-- Logo -->
               <div class="flex items-center gap-2 mb-2">
-                <img src="/favicon.svg" alt="AI教学助手" class="h-7 w-7">
+                <NuxtImg src="/favicon.svg" alt="AI教学助手" class="h-7 w-7" />
                 <span class="text-sm font-medium text-muted">AI教学助手</span>
               </div>
 
@@ -522,7 +522,7 @@ onUnmounted(() => {
                 :class="[!isRegisterMode ? 'translate-x-0 pointer-events-auto opacity-100' : 'translate-x-[20%] opacity-0 pointer-events-none']"
               >
                 <div class="mb-6">
-                  <img src="/favicon.svg" alt="" class="h-12 w-12 mx-auto mb-4 drop-shadow-lg">
+                  <NuxtImg src="/favicon.svg" alt="" class="h-12 w-12 mx-auto mb-4 drop-shadow-lg" />
                 </div>
                 <h3 class="text-2xl font-bold mb-3">
                   还没有账号？
@@ -541,7 +541,7 @@ onUnmounted(() => {
                 :class="[isRegisterMode ? 'translate-x-0 pointer-events-auto opacity-100' : '-translate-x-[20%] opacity-0 pointer-events-none']"
               >
                 <div class="mb-6">
-                  <img src="/favicon.svg" alt="" class="h-12 w-12 mx-auto mb-4 drop-shadow-lg">
+                  <NuxtImg src="/favicon.svg" alt="" class="h-12 w-12 mx-auto mb-4 drop-shadow-lg" />
                 </div>
                 <h3 class="text-2xl font-bold mb-3">
                   已有账号？

@@ -169,7 +169,7 @@ onBeforeUnmount(() => {
 
       <!-- 编辑器区域 -->
       <div v-else class="h-full">
-        <EditorLessonPlanEditor ref="editorComponent" v-model="planContent" />
+        <EditorLessonPlanEditorLazy ref="editorComponent" v-model="planContent" />
       </div>
     </template>
   </UDashboardPanel>

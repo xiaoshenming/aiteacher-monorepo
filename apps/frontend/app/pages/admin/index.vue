@@ -169,8 +169,8 @@ onMounted(load)
         <!-- Charts -->
         <ClientOnly>
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <DashboardChart title="用户分布" subtitle="角色" :option="userDistOption" />
-            <DashboardChart title="资源统计" subtitle="平台" :option="resourceOption" />
+            <DashboardChartLazy title="用户分布" subtitle="角色" :option="userDistOption" />
+            <DashboardChartLazy title="资源统计" subtitle="平台" :option="resourceOption" />
           </div>
         </ClientOnly>
       </div>

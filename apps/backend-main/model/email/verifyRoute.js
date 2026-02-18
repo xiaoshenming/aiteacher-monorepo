@@ -1,20 +1,14 @@
 // model/rabbitmq/authRouter.js
 const express = require("express");
 const router = express.Router();
-const rateLimit = require("express-rate-limit");
+const { verificationCodeLimiter } = require("../../middleware/rateLimiter");
 const db = require("../../config/db");
 const redis = require("../../config/redis");
 // 引入封装好的邮件发送模块
 const sendVerificationCode = require("./verifyUtil");
-// 限制单个 IP 在 10 分钟内最多只能访问 10 次验证码发送接口
-const sendCodeLimiter = rateLimit({
-    windowMs: 10 * 60 * 1000, // 10 分钟
-    max: 3,
-    message: { code: 429, message: '请求过于频繁，请稍后再试！', data: null }
-  });
 
 // 验证码生成接口
-router.post("/send-verification-code", sendCodeLimiter, async (req, res) => {
+router.post("/send-verification-code", verificationCodeLimiter, async (req, res) => {
   const { email } = req.body;
 
   if (!email) {

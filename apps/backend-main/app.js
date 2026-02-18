@@ -29,15 +29,50 @@ const { startHeartbeats } = require("./config/heartbeat"); // 启动心跳检测
 const testRouter = require("./model/test/testRoutes"); // 测试接口（需要鉴权）
 const fileUploadMiddleware = require("./model/static/fileUpload"); // 文件上传中间件
 const staticFiles = require("./model/static/staticFiles"); // 静态文件资源配置
-const { errorHandler } = require("./middleware/errorHandler");
+const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
+const { globalLimiter, authLimiter, aiLimiter } = require("./middleware/rateLimiter");
 const logger = require("./utils/logger");
 const app = express(); // 创建 Express 实例
 const port = process.env.PORT || 10001; // 默认端口
+
+// CORS 配置 - 限制为前端域名白名单
+const allowedOrigins = [
+  'http://localhost:10003', // 开发环境
+  process.env.FRONTEND_URL, // 生产环境（从环境变量读取）
+].filter(Boolean); // 过滤掉 undefined
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // 允许无 origin 的请求（如 Postman、服务器端请求）
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      logger.warn(`CORS 拒绝来源: ${origin}`);
+      callback(new Error('不允许的 CORS 来源'));
+    }
+  },
+  credentials: true, // 支持 Cookie
+  optionsSuccessStatus: 200
+};
+
 app.use(express.json()); // 解析 JSON 请求体
-app.use(cors()); // 启用 CORS 中间件
+app.use(cors(corsOptions)); // 启用 CORS 中间件（限制白名单）
+
+// 全局限流：100 req/15min
+app.use(globalLimiter);
+
 app.use(fileUploadMiddleware()); // 文件上传中间件
 staticFiles(app); // 配置静态文件资源
 app.use("/api", testRouter); // 测试接口
+
+// 登录/注册接口限流：5 req/15min
+app.use("/api/register", authLimiter);
+app.use("/api/pc/login", authLimiter);
+app.use("/api/mobile/login/wxMiniprogram", authLimiter);
+app.use("/api/mobile/register/wxMiniprogram", authLimiter);
+
 app.use("/api", userRouter); // 用户模块接口
 app.use("/api/courses", courseRouter);
 app.use("/api/classes", classRouter);
@@ -49,6 +84,10 @@ app.use("/api/changelog", changelogRoute); // 版本更新日志接口
 app.use("/api/course-schedule", scheduleRouter); // 课程表接口
 app.use("/api/bridge", questionRouter); // 题目生成接口
 app.use("/api/question-bank", questionBankRouter); // 题库管理接口
+
+// AI 接口限流：10 req/min（按用户 ID）
+app.use("/api/ai", aiLimiter);
+
 app.use("/api/ai", aiRouter); // AI 功能接口
 app.use("/api/resource", resourceRouter); // 教育资源接口
 app.use("/api/ppt", pptRouter); // PPT 接口
@@ -57,7 +96,10 @@ app.use("/api/lessonPlans", lessonPlansRouter); // 教案接口
 app.use("/api/assignments", assignmentRouter); // 作业接口
 app.use("/api", verifyRoute); // 邮件验证接口
 
-// 全局错误处理中间件
+// 404 错误处理（必须在所有路由之后）
+app.use(notFoundHandler);
+
+// 全局错误处理中间件（必须在最后）
 app.use(errorHandler);
 
 const server = http.createServer(app); // 创建 HTTP 服务器

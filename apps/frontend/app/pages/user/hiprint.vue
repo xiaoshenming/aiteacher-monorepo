@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const { apiFetch } = useApi()
 const toast = useToast()
+const { sanitize } = useSanitize()
 
 // 页面设置
 const orientation = ref<'portrait' | 'landscape'>('portrait')
@@ -234,7 +235,7 @@ function handlePrint() {
               <div
                 class="border border-default rounded-lg p-6 bg-white text-black min-h-[400px] print-area"
                 :style="{ fontSize: fontSizeMap[fontSize] }"
-                v-html="printContent"
+                v-html="sanitize(printContent)"
               />
             </div>
           </div>

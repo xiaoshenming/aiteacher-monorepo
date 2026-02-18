@@ -3,8 +3,9 @@ const express = require("express");
 const router = express.Router();
 const db = require("../../config/db");
 const amqp = require("amqplib");
-const authorize = require("../auth/authUtils"); // 假设此处引入的中间件用于权限校验
+const authorize = require("../auth/authUtils");
 const { publishAuthRequest, publishAuthApproval } = require("./authUtils");
+const { validateAuthRequest, validatePagination } = require("../../middleware/validators");
 
 /**
  * 获取 RabbitMQ 通道（简化版本，仅用于读取队列消息）
@@ -26,7 +27,7 @@ async function getRabbitChannel() {
  * GET /api/auth/requests
  * 管理员拉取认证申请消息并写入数据库，然后分页返回认证申请列表
  */
-router.get("/requests", authorize(["3"]), async (req, res) => {
+router.get("/requests", authorize(["3"]), validatePagination, async (req, res) => {
   try {
     const adminId = req.user.id;
     const [lvRows] = await db
@@ -149,14 +150,9 @@ router.get("/requests", authorize(["3"]), async (req, res) => {
  * POST /api/auth/request/async
  * 教师提交认证申请（检查待处理数量后调用 RabbitMQ 发布消息）
  */
-router.post("/request/async", authorize(["1"]), async (req, res) => {
+router.post("/request/async", authorize(["1"]), validateAuthRequest, async (req, res) => {
   try {
     const { schoolId, requestMessage } = req.body;
-    if (!schoolId) {
-      return res
-        .status(400)
-        .json({ code: 400, message: "学校ID不能为空", data: null });
-    }
     const teacherId = req.user.id;
     const [pendingRows] = await db
       .promise()

@@ -1,5 +1,6 @@
 // model/rabbitmq/notificationUtils.js
 const amqp = require("amqplib");
+const logger = require("../../utils/logger");
 require("dotenv").config();
 
 let notificationChannel = null;
@@ -18,13 +19,13 @@ async function connectNotificationChannel() {
     await notificationChannel.assertExchange(EXCHANGE_NAME, "direct", {
       durable: true,
     });
-    console.log(
+    logger.info(
       "[NotificationUtils] Notification Exchange 就绪:",
       EXCHANGE_NAME
     );
     return notificationChannel;
   } catch (error) {
-    console.error("[NotificationUtils] 连接失败:", error);
+    logger.error("[NotificationUtils] 连接失败:", error);
     setTimeout(connectNotificationChannel, 5000);
   }
 }
@@ -43,7 +44,7 @@ async function publishNotification(routingKey, messageObj) {
     Buffer.from(JSON.stringify(messageObj)),
     { persistent: true }
   );
-  console.log("[NotificationUtils] 发布通知:", messageObj);
+  logger.info("[NotificationUtils] 发布通知:", messageObj);
 }
 
 module.exports = {

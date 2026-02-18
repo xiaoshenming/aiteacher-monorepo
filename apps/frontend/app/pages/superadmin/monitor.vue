@@ -52,14 +52,14 @@ const diskOption = {
       <div class="p-6 space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ClientOnly>
-            <DashboardChart title="CPU 使用率" subtitle="今日" :option="cpuOption" />
+            <DashboardChartLazy title="CPU 使用率" subtitle="今日" :option="cpuOption" />
           </ClientOnly>
           <ClientOnly>
-            <DashboardChart title="内存使用率" subtitle="今日" :option="memoryOption" />
+            <DashboardChartLazy title="内存使用率" subtitle="今日" :option="memoryOption" />
           </ClientOnly>
         </div>
         <ClientOnly>
-          <DashboardChart title="磁盘使用" subtitle="总容量 500GB" :option="diskOption" height="280px" />
+          <DashboardChartLazy title="磁盘使用" subtitle="总容量 500GB" :option="diskOption" height="280px" />
         </ClientOnly>
       </div>
     </template>

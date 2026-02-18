@@ -2,6 +2,7 @@ const express = require("express")
 const path = require("path")
 const db = require('../../config/db');
 const authorize = require("../auth/authUtils");
+const logger = require("../../utils/logger");
 
 // 创建路由
 const Router = express.Router()
@@ -183,7 +184,7 @@ Router.get("/paper/testpaper/download/body/:id", authorize(["2", "3", "4"]), asy
         // 执行 SQL 更新（为该试卷增加预览量）
         db.query(sql, params, (err, results) => {
             if (err) {
-                console.log('数据库更新失败:', err);
+                logger.error('数据库更新失败:', err);
                 return res.status(500).json({ code: 500, message: '数据库更新失败', error: err });
             }
         });
@@ -503,7 +504,7 @@ Router.get("/paper/textbook/download/body/:id", authorize(["2", "3", "4"]), asyn
         // 执行 SQL 更新(为该课本增加预览量)
         db.query(sql, params, (err, results) => {
             if (err) {
-                console.log('数据库更新失败:', err);
+                logger.error('数据库更新失败:', err);
             }
         });
 

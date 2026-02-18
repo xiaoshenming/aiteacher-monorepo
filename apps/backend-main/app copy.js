@@ -9,7 +9,7 @@ const path = require('path');
 
 // 引入封装好的邮件发送模块
 const sendVerificationCode = require('./model/sendVerificationCode');
-const { log } = require('console');
+const logger = require('./utils/logger');
 const rateLimit = require('express-rate-limit');
 
 
@@ -106,9 +106,9 @@ app.post('/api/register', async (req, res) => {
             // 删除验证码
             redis.del(`code_${email}`, (delErr) => {
                 if (delErr) {
-                    console.error(`删除验证码失败: ${delErr.message}`);
+                    logger.error(`删除验证码失败: ${delErr.message}`);
                 } else {
-                    console.log(`验证码已从 Redis 删除`);
+                    logger.info(`验证码已从 Redis 删除`);
                 }
             });
 
@@ -230,7 +230,7 @@ app.post('/api/send-verification-code', sendCodeLimiter, async (req, res) => {
                 data: null
             });
         } else {
-            console.error('发送验证码失败：', error);
+            logger.error('发送验证码失败：', error);
             res.status(500).json({
                 code: 500,
                 message: '验证码发送失败，请稍后重试',
@@ -238,7 +238,7 @@ app.post('/api/send-verification-code', sendCodeLimiter, async (req, res) => {
             });
         }
     } catch (error) {
-        console.error('发送验证码失败：', error);
+        logger.error('发送验证码失败：', error);
         res.status(500).json({
             code: 500,
             message: '验证码发送失败，请稍后重试',
@@ -279,12 +279,12 @@ app.get('/api/status', async (req, res) => {
 // 权限验证中间件
 function authorize(roles = []) {
     return async (req, res, next) => {
-        console.log('开始权限验证，目标角色:', roles);
+        logger.info('开始权限验证，目标角色:', roles);
 
         const authHeader = req.headers.authorization; // 从请求体中获取 JWT 令牌
         const deviceType = req.headers.devicetype; // 从请求体中获取设备类型
         if (!authHeader) {
-            console.log('未提供授权信息');
+            logger.warn('未提供授权信息');
             return res.status(401).json({
                 code: 401,
                 message: '未提供授权信息',
@@ -293,14 +293,14 @@ function authorize(roles = []) {
         }
 
         const token = authHeader.split(' ')[1];
-        console.log('接收到的 Token:', token);
+        logger.info('接收到的 Token:', token);
         try {
             const decoded = jwt.verify(token, secret);
-            console.log('JWT 解码成功:', decoded);
+            logger.info('JWT 解码成功:', decoded);
             const isValid = await checkJWTInRedis(decoded.id, token,deviceType);
 
             if (!isValid) {
-                console.log('Redis 中无效 Token');
+                logger.warn('Redis 中无效 Token');
                 return res.status(401).json({
                     code: 401,
                     message: '无效的 Token',
@@ -308,10 +308,10 @@ function authorize(roles = []) {
                 });
             }
 
-            console.log(decoded.role);
+            logger.info('用户角色:', decoded.role);
             
             if (roles.length && !roles.includes(decoded.role)) {
-                console.log(`用户角色 ${decoded.role} 无权限访问`);
+                logger.warn(`用户角色 ${decoded.role} 无权限访问`);
                 return res.status(403).json({
                     code: 403,
                     message: `权限不足，用户角色 ${decoded.role} 无权限访问此资源`,
@@ -319,11 +319,11 @@ function authorize(roles = []) {
                 });
             }
 
-            console.log('权限验证通过');
+            logger.info('权限验证通过');
             req.user = decoded; // 将用户信息传递到后续逻辑
             next();
         } catch (err) {
-            console.error('权限验证错误:', err.message);
+            logger.error('权限验证错误:', err.message);
             return res.status(401).json({
                 code: 401,
                 message: '无效的 Token',
@@ -392,7 +392,7 @@ app.get('/api/changelog', (req, res) => {
 
     db.execute(query, (err, results) => {
         if (err) {
-            console.error('获取更新日志失败:', err);
+            logger.error('获取更新日志失败:', err);
             return res.status(500).json({ code: 500, message: '获取更新日志失败', data: null });
         }
 
@@ -463,7 +463,7 @@ app.get('/api/user', authorize(['1', '2', '3', '4']), async (req, res) => {
             data: result
         });
     } catch (error) {
-        console.error('获取用户信息时出现异常:', error);
+        logger.error('获取用户信息时出现异常:', error);
         return res.status(500).json({
             code: 500,
             message: '服务器错误，获取用户信息失败',
@@ -527,7 +527,7 @@ app.get('/api/admin/user', authorize(['3', '4']), async (req, res) => {
         data: rows
       });
     } catch (error) {
-      console.error('查询用户失败:', error);
+      logger.error('查询用户失败:', error);
       return res.status(500).json({
         code: 500,
         message: '服务器错误，查询用户失败',
@@ -622,7 +622,7 @@ app.get('/api/admin/user', authorize(['3', '4']), async (req, res) => {
         }
       });
     } catch (error) {
-      console.error('新增用户失败:', error);
+      logger.error('新增用户失败:', error);
       return res.status(500).json({
         code: 500,
         message: '服务器错误，新增用户失败',
@@ -757,7 +757,7 @@ app.get('/api/admin/user', authorize(['3', '4']), async (req, res) => {
         data: null
       });
     } catch (error) {
-      console.error('更新用户失败:', error);
+      logger.error('更新用户失败:', error);
       return res.status(500).json({
         code: 500,
         message: '服务器错误，更新用户失败',
@@ -840,7 +840,7 @@ app.get('/api/admin/user', authorize(['3', '4']), async (req, res) => {
         data: null
       });
     } catch (error) {
-      console.error('删除用户失败:', error);
+      logger.error('删除用户失败:', error);
       return res.status(500).json({
         code: 500,
         message: '服务器错误，删除用户失败',
@@ -876,16 +876,16 @@ app.get('/api/admin/user', authorize(['3', '4']), async (req, res) => {
 
 // 启动服务
 app.listen(port, '0.0.0.0', () => {
-    console.log(`Server is running at http://0.0.0.0:${port}`);
+    logger.info(`Server is running at http://0.0.0.0:${port}`);
 });
 
 // Redis 心跳包
 setInterval(async () => {
     try {
         const pong = await redis.ping();
-        console.log('Redis 心跳包成功:', pong);
+        logger.info('Redis 心跳包成功:', pong);
     } catch (error) {
-        console.error('Redis 心跳包失败:', error);
+        logger.error('Redis 心跳包失败:', error);
     }
 }, 300000); // 每 5 分钟发送一次心跳包
 
@@ -893,9 +893,9 @@ setInterval(async () => {
 setInterval(() => {
     db.query('SELECT 1', (err) => {
         if (err) {
-            console.error('MySQL 心跳包失败:', err);
+            logger.error('MySQL 心跳包失败:', err);
         } else {
-            console.log('MySQL 心跳包成功');
+            logger.info('MySQL 心跳包成功');
         }
     });
 }, 300000); // 每 5 分钟发送一次心跳包

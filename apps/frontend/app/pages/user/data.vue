@@ -80,15 +80,15 @@ const radarOption = {
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ClientOnly>
-            <DashboardChart title="成绩分布" subtitle="本学期" :option="distributionOption" />
+            <DashboardChartLazy title="成绩分布" subtitle="本学期" :option="distributionOption" />
           </ClientOnly>
           <ClientOnly>
-            <DashboardChart title="学情趋势" subtitle="近8周" :option="trendOption" />
+            <DashboardChartLazy title="学情趋势" subtitle="近8周" :option="trendOption" />
           </ClientOnly>
         </div>
 
         <ClientOnly>
-          <DashboardChart title="科目对比" subtitle="班级平均" :option="radarOption" height="360px" />
+          <DashboardChartLazy title="科目对比" subtitle="班级平均" :option="radarOption" height="360px" />
         </ClientOnly>
       </div>
     </template>

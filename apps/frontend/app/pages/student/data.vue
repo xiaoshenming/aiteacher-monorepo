@@ -54,10 +54,10 @@ const radarOption = {
       <div class="p-6 space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ClientOnly>
-            <DashboardChart title="成绩趋势" subtitle="近8周" :option="scoreOption" />
+            <DashboardChartLazy title="成绩趋势" subtitle="近8周" :option="scoreOption" />
           </ClientOnly>
           <ClientOnly>
-            <DashboardChart title="科目能力雷达图" :option="radarOption" />
+            <DashboardChartLazy title="科目能力雷达图" :option="radarOption" />
           </ClientOnly>
         </div>
       </div>

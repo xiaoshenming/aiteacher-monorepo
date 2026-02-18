@@ -162,7 +162,7 @@ onMounted(() => {
 
             <!-- 封面 -->
             <div v-if="detailItem.cover_url" class="mb-4 rounded-lg overflow-hidden">
-              <img :src="detailItem.cover_url" :alt="detailItem.title" class="w-full object-cover max-h-60">
+              <NuxtImg :src="detailItem.cover_url" :alt="detailItem.title" class="w-full object-cover max-h-60" />
             </div>
 
             <!-- 信息列表 -->

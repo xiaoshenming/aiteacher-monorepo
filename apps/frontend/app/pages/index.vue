@@ -340,7 +340,7 @@ onMounted(() => {
             :key="`r1-${i}`"
             class="marquee-item"
           >
-            <img :src="img" alt="" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
+            <NuxtImg :src="img" alt="" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
           </div>
         </div>
       </div>
@@ -353,7 +353,7 @@ onMounted(() => {
             :key="`r2-${i}`"
             class="marquee-item"
           >
-            <img :src="img" alt="" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
+            <NuxtImg :src="img" alt="" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
           </div>
         </div>
       </div>

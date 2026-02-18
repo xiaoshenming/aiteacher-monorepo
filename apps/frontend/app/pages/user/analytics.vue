@@ -187,12 +187,12 @@ function pptActionLabel(action: string): string {
         <!-- 图表行 -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="lg:col-span-2">
-            <AnalyticsPrepareChart
+            <AnalyticsPrepareChartLazy
               :details="aiUsage?.details ?? []"
               :loading="loading"
             />
           </div>
-          <AnalyticsAIModelChart
+          <AnalyticsAIModelChartLazy
             :details="aiUsage?.details ?? []"
             :loading="loading"
           />

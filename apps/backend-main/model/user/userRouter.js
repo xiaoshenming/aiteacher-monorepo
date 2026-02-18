@@ -3,9 +3,17 @@ const express = require("express");
 const router = express.Router();
 const userUtils = require("./userUtils");
 const authorize = require("../auth/authUtils");
+const {
+  validateRegister,
+  validateLogin,
+  validateAvatarUpload,
+  validateAvatarUrl,
+  validatePagination,
+  validateSearch
+} = require("../../middleware/validators");
 
 // 用户注册
-router.post("/register", async (req, res) => {
+router.post("/register", validateRegister, async (req, res) => {
   try {
     const result = await userUtils.registerUser(req.body);
     res.status(201).json({ code: 201, message: result.message, data: null });
@@ -15,7 +23,7 @@ router.post("/register", async (req, res) => {
 });
 
 // PC 登录
-router.post("/pc/login", async (req, res) => {
+router.post("/pc/login", validateLogin, async (req, res) => {
   try {
     const result = await userUtils.loginPC(req.body);
     res.json({ code: 200, message: "登录成功", data: result });
@@ -107,13 +115,9 @@ router.put("/user", authorize(["2", "3", "4"]), async (req, res) => {
 router.post(
   "/avatar",
   authorize(["0", "1", "2", "3", "4"]),
+  validateAvatarUpload,
   async (req, res) => {
     try {
-      if (!req.files || !req.files.avatar) {
-        return res
-          .status(400)
-          .json({ code: 400, message: "请选择要上传的头像文件", data: null });
-      }
       const result = await userUtils.uploadAvatar({
         userId: req.user.id,
         avatar: req.files.avatar,
@@ -135,14 +139,9 @@ router.post(
 );
 
 // 更新头像 URL
-router.put("/user/avatar", authorize(["0","1", "2", "3", "4"]), async (req, res) => {
+router.put("/user/avatar", authorize(["0","1", "2", "3", "4"]), validateAvatarUrl, async (req, res) => {
   try {
     const { avatarUrl } = req.body;
-    if (!avatarUrl || typeof avatarUrl !== "string") {
-      return res
-        .status(400)
-        .json({ code: 400, message: "无效的头像URL", data: null });
-    }
     const result = await userUtils.updateUserAvatar(req.user.id, avatarUrl);
     res.json({
       code: 200,
@@ -191,6 +190,7 @@ router.get(
 router.get(
   "/user/phoneList/getSchool",
   authorize(["2", "3", "4"]),
+  validatePagination,
   async (req, res) => {
     try {
       const { pageIndex, pageSize } = req.query;
@@ -210,14 +210,10 @@ router.get(
 router.post(
   "/user/phoneList/searchSchool",
   authorize(["2", "3", "4"]),
+  validateSearch,
   async (req, res) => {
     try {
       const { keyword, pageIndex, pageSize } = req.body;
-      if (!keyword) {
-        return res
-          .status(400)
-          .json({ code: 400, message: "搜索关键字不能为空", data: null });
-      }
       const result = await userUtils.searchSchoolPhoneList(
         req.user.id,
         keyword,

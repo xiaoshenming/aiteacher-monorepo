@@ -8,6 +8,7 @@ pptService.js
 const axios = require("axios");
 const fs = require("fs");
 const dotenv = require("dotenv");
+const logger = require("../../utils/logger");
 
 // 加载环境变量
 dotenv.config();
@@ -36,15 +37,15 @@ async function generateApiToken(uid = null, limit = null) {
         },
       }
     );
-    console.log("生成 API Token 成功，返回数据：", response.data);
+    logger.info("生成 API Token 成功，返回数据：", response.data);
     // 检查返回数据中是否包含文件名信息
     const filename = response.data.fileName || response.data.filename;
     if (filename) {
-      console.log("文件名数据：", filename);
+      logger.info("文件名数据：", filename);
     }
     return response.data;
   } catch (error) {
-    console.error("生成 API Token 时出错：", error);
+    logger.error("生成 API Token 时出错：", error);
     throw new Error("生成 API Token 失败");
   }
 }
@@ -70,15 +71,15 @@ async function generatePptx(token, markdownContent, pptxProperty = false) {
         },
       }
     );
-    console.log("生成 PPT 成功，返回数据：", response.data);
+    logger.info("生成 PPT 成功，返回数据：", response.data);
     // 检查返回数据中是否包含文件名信息
     const filename = response.data.fileName || response.data.filename;
     if (filename) {
-      console.log("文件名数据：", filename);
+      logger.info("文件名数据：", filename);
     }
     return response.data;
   } catch (error) {
-    console.error("生成 PPT 时出错：", error);
+    logger.error("生成 PPT 时出错：", error);
     throw new Error("生成 PPT 失败");
   }
 }
@@ -103,15 +104,15 @@ async function downloadPptx(token, pptId) {
         },
       }
     );
-    console.log("下载 PPT 成功，返回数据：", response.data);
+    logger.info("下载 PPT 成功，返回数据：", response.data);
     // 检查返回数据中是否包含文件名信息
     const filename = response.data.fileName || response.data.filename;
     if (filename) {
-      console.log("文件名数据：", filename);
+      logger.info("文件名数据：", filename);
     }
     return response.data;
   } catch (error) {
-    console.error("下载 PPT 时出错：", error);
+    logger.error("下载 PPT 时出错：", error);
     throw new Error("下载 PPT 失败");
   }
 }
