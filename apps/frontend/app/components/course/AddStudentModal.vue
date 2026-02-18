@@ -65,10 +65,10 @@ function handleClose() {
 
 <template>
   <Teleport to="body">
-    <div v-if="props.open" class="fixed inset-0 z-50 flex items-center justify-center">
+    <div v-if="props.open" class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="add-student-title">
       <div class="absolute inset-0 bg-black/50" @click="handleClose" />
       <div class="relative bg-white dark:bg-zinc-800 rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
-        <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">添加学生</h3>
+        <h3 id="add-student-title" class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">添加学生</h3>
         <div class="relative">
           <UIcon name="i-lucide-search" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
           <input

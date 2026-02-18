@@ -38,10 +38,10 @@ async function handleCreate() {
 <template>
   <ClientOnly>
   <Teleport to="body">
-    <div v-if="props.open" class="fixed inset-0 z-50 flex items-center justify-center">
+    <div v-if="props.open" class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="add-course-title">
       <div class="absolute inset-0 bg-black/50" @click="emit('update:open', false)" />
       <div class="relative bg-white dark:bg-zinc-800 rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
-        <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">添加课程</h3>
+        <h3 id="add-course-title" class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">添加课程</h3>
         <div class="space-y-3">
           <div>
             <label class="block text-sm text-zinc-600 dark:text-zinc-400 mb-1">课程名称</label>

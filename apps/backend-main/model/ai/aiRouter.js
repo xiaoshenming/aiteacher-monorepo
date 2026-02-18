@@ -6,6 +6,7 @@ const db = require("../../config/db");
 const authorize = require("../auth/authUtils");
 const { promisify } = require('util');
 const logger = require("../../utils/logger");
+const { estimateTokens } = require("../../utils/tokenCounter");
 const query = promisify(db.query).bind(db);
 const {
   validateAIChat,
@@ -60,7 +61,7 @@ router.post("/chat", authorize(["0", "1", "2", "3", "4"]), validateAIChat, async
     const aiResponse = await getAIResponse(prompt, model);
     
     // 记录使用统计（简单估算token）
-    const estimatedTokens = Math.ceil((prompt.length + aiResponse.length) / 4);
+    const estimatedTokens = estimateTokens(prompt, aiResponse);
     if (userId) {
       await recordAIUsage(userId, userType, model, 'ai_chat', estimatedTokens);
     }
@@ -121,7 +122,7 @@ router.post("/chat-stream", authorize(["0", "1", "2", "3", "4"]), validateAIChat
     );
 
     // 记录使用统计
-    const estimatedTokens = Math.ceil((prompt.length + fullResponse.length) / 4);
+    const estimatedTokens = estimateTokens(prompt, fullResponse);
     logger.info('[AI统计] userId:', userId, 'userType:', userType, 'model:', model, 'tokens:', estimatedTokens);
     if (userId) {
       await recordAIUsage(userId, userType, model, 'ai_chat_stream', estimatedTokens);
@@ -196,7 +197,7 @@ ${transcript}
     const aiResponse = await getAIResponse(prompt, model);
 
     // 记录使用统计（简单估算token）
-    const estimatedTokens = Math.ceil((prompt.length + aiResponse.length) / 4);
+    const estimatedTokens = estimateTokens(prompt, aiResponse);
     if (userId) {
       await recordAIUsage(userId, userType, model, 'meeting_summary', estimatedTokens);
     }
@@ -244,7 +245,7 @@ ${text}
     const aiResponse = await getAIResponse(prompt, model);
 
     // 记录使用统计（简单估算token）
-    const estimatedTokens = Math.ceil((prompt.length + aiResponse.length) / 4);
+    const estimatedTokens = estimateTokens(prompt, aiResponse);
     if (userId) {
       await recordAIUsage(userId, userType, model, 'translate', estimatedTokens);
     }
@@ -326,7 +327,7 @@ router.post("/editor-completion", authorize(["0", "1", "2", "3", "4"]), validate
     );
 
     // 记录使用统计
-    const estimatedTokens = Math.ceil((prompt.length + fullResponse.length) / 4);
+    const estimatedTokens = estimateTokens(prompt, fullResponse);
     if (userId) {
       await recordAIUsage(userId, userType, model, 'editor_completion', estimatedTokens);
     }
@@ -433,7 +434,7 @@ ${templateInfo.guide}
     content = content.replace(/^```html?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
 
     // 记录使用统计
-    const estimatedTokens = Math.ceil((aiPrompt.length + aiResponse.length) / 4);
+    const estimatedTokens = estimateTokens(aiPrompt, aiResponse);
     if (userId) {
       await recordAIUsage(userId, userType, model, 'generate_print', estimatedTokens);
     }
@@ -572,7 +573,7 @@ router.post("/generate-lesson-plan", authorize(["2", "3", "4"]), validateGenerat
     );
 
     // 记录使用统计
-    const estimatedTokens = Math.ceil((prompt.length + fullResponse.length) / 4);
+    const estimatedTokens = estimateTokens(prompt, fullResponse);
     if (userId) {
       await recordAIUsage(userId, userType, model, 'generate_lesson_plan', estimatedTokens);
     }

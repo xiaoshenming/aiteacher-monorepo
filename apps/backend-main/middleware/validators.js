@@ -30,6 +30,10 @@ const handleValidationErrors = (req, res, next) => {
  * 用户注册验证
  */
 const validateRegister = [
+  body('name')
+    .trim()
+    .notEmpty().withMessage('用户名不能为空')
+    .isLength({ min: 2, max: 20 }).withMessage('用户名长度必须在2-20位之间'),
   body('email')
     .trim()
     .notEmpty().withMessage('邮箱不能为空')
@@ -37,16 +41,10 @@ const validateRegister = [
     .normalizeEmail(),
   body('password')
     .notEmpty().withMessage('密码不能为空')
-    .isLength({ min: 6, max: 32 }).withMessage('密码长度必须在6-32位之间')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('密码必须包含大小写字母和数字'),
-  body('username')
-    .optional()
+    .isLength({ min: 5, max: 32 }).withMessage('密码长度必须在5-32位之间'),
+  body('code')
     .trim()
-    .isLength({ min: 2, max: 20 }).withMessage('用户名长度必须在2-20位之间')
-    .matches(/^[\u4e00-\u9fa5a-zA-Z0-9_]+$/).withMessage('用户名只能包含中文、字母、数字和下划线'),
-  body('schoolId')
-    .optional()
-    .isInt({ min: 1 }).withMessage('学校ID必须是正整数'),
+    .notEmpty().withMessage('验证码不能为空'),
   handleValidationErrors
 ];
 
@@ -54,14 +52,12 @@ const validateRegister = [
  * 用户登录验证
  */
 const validateLogin = [
-  body('email')
+  body('account')
     .trim()
-    .notEmpty().withMessage('邮箱不能为空')
-    .isEmail().withMessage('邮箱格式不正确')
-    .normalizeEmail(),
+    .notEmpty().withMessage('账号不能为空'),
   body('password')
-    .notEmpty().withMessage('密码不能为空')
-    .isLength({ min: 6, max: 32 }).withMessage('密码长度不正确'),
+    .trim()
+    .notEmpty().withMessage('密码不能为空'),
   handleValidationErrors
 ];
 
@@ -259,8 +255,8 @@ const validatePagination = [
 /**
  * ID 参数验证
  */
-const validateId = [
-  param('id')
+const validateId = (paramName = 'id') => [
+  param(paramName)
     .isInt({ min: 1 }).withMessage('ID必须是大于0的整数')
     .toInt(),
   handleValidationErrors

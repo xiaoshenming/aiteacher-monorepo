@@ -295,7 +295,7 @@ onUnmounted(() => {
       <div class="fixed inset-0 z-0">
         <img
           src="/images/gallery/pexels-mountain-lake.jpeg"
-          alt=""
+          alt="登录页背景"
           class="absolute inset-0 w-full h-full object-cover"
         >
         <div class="absolute inset-0 bg-gradient-to-br from-teal-900/80 via-gray-900/70 to-teal-800/80" />
@@ -329,42 +329,48 @@ onUnmounted(() => {
                 <span class="text-sm font-medium text-muted">AI教学助手</span>
               </div>
 
-              <h2 class="text-2xl font-bold mb-1 text-default">
+              <h2 id="login-heading" class="text-2xl font-bold mb-1 text-default">
                 欢迎回来
               </h2>
               <p class="text-sm text-muted mb-6">
                 登录您的账号继续使用
               </p>
 
-              <form class="space-y-4" @submit.prevent="handleLogin">
+              <form class="space-y-4" aria-labelledby="login-heading" @submit.prevent="handleLogin">
                 <div class="space-y-1.5">
-                  <label class="text-sm font-medium text-default">账号</label>
+                  <label for="login-account" class="text-sm font-medium text-default">账号</label>
                   <div class="input-group relative">
                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
                       <UIcon name="i-lucide-user" class="text-teal-500 dark:text-teal-400 text-lg" />
                     </div>
                     <input
+                      id="login-account"
                       v-model="loginForm.account"
                       type="text"
                       placeholder="邮箱或手机号"
                       autocomplete="username"
                       class="auth-input"
+                      aria-label="账号"
+                      aria-required="true"
                     >
                   </div>
                 </div>
 
                 <div class="space-y-1.5">
-                  <label class="text-sm font-medium text-default">密码</label>
+                  <label for="login-password" class="text-sm font-medium text-default">密码</label>
                   <div class="input-group relative">
                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
                       <UIcon name="i-lucide-lock" class="text-teal-500 dark:text-teal-400 text-lg" />
                     </div>
                     <input
+                      id="login-password"
                       v-model="loginForm.password"
                       type="password"
                       placeholder="请输入密码"
                       autocomplete="current-password"
                       class="auth-input"
+                      aria-label="密码"
+                      aria-required="true"
                     >
                   </div>
                 </div>
@@ -404,71 +410,83 @@ onUnmounted(() => {
             :class="[isRegisterMode ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-[20%] pointer-events-none']"
           >
             <div class="w-full max-w-sm mx-auto">
-              <h2 class="text-2xl font-bold mb-1 text-default">
+              <h2 id="register-heading" class="text-2xl font-bold mb-1 text-default">
                 创建账号
               </h2>
               <p class="text-sm text-muted mb-5">
                 注册一个新账号开始使用
               </p>
 
-              <form class="space-y-3.5" @submit.prevent="handleRegister">
+              <form class="space-y-3.5" aria-labelledby="register-heading" @submit.prevent="handleRegister">
                 <div class="space-y-1">
-                  <label class="text-sm font-medium text-default">用户名</label>
+                  <label for="register-username" class="text-sm font-medium text-default">用户名</label>
                   <div class="input-group relative">
                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
                       <UIcon name="i-lucide-user" class="text-teal-500 dark:text-teal-400 text-lg" />
                     </div>
                     <input
+                      id="register-username"
                       v-model="registerForm.username"
                       type="text"
                       placeholder="请输入用户名"
                       class="auth-input"
+                      aria-label="用户名"
+                      aria-required="true"
                     >
                   </div>
                 </div>
 
                 <div class="space-y-1">
-                  <label class="text-sm font-medium text-default">邮箱</label>
+                  <label for="register-email" class="text-sm font-medium text-default">邮箱</label>
                   <div class="input-group relative">
                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
                       <UIcon name="i-lucide-mail" class="text-teal-500 dark:text-teal-400 text-lg" />
                     </div>
                     <input
+                      id="register-email"
                       v-model="registerForm.email"
                       type="email"
                       placeholder="请输入邮箱"
                       class="auth-input"
+                      aria-label="邮箱"
+                      aria-required="true"
                     >
                   </div>
                 </div>
 
                 <div class="space-y-1">
-                  <label class="text-sm font-medium text-default">密码</label>
+                  <label for="register-password" class="text-sm font-medium text-default">密码</label>
                   <div class="input-group relative">
                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
                       <UIcon name="i-lucide-lock" class="text-teal-500 dark:text-teal-400 text-lg" />
                     </div>
                     <input
+                      id="register-password"
                       v-model="registerForm.password"
                       type="password"
                       placeholder="请输入密码（至少6位）"
                       class="auth-input"
+                      aria-label="密码"
+                      aria-required="true"
                     >
                   </div>
                 </div>
 
                 <div class="space-y-1">
-                  <label class="text-sm font-medium text-default">验证码</label>
+                  <label for="register-code" class="text-sm font-medium text-default">验证码</label>
                   <div class="flex gap-2">
                     <div class="input-group relative flex-1">
                       <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
                         <UIcon name="i-lucide-shield-check" class="text-teal-500 dark:text-teal-400 text-lg" />
                       </div>
                       <input
+                        id="register-code"
                         v-model="registerForm.verifyCode"
                         type="text"
                         placeholder="请输入验证码"
                         class="auth-input"
+                        aria-label="验证码"
+                        aria-required="true"
                       >
                     </div>
                     <button
@@ -478,6 +496,7 @@ onUnmounted(() => {
                       :class="countdown > 0
                         ? 'bg-gray-100 dark:bg-gray-700 text-muted cursor-not-allowed'
                         : 'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-900/50 border border-teal-200 dark:border-teal-700'"
+                      aria-label="获取验证码"
                       @click="sendVerifyCode"
                     >
                       {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}

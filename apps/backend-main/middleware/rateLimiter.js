@@ -46,10 +46,12 @@ const aiLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => {
+  keyGenerator: (req, _res) => {
     // 优先使用用户 ID，未登录则使用 IP
-    return req.user?.id?.toString() || req.ip;
+    if (req.user?.id) return req.user.id.toString();
+    return req.ip;
   },
+  validate: { keyGeneratorIpFallback: false },
 });
 
 /**

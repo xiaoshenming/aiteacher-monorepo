@@ -11,7 +11,44 @@ export default defineNuxtConfig({
     'nuxt-echarts',
     '@nuxtjs/mdc',
     '@nuxt/eslint',
+    '@vite-pwa/nuxt',
   ],
+
+  pwa: {
+    registerType: 'autoUpdate',
+    manifest: {
+      name: 'AI教学助手',
+      short_name: 'AI教学',
+      description: '智慧教育平台 - AI辅助教学',
+      theme_color: '#4f46e5',
+      icons: [
+        { src: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+        { src: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+      ],
+    },
+    workbox: {
+      runtimeCaching: [
+        {
+          urlPattern: /\.(?:js|css|woff2?)$/i,
+          handler: 'CacheFirst',
+          options: { cacheName: 'static-assets' },
+        },
+        {
+          urlPattern: /^https?:\/\/localhost:\d+\/api\//i,
+          handler: 'NetworkFirst',
+          options: { cacheName: 'api-cache' },
+        },
+        {
+          urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'images',
+            expiration: { maxEntries: 50 },
+          },
+        },
+      ],
+    },
+  },
 
   mdc: {
     headings: {

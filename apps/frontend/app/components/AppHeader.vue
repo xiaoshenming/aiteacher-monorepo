@@ -24,12 +24,14 @@ const items = computed(() => [{
       </NuxtLink>
     </template>
 
-    <ClientOnly>
-      <UNavigationMenu
-        :items="items"
-        variant="link"
-      />
-    </ClientOnly>
+    <nav aria-label="主导航">
+      <ClientOnly>
+        <UNavigationMenu
+          :items="items"
+          variant="link"
+        />
+      </ClientOnly>
+    </nav>
 
     <template #right>
       <LayoutColorModeToggle />
@@ -48,6 +50,7 @@ const items = computed(() => [{
           variant="ghost"
           to="/dashboard"
           class="lg:hidden"
+          aria-label="进入控制台"
         />
       </template>
       <template v-else>
@@ -57,6 +60,7 @@ const items = computed(() => [{
           variant="ghost"
           to="/login"
           class="lg:hidden"
+          aria-label="登录"
         />
         <UButton
           label="登录"

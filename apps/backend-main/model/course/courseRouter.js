@@ -33,7 +33,7 @@ router.get("/", authorize(["2", "3", "4"]), async (req, res) => {
 });
 
 // 获取课程详情
-router.get("/:courseId", authorize(["2", "3", "4"]), validateId, async (req, res) => {
+router.get("/:courseId", authorize(["2", "3", "4"]), ...validateId('courseId'), async (req, res) => {
   try {
     const courseDetails = await courseUtils.getCourseDetails(
       req.params.courseId,
@@ -49,7 +49,7 @@ router.get("/:courseId", authorize(["2", "3", "4"]), validateId, async (req, res
 router.post(
   "/:courseId/assistants",
   authorize(["2", "3", "4"]),
-  validateId,
+  ...validateId('courseId'),
   validateAddAssistant,
   async (req, res) => {
     try {

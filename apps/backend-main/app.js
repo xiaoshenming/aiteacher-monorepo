@@ -31,6 +31,7 @@ const fileUploadMiddleware = require("./model/static/fileUpload"); // 文件上�
 const staticFiles = require("./model/static/staticFiles"); // 静态文件资源配置
 const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
 const { globalLimiter, authLimiter, aiLimiter } = require("./middleware/rateLimiter");
+const { metricsMiddleware, metricsEndpoint } = require("./middleware/metrics");
 const logger = require("./utils/logger");
 const app = express(); // 创建 Express 实例
 const port = process.env.PORT || 10001; // 默认端口
@@ -59,6 +60,31 @@ const corsOptions = {
 
 app.use(express.json()); // 解析 JSON 请求体
 app.use(cors(corsOptions)); // 启用 CORS 中间件（限制白名单）
+
+// Prometheus metrics 中间件
+app.use(metricsMiddleware);
+app.get('/metrics', metricsEndpoint);
+
+// 健康检查端点
+app.get('/health', async (req, res) => {
+  const pool = require('./config/db');
+  const redis = require('./config/redis');
+  const checks = { mysql: 'ok', redis: 'ok' };
+  let status = 200;
+  try {
+    await pool.promise().query('SELECT 1');
+  } catch {
+    checks.mysql = 'error';
+    status = 503;
+  }
+  try {
+    await redis.ping();
+  } catch {
+    checks.redis = 'error';
+    status = 503;
+  }
+  res.status(status).json({ status: status === 200 ? 'healthy' : 'unhealthy', checks });
+});
 
 // 全局限流：100 req/15min
 app.use(globalLimiter);

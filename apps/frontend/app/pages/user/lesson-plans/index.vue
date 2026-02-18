@@ -176,11 +176,7 @@ onMounted(() => loadData())
       <div class="p-6">
         <!-- 加载状态 -->
         <div v-if="loading && list.length === 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          <div
-            v-for="i in 8"
-            :key="i"
-            class="h-40 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 animate-pulse"
-          />
+          <SkeletonCard v-for="i in 8" :key="i" />
         </div>
 
         <!-- 空状态 -->

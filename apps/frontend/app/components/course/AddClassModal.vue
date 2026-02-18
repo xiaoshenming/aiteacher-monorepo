@@ -35,10 +35,10 @@ async function handleCreate() {
 
 <template>
   <Teleport to="body">
-    <div v-if="props.open" class="fixed inset-0 z-50 flex items-center justify-center">
+    <div v-if="props.open" class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="add-class-title">
       <div class="absolute inset-0 bg-black/50" @click="emit('update:open', false)" />
       <div class="relative bg-white dark:bg-zinc-800 rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
-        <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">添加班级</h3>
+        <h3 id="add-class-title" class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">添加班级</h3>
         <div>
           <label class="block text-sm text-zinc-600 dark:text-zinc-400 mb-1">班级名称</label>
           <input

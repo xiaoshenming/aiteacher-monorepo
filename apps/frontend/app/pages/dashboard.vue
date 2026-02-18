@@ -3,7 +3,7 @@ const userStore = useUserStore()
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900">
+  <section class="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900" aria-label="仪表盘">
     <div class="text-center space-y-4">
       <div class="w-16 h-16 mx-auto rounded-full bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center">
         <UIcon name="i-lucide-layout-dashboard" class="text-3xl text-teal-600 dark:text-teal-400" />
@@ -23,5 +23,5 @@ const userStore = useUserStore()
         </button>
       </div>
     </div>
-  </div>
+  </section>
 </template>

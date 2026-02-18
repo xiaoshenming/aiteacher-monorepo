@@ -55,6 +55,11 @@ app.use(cors(corsOptions))
 // 添加cookie解析
 app.use(cookieParser())
 
+// 健康检查端点
+app.get('/health', (req, res) => {
+  res.json({ status: 'healthy' });
+});
+
 // 全局限流：100 req/15min
 app.use(globalLimiter)
 

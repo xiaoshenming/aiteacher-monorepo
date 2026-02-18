@@ -52,6 +52,7 @@ const userMenuItems = computed(() => [
       </template>
 
       <template #default="{ collapsed }">
+        <nav aria-label="仪表盘导航">
         <ClientOnly>
           <UNavigationMenu
             :collapsed="collapsed"
@@ -69,6 +70,7 @@ const userMenuItems = computed(() => [
             class="mt-auto"
           />
         </ClientOnly>
+        </nav>
       </template>
 
       <template #footer="{ collapsed }">
@@ -84,6 +86,7 @@ const userMenuItems = computed(() => [
               block
               :ui="{ trailingIcon: 'ms-auto' }"
               :trailing-icon="collapsed ? undefined : 'i-lucide-chevrons-up-down'"
+              :aria-label="collapsed ? '用户菜单' : undefined"
             />
 
             <template #account>
