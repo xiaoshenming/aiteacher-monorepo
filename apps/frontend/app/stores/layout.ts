@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { DEFAULT_LAYOUT } from '~/types/layout'
-import type { LayoutState, ThemeColor, SidebarPosition, LayoutDensity, BorderRadius } from '~/types/layout'
+import type { LayoutState, ThemeColor, SidebarPosition, LayoutDensity, BorderRadius, ContentMaxWidth, PageTransition, ScrollbarStyle, HeaderStyle } from '~/types/layout'
 
 export const useLayoutStore = defineStore('layout', () => {
   const state = ref<LayoutState>({ ...DEFAULT_LAYOUT })
@@ -14,8 +14,12 @@ export const useLayoutStore = defineStore('layout', () => {
   const layoutDensity = computed(() => state.value.layoutDensity)
   const fontSize = computed(() => state.value.fontSize)
   const borderRadius = computed(() => state.value.borderRadius)
+  const contentMaxWidth = computed(() => state.value.contentMaxWidth)
   const animationsEnabled = computed(() => state.value.animationsEnabled)
   const headerDynamicBg = computed(() => state.value.headerDynamicBg)
+  const pageTransition = computed(() => state.value.pageTransition)
+  const headerStyle = computed(() => state.value.headerStyle)
+  const scrollbarStyle = computed(() => state.value.scrollbarStyle)
   const navOrder = computed(() => state.value.navOrder)
   const hiddenNavItems = computed(() => state.value.hiddenNavItems)
   const settingsDrawerOpen = computed(() => state.value.settingsDrawerOpen)
@@ -41,8 +45,12 @@ export const useLayoutStore = defineStore('layout', () => {
   function setLayoutDensity(d: LayoutDensity) { state.value.layoutDensity = d }
   function setFontSize(s: number) { state.value.fontSize = Math.min(18, Math.max(12, s)) }
   function setBorderRadius(r: BorderRadius) { state.value.borderRadius = r }
+  function setContentMaxWidth(w: ContentMaxWidth) { state.value.contentMaxWidth = w }
   function toggleAnimations() { state.value.animationsEnabled = !state.value.animationsEnabled }
   function toggleHeaderDynamicBg() { state.value.headerDynamicBg = !state.value.headerDynamicBg }
+  function setPageTransition(t: PageTransition) { state.value.pageTransition = t }
+  function setHeaderStyle(s: HeaderStyle) { state.value.headerStyle = s }
+  function setScrollbarStyle(s: ScrollbarStyle) { state.value.scrollbarStyle = s }
   function setNavOrder(order: string[]) { state.value.navOrder = order }
   function toggleNavItemVisibility(label: string) {
     const idx = state.value.hiddenNavItems.indexOf(label)
@@ -55,12 +63,14 @@ export const useLayoutStore = defineStore('layout', () => {
 
   return {
     state, themeColor, sidebarPosition, sidebarWidth, sidebarCollapsed,
-    sidebarGlassEffect, layoutDensity, fontSize, borderRadius, animationsEnabled,
-    headerDynamicBg, navOrder, hiddenNavItems, settingsDrawerOpen,
+    sidebarGlassEffect, layoutDensity, fontSize, borderRadius, contentMaxWidth,
+    animationsEnabled, headerDynamicBg, pageTransition, headerStyle, scrollbarStyle,
+    navOrder, hiddenNavItems, settingsDrawerOpen,
     densityClass, radiusClass,
     setThemeColor, setSidebarPosition, setSidebarWidth, toggleSidebarCollapsed,
     setSidebarCollapsed, toggleSidebarGlass, setLayoutDensity, setFontSize,
-    setBorderRadius, toggleAnimations, toggleHeaderDynamicBg, setNavOrder,
+    setBorderRadius, setContentMaxWidth, toggleAnimations, toggleHeaderDynamicBg,
+    setPageTransition, setHeaderStyle, setScrollbarStyle, setNavOrder,
     toggleNavItemVisibility, toggleSettingsDrawer, setSettingsDrawerOpen, resetToDefaults,
   }
 }, {

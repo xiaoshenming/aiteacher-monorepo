@@ -19,6 +19,8 @@ export function useLayoutCustomization() {
       density: layoutStore.layoutDensity,
       radius: layoutStore.borderRadius,
       animations: layoutStore.animationsEnabled,
+      contentMaxWidth: layoutStore.contentMaxWidth,
+      scrollbarStyle: layoutStore.scrollbarStyle,
     }),
     (val) => {
       if (!import.meta.client) return
@@ -48,6 +50,14 @@ export function useLayoutCustomization() {
       // 动画开关
       root.style.setProperty('--layout-transition-duration', val.animations ? '0.3s' : '0s')
       root.style.setProperty('--layout-animation-duration', val.animations ? '0.4s' : '0s')
+
+      // 内容区最大宽度
+      const maxWidthMap = { full: '100%', '7xl': '80rem', '6xl': '72rem', '5xl': '64rem' }
+      root.style.setProperty('--layout-content-max-width', maxWidthMap[val.contentMaxWidth])
+
+      // 滚动条样式 class
+      root.classList.remove('scrollbar-thin', 'scrollbar-auto', 'scrollbar-hidden')
+      root.classList.add(`scrollbar-${val.scrollbarStyle}`)
     },
     { immediate: true },
   )

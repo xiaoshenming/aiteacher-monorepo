@@ -108,6 +108,7 @@
   --layout-border-radius: 0.5rem;
   --layout-transition-duration: 0.3s;
   --layout-animation-duration: 0.4s;
+  --layout-content-max-width: 100%;
 }
 
 /* Density classes */
@@ -140,6 +141,36 @@
 .sidebar-nav-item:nth-child(8) { animation-delay: 210ms; }
 .sidebar-nav-item:nth-child(9) { animation-delay: 240ms; }
 .sidebar-nav-item:nth-child(10) { animation-delay: 270ms; }
+
+/* ===== Scrollbar Styles ===== */
+.scrollbar-auto ::-webkit-scrollbar { /* use browser default */ }
+
+.scrollbar-hidden ::-webkit-scrollbar { display: none; }
+.scrollbar-hidden { scrollbar-width: none; }
+
+/* ===== Page Transition: Fade ===== */
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity var(--layout-transition-duration, 0.3s) ease;
+}
+.page-fade-enter-from,
+.page-fade-leave-to {
+  opacity: 0;
+}
+
+/* ===== Page Transition: Slide ===== */
+.page-slide-enter-active,
+.page-slide-leave-active {
+  transition: all var(--layout-transition-duration, 0.3s) cubic-bezier(0.4, 0, 0.2, 1);
+}
+.page-slide-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+.page-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
