@@ -49,6 +49,9 @@ apps/LandPPT/*.db
 apps/LandPPT/temp/
 apps/LandPPT/research_reports/
 
+# Firebase Emulator data
+apps/excalidraw-firebase/data/
+
 # Backups
 apps/backend-main/backups/
 

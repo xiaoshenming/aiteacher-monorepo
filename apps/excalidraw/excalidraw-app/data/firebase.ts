@@ -10,12 +10,18 @@ import { getSceneVersion } from "@excalidraw/element";
 import { initializeApp } from "firebase/app";
 import {
   getFirestore,
+  connectFirestoreEmulator,
   doc,
   getDoc,
   runTransaction,
   Bytes,
 } from "firebase/firestore";
-import { getStorage, ref, uploadBytes } from "firebase/storage";
+import {
+  getStorage,
+  connectStorageEmulator,
+  ref,
+  uploadBytes,
+} from "firebase/storage";
 
 import type { RemoteExcalidrawElement } from "@excalidraw/excalidraw/data/reconcile";
 import type {
@@ -67,6 +73,13 @@ const _initializeFirebase = () => {
 const _getFirestore = () => {
   if (!firestore) {
     firestore = getFirestore(_initializeFirebase());
+    if (import.meta.env.VITE_APP_FIREBASE_EMULATOR === "true") {
+      const port = parseInt(
+        import.meta.env.VITE_APP_FIREBASE_EMULATOR_FIRESTORE_PORT || "10009",
+        10,
+      );
+      connectFirestoreEmulator(firestore, "localhost", port);
+    }
   }
   return firestore;
 };
@@ -74,6 +87,13 @@ const _getFirestore = () => {
 const _getStorage = () => {
   if (!firebaseStorage) {
     firebaseStorage = getStorage(_initializeFirebase());
+    if (import.meta.env.VITE_APP_FIREBASE_EMULATOR === "true") {
+      const port = parseInt(
+        import.meta.env.VITE_APP_FIREBASE_EMULATOR_STORAGE_PORT || "10010",
+        10,
+      );
+      connectStorageEmulator(firebaseStorage, "localhost", port);
+    }
   }
   return firebaseStorage;
 };
@@ -282,9 +302,15 @@ export const loadFilesFromFirebase = async (
   await Promise.all(
     [...new Set(filesIds)].map(async (id) => {
       try {
-        const url = `https://firebasestorage.googleapis.com/v0/b/${
-          FIREBASE_CONFIG.storageBucket
-        }/o/${encodeURIComponent(prefix.replace(/^\//, ""))}%2F${id}`;
+        const encodedPrefix = encodeURIComponent(prefix.replace(/^\//, ""));
+        let url: string;
+        if (import.meta.env.VITE_APP_FIREBASE_EMULATOR === "true") {
+          const storagePort =
+            import.meta.env.VITE_APP_FIREBASE_EMULATOR_STORAGE_PORT || "10010";
+          url = `http://localhost:${storagePort}/v0/b/${FIREBASE_CONFIG.storageBucket}/o/${encodedPrefix}%2F${id}`;
+        } else {
+          url = `https://firebasestorage.googleapis.com/v0/b/${FIREBASE_CONFIG.storageBucket}/o/${encodedPrefix}%2F${id}`;
+        }
         const response = await fetch(`${url}?alt=media`);
         if (response.status < 400) {
           const arrayBuffer = await response.arrayBuffer();

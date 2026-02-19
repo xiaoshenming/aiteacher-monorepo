@@ -1,0 +1,30 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "excalidraw-room",
+  "sourceRoot": "apps/excalidraw-room/src",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx nodemon",
+        "cwd": "apps/excalidraw-room"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsc",
+        "cwd": "apps/excalidraw-room"
+      }
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node dist/index.js",
+        "cwd": "apps/excalidraw-room"
+      }
+    }
+  },
+  "tags": ["service", "excalidraw"]
+}

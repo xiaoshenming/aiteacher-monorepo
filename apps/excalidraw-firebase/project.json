@@ -1,0 +1,16 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "excalidraw-firebase",
+  "sourceRoot": "apps/excalidraw-firebase",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "firebase emulators:start --import=./data --export-on-exit=./data",
+        "cwd": "apps/excalidraw-firebase"
+      }
+    }
+  },
+  "tags": ["service", "excalidraw"]
+}

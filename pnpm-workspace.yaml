@@ -3,6 +3,7 @@ packages:
   - packages/*
   - '!apps/excalidraw'
   - '!apps/excalidraw/**'
+  - '!apps/excalidraw-firebase'
 
 onlyBuiltDependencies:
   - '@parcel/watcher'

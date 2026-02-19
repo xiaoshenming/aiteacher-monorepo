@@ -9,6 +9,7 @@
     "dev:native": "pnpm -r --parallel --filter './apps/**' run dev",
     "dev:backend": "concurrently --names \"MAIN,CLOUD\" --prefix-colors \"bgBlue.bold,bgMagenta.bold\" --prefix \"[{name}]\" \"pnpm --filter @aiteacher/backend-main run dev\" \"pnpm --filter @aiteacher/backend-cloud run dev\"",
     "dev:frontend": "pnpm --filter @aiteacher/frontend run dev",
+    "dev:excalidraw": "nx run-many --target=dev --projects=excalidraw,excalidraw-room,excalidraw-firebase --parallel=3",
     "build": "nx run-many --target=build",
     "start": "nx run-many --target=start",
     "lint": "nx run-many --target=lint",
