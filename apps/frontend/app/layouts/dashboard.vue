@@ -48,6 +48,11 @@ const isRight = computed(() => layoutStore.sidebarPosition === 'right')
 
 <template>
   <div class="dashboard-layout relative flex h-dvh overflow-hidden">
+    <!-- Zen 渐变背景层 -->
+    <div
+      v-if="layoutStore.gradientBackground.enabled"
+      class="zen-gradient-layer"
+    />
     <!-- 移动端遮罩 -->
     <Transition name="overlay">
       <div

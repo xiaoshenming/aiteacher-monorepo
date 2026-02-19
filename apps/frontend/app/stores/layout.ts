@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { DEFAULT_LAYOUT } from '~/types/layout'
-import type { LayoutState, ThemeColor, SidebarPosition, LayoutDensity, BorderRadius, ContentMaxWidth, PageTransition, ScrollbarStyle, HeaderStyle } from '~/types/layout'
+import { DEFAULT_LAYOUT, DEFAULT_GRADIENT, DEFAULT_GRADIENT_DOT } from '~/types/layout'
+import type { LayoutState, ThemeColor, SidebarPosition, LayoutDensity, BorderRadius, ContentMaxWidth, PageTransition, ScrollbarStyle, HeaderStyle, ColorHarmony, GradientColorDot } from '~/types/layout'
 
 export const useLayoutStore = defineStore('layout', () => {
   const state = ref<LayoutState>({ ...DEFAULT_LAYOUT })
@@ -23,6 +23,7 @@ export const useLayoutStore = defineStore('layout', () => {
   const navOrder = computed(() => state.value.navOrder)
   const hiddenNavItems = computed(() => state.value.hiddenNavItems)
   const settingsDrawerOpen = computed(() => state.value.settingsDrawerOpen)
+  const gradientBackground = computed(() => state.value.gradientBackground)
 
   // --- 密度映射 ---
   const densityClass = computed(() => {
@@ -59,19 +60,52 @@ export const useLayoutStore = defineStore('layout', () => {
   }
   function toggleSettingsDrawer() { state.value.settingsDrawerOpen = !state.value.settingsDrawerOpen }
   function setSettingsDrawerOpen(v: boolean) { state.value.settingsDrawerOpen = v }
-  function resetToDefaults() { state.value = { ...DEFAULT_LAYOUT } }
+
+  // --- 渐变背景 Actions ---
+  function setGradientEnabled(v: boolean) { state.value.gradientBackground.enabled = v }
+  function setGradientOpacity(v: number) { state.value.gradientBackground.opacity = Math.min(1, Math.max(0, v)) }
+  function setGradientTexture(v: number) { state.value.gradientBackground.texture = Math.min(1, Math.max(0, v)) }
+  function setGradientRotation(v: number) { state.value.gradientBackground.rotation = v }
+  function setGradientHarmony(h: ColorHarmony) { state.value.gradientBackground.harmony = h }
+  function addGradientDot(dot?: Partial<GradientColorDot>) {
+    if (state.value.gradientBackground.dots.length >= 3) return
+    const base = DEFAULT_GRADIENT_DOT()
+    const isPrimary = state.value.gradientBackground.dots.length === 0
+    state.value.gradientBackground.dots.push({ ...base, ...dot, isPrimary })
+  }
+  function removeGradientDot(id: string) {
+    const dots = state.value.gradientBackground.dots
+    const idx = dots.findIndex(d => d.id === id)
+    if (idx >= 0) dots.splice(idx, 1)
+    // 确保至少有一个 primary
+    if (dots.length > 0 && !dots.some(d => d.isPrimary)) {
+      dots[0]!.isPrimary = true
+    }
+  }
+  function updateGradientDot(id: string, updates: Partial<GradientColorDot>) {
+    const dot = state.value.gradientBackground.dots.find(d => d.id === id)
+    if (dot) Object.assign(dot, updates)
+  }
+  function resetGradient() {
+    state.value.gradientBackground = { ...DEFAULT_GRADIENT, dots: [] }
+  }
+
+  function resetToDefaults() { state.value = { ...DEFAULT_LAYOUT, gradientBackground: { ...DEFAULT_GRADIENT, dots: [] } } }
 
   return {
     state, themeColor, sidebarPosition, sidebarWidth, sidebarCollapsed,
     sidebarGlassEffect, layoutDensity, fontSize, borderRadius, contentMaxWidth,
     animationsEnabled, headerDynamicBg, pageTransition, headerStyle, scrollbarStyle,
-    navOrder, hiddenNavItems, settingsDrawerOpen,
+    navOrder, hiddenNavItems, settingsDrawerOpen, gradientBackground,
     densityClass, radiusClass,
     setThemeColor, setSidebarPosition, setSidebarWidth, toggleSidebarCollapsed,
     setSidebarCollapsed, toggleSidebarGlass, setLayoutDensity, setFontSize,
     setBorderRadius, setContentMaxWidth, toggleAnimations, toggleHeaderDynamicBg,
     setPageTransition, setHeaderStyle, setScrollbarStyle, setNavOrder,
-    toggleNavItemVisibility, toggleSettingsDrawer, setSettingsDrawerOpen, resetToDefaults,
+    toggleNavItemVisibility, toggleSettingsDrawer, setSettingsDrawerOpen,
+    setGradientEnabled, setGradientOpacity, setGradientTexture, setGradientRotation,
+    setGradientHarmony, addGradientDot, removeGradientDot, updateGradientDot, resetGradient,
+    resetToDefaults,
   }
 }, {
   persist: { key: 'aiteacher-layout' },

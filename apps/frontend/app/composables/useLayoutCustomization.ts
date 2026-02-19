@@ -11,6 +11,9 @@ export function useLayoutCustomization() {
     appConfig.ui.colors.primary = color
   }, { immediate: true })
 
+  // 渐变背景
+  useGradientBackground()
+
   // CSS 变量注入
   watch(
     () => ({

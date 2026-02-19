@@ -140,6 +140,7 @@ function onFileChange(e: Event) {
 // 当前设置分区折叠
 const expandedSections = ref<Record<string, boolean>>({
   theme: true,
+  gradient: false,
   sidebar: true,
   layout: true,
   effects: true,
@@ -224,6 +225,24 @@ function toggleSection(key: string) {
                 @click="startViewTransitionFromEvent($event)"
               />
             </div>
+          </div>
+        </section>
+
+        <!-- ===== 渐变背景 ===== -->
+        <section class="settings-section">
+          <button class="settings-section-header" @click="toggleSection('gradient')">
+            <div class="flex items-center gap-1.5">
+              <UIcon name="i-lucide-blend" class="text-muted" />
+              <span>渐变背景</span>
+            </div>
+            <UIcon
+              name="i-lucide-chevron-down"
+              class="text-muted transition-transform"
+              :class="expandedSections.gradient ? 'rotate-180' : ''"
+            />
+          </button>
+          <div v-show="expandedSections.gradient" class="settings-section-body">
+            <LayoutZenGradientSettings />
           </div>
         </section>
 
