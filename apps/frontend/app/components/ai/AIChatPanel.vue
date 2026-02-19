@@ -33,7 +33,7 @@ const {
 </script>
 
 <template>
-  <UDashboardPanel :ui="{ body: 'p-0 sm:p-0' }">
+  <UDashboardPanel :ui="{ root: 'min-h-0 h-full', body: 'p-0 sm:p-0' }">
     <template #header>
       <UDashboardNavbar :title="navTitle">
         <template #leading>

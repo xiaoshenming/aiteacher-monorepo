@@ -138,7 +138,7 @@ const isRight = computed(() => layoutStore.sidebarPosition === 'right')
         :style="{ fontSize: `${layoutStore.fontSize}px` }"
       >
         <div
-          class="mx-auto w-full"
+          class="mx-auto w-full h-full"
           :style="{ maxWidth: layoutStore.contentMaxWidth === 'full' ? '100%' : `var(--layout-content-max-width)` }"
         >
           <slot />
