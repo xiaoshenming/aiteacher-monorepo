@@ -38,7 +38,7 @@ onMounted(() => loadData())
                 class="px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer"
                 :class="
                   selectedRange === opt.value
-                    ? 'bg-teal-500 text-white'
+                    ? 'bg-primary-500 text-white'
                     : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
                 "
                 @click="selectedRange = opt.value"
@@ -71,7 +71,7 @@ onMounted(() => loadData())
         label="备课次数"
         :value="dashboard?.prepare?.total_sessions ?? 0"
         unit="次"
-        color="teal"
+        color="primary"
         :loading="loading"
       />
       <AnalyticsStatCard
@@ -148,7 +148,7 @@ onMounted(() => loadData())
       <!-- PPT stat cards -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
         <div class="text-center">
-          <p class="text-2xl font-bold text-teal-500">
+          <p class="text-2xl font-bold text-primary-500">
             {{ pptUsage.total_calls }}
           </p>
           <p class="text-xs text-zinc-400 mt-1">AI 调用次数</p>
@@ -223,7 +223,7 @@ onMounted(() => loadData())
       </h3>
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div class="text-center">
-          <p class="text-2xl font-bold text-teal-500">
+          <p class="text-2xl font-bold text-primary-500">
             {{ dashboard.learning.total_courses }}
           </p>
           <p class="text-xs text-zinc-400 mt-1">参与课程</p>

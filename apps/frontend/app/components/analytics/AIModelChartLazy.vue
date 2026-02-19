@@ -20,7 +20,7 @@ const AIModelChart = defineAsyncComponent(() =>
           AI 模型调用分布
         </h3>
         <div class="flex items-center justify-center h-64">
-          <div class="w-10 h-10 rounded-full border-4 border-zinc-200 dark:border-zinc-700 border-t-teal-500 animate-spin" />
+          <div class="w-10 h-10 rounded-full border-4 border-zinc-200 dark:border-zinc-700 border-t-primary-500 animate-spin" />
         </div>
       </div>
     </template>

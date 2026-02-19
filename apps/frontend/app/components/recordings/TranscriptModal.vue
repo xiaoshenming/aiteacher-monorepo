@@ -36,7 +36,7 @@ defineExpose({ open })
           <div v-if="transcriptSegments.length" class="max-h-96 overflow-y-auto space-y-0.5 rounded-lg border border-[var(--ui-border)] p-2">
             <div v-for="(seg, i) in transcriptSegments" :key="i"
               class="flex gap-3 text-sm px-2 py-1.5 rounded hover:bg-[var(--ui-bg-elevated)] transition-colors">
-              <span class="text-teal-600 dark:text-teal-400 shrink-0 font-mono text-xs mt-0.5">{{ formatTimestamp(seg.start) }}</span>
+              <span class="text-primary-600 dark:text-primary-400 shrink-0 font-mono text-xs mt-0.5">{{ formatTimestamp(seg.start) }}</span>
               <span v-if="seg.speaker" class="text-indigo-600 dark:text-indigo-400 shrink-0 font-medium">{{ seg.speaker }}:</span>
               <span>{{ seg.text }}</span>
             </div>

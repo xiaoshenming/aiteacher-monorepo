@@ -57,7 +57,7 @@ defineProps<{
           >
             让 <span class="text-primary">AI</span> 成为你的
             <br>
-            <span class="bg-gradient-to-r from-primary to-teal-400 bg-clip-text text-transparent">
+            <span class="bg-gradient-to-r from-primary to-primary-400 bg-clip-text text-transparent">
               教学助手
             </span>
           </h1>

@@ -32,7 +32,7 @@ const DashboardChart = defineAsyncComponent(() =>
           </div>
         </template>
         <div :style="{ height: height || '320px' }" class="flex items-center justify-center">
-          <div class="w-10 h-10 rounded-full border-4 border-zinc-200 dark:border-zinc-700 border-t-teal-500 animate-spin" />
+          <div class="w-10 h-10 rounded-full border-4 border-zinc-200 dark:border-zinc-700 border-t-primary-500 animate-spin" />
         </div>
       </UCard>
     </template>

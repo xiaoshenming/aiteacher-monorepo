@@ -64,7 +64,7 @@ defineExpose({ open })
               <h4 class="text-xs font-semibold text-[var(--ui-text-dimmed)] uppercase tracking-wider">知识点</h4>
               <ul class="space-y-1.5">
                 <li v-for="(point, i) in parsedKeyPoints" :key="i" class="flex gap-2 text-sm p-2 bg-[var(--ui-bg-elevated)] rounded-lg">
-                  <span class="text-teal-600 dark:text-teal-400 font-bold shrink-0">{{ i + 1 }}.</span>
+                  <span class="text-primary-600 dark:text-primary-400 font-bold shrink-0">{{ i + 1 }}.</span>
                   <span>{{ point }}</span>
                 </li>
               </ul>
@@ -78,7 +78,7 @@ defineExpose({ open })
                   {{ String.fromCharCode(65 + j) }}. {{ opt }}
                 </div>
                 <details>
-                  <summary class="text-xs text-teal-600 dark:text-teal-400 cursor-pointer">查看答案</summary>
+                  <summary class="text-xs text-primary-600 dark:text-primary-400 cursor-pointer">查看答案</summary>
                   <p class="text-sm mt-1 pl-4">参考答案: {{ q.answer }}</p>
                 </details>
               </div>

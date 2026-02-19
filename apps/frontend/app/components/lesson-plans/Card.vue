@@ -19,7 +19,7 @@ function formatDate(dateStr: string) {
 
 <template>
   <div
-    class="group relative rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 hover:border-teal-300 dark:hover:border-teal-700 hover:shadow-md transition-all cursor-pointer"
+    class="group relative rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-md transition-all cursor-pointer"
     @click="emit('open', plan)"
   >
     <div class="p-4">
@@ -42,7 +42,7 @@ function formatDate(dateStr: string) {
         <span>{{ formatDate(plan.updated_at) }}</span>
         <span
           class="px-1.5 py-0.5 rounded text-xs"
-          :class="plan.status === 3 ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-500' : 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400'"
+          :class="plan.status === 3 ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-500' : 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'"
         >
           {{ plan.status === 3 ? '已归档' : '编辑中' }}
         </span>

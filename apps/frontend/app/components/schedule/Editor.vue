@@ -69,7 +69,7 @@ watch(() => props.schedule, (val) => {
         </button>
       </div>
       <button
-        class="flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium text-white bg-teal-500 hover:bg-teal-600 rounded-lg transition-colors cursor-pointer"
+        class="flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors cursor-pointer"
         @click="handleSave"
       >
         <UIcon name="i-lucide-save" class="w-4 h-4" />

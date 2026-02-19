@@ -154,7 +154,7 @@ onBeforeUnmount(() => {
     <div class="flex flex-wrap items-center gap-3">
       <div class="flex items-center gap-4 text-sm">
         <div class="flex items-center gap-1.5">
-          <UIcon name="i-lucide-video" class="text-teal-500" />
+          <UIcon name="i-lucide-video" class="text-primary-500" />
           <span class="font-semibold">{{ recordings.length }}</span>
           <span class="text-[var(--ui-text-dimmed)]">录制</span>
         </div>
@@ -212,7 +212,7 @@ onBeforeUnmount(() => {
 
     <!-- 加载状态 -->
     <div v-else class="flex-1 flex items-center justify-center">
-      <UIcon name="i-lucide-loader-2" class="animate-spin text-2xl text-teal-500" />
+      <UIcon name="i-lucide-loader-2" class="animate-spin text-2xl text-primary-500" />
     </div>
 
     <!-- 模态框 -->

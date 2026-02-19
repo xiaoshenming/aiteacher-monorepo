@@ -34,7 +34,7 @@ const emit = defineEmits<{
               </div>
               <button
                 :disabled="addingId === cls.id"
-                class="px-3 py-1 text-xs font-medium text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-800 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-900/20 disabled:opacity-50 transition-colors cursor-pointer"
+                class="px-3 py-1 text-xs font-medium text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 disabled:opacity-50 transition-colors cursor-pointer"
                 @click="emit('add', cls.id)"
               >
                 {{ addingId === cls.id ? '关联中...' : '关联' }}

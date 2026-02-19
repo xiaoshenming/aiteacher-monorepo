@@ -18,7 +18,7 @@
           返回首页
         </button>
         <button
-          class="px-4 py-2 rounded-lg bg-teal-500 text-white hover:bg-teal-600 transition-colors cursor-pointer"
+          class="px-4 py-2 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition-colors cursor-pointer"
           @click="navigateTo('/login')"
         >
           重新登录

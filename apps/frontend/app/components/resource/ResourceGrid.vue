@@ -34,7 +34,7 @@ const emit = defineEmits<{
     <div
       v-for="item in items"
       :key="item.id"
-      class="group rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 hover:border-teal-300 dark:hover:border-teal-700 hover:shadow-md transition-all overflow-hidden cursor-pointer"
+      class="group rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-md transition-all overflow-hidden cursor-pointer"
       @click="emit('detail', item)"
     >
       <!-- 封面 -->
@@ -58,7 +58,7 @@ const emit = defineEmits<{
         <div class="flex flex-wrap gap-1.5 mb-3">
           <span
             v-if="item.grade"
-            class="text-xs px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400"
+            class="text-xs px-1.5 py-0.5 rounded bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400"
           >
             {{ item.grade }}
           </span>
@@ -78,7 +78,7 @@ const emit = defineEmits<{
         <div class="flex items-center justify-between">
           <span class="text-xs text-zinc-400">{{ item.province }}{{ item.city ? ` · ${item.city}` : '' }}</span>
           <button
-            class="flex items-center gap-1 px-2 py-1 text-xs font-medium text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded transition-colors cursor-pointer"
+            class="flex items-center gap-1 px-2 py-1 text-xs font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-colors cursor-pointer"
             title="下载"
             @click.stop="emit('download', item)"
           >

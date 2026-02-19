@@ -59,7 +59,7 @@ const chartOption = computed(() => {
         type: 'bar',
         yAxisIndex: 0,
         data: callsData,
-        itemStyle: { color: '#14b8a6', borderRadius: [4, 4, 0, 0] },
+        itemStyle: { color: 'var(--ui-primary)', borderRadius: [4, 4, 0, 0] },
         barMaxWidth: 24,
       },
       {

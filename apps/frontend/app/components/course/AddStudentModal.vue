@@ -75,7 +75,7 @@ function handleClose() {
             v-model="keyword"
             type="text"
             placeholder="搜索学生姓名或用户名..."
-            class="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+            class="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
           >
         </div>
 
@@ -100,7 +100,7 @@ function handleClose() {
               </div>
               <button
                 :disabled="adding === student.id"
-                class="px-3 py-1 text-xs font-medium text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-800 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-900/20 disabled:opacity-50 transition-colors cursor-pointer"
+                class="px-3 py-1 text-xs font-medium text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 disabled:opacity-50 transition-colors cursor-pointer"
                 @click="handleAdd(student)"
               >
                 {{ adding === student.id ? '添加中...' : '添加' }}

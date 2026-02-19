@@ -49,11 +49,11 @@ defineExpose({ previewStream, getMediaStream, cleanupStreams, recordingSource })
             ]" :key="opt.value"
               class="flex flex-col items-center gap-1.5 p-3 rounded-lg border cursor-pointer transition-colors"
               :class="recordingSource === opt.value
-                ? 'border-teal-500 bg-teal-50 dark:bg-teal-950/30'
+                ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/30'
                 : 'border-[var(--ui-border)] hover:bg-[var(--ui-bg-elevated)]'"
             >
               <input type="radio" v-model="recordingSource" :value="opt.value" class="sr-only" />
-              <UIcon :name="opt.icon" class="text-lg" :class="recordingSource === opt.value ? 'text-teal-600 dark:text-teal-400' : 'text-[var(--ui-text-dimmed)]'" />
+              <UIcon :name="opt.icon" class="text-lg" :class="recordingSource === opt.value ? 'text-primary-600 dark:text-primary-400' : 'text-[var(--ui-text-dimmed)]'" />
               <span class="text-xs font-medium">{{ opt.label }}</span>
             </label>
           </div>
@@ -73,7 +73,7 @@ defineExpose({ previewStream, getMediaStream, cleanupStreams, recordingSource })
               @mousedown="startDragging"
             >
               <video ref="cameraOverlayVideo" autoplay muted playsinline class="w-full h-full object-cover pointer-events-none" />
-              <div class="absolute right-0 bottom-0 w-5 h-5 bg-teal-500 cursor-nwse-resize rounded-tl z-[11]" @mousedown.stop="startResizing" title="拖拽缩放" />
+              <div class="absolute right-0 bottom-0 w-5 h-5 bg-primary-500 cursor-nwse-resize rounded-tl z-[11]" @mousedown.stop="startResizing" title="拖拽缩放" />
               <span class="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded pointer-events-none">摄像头</span>
             </div>
             <div v-if="!previewStream" class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white gap-2">

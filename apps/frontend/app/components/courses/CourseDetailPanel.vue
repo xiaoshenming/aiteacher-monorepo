@@ -49,7 +49,7 @@ onMounted(() => loadCourse())
     <template #body>
       <!-- 加载状态 -->
       <div v-if="loading" class="flex items-center justify-center py-24">
-        <UIcon name="i-lucide-loader-2" class="w-6 h-6 animate-spin text-teal-500" />
+        <UIcon name="i-lucide-loader-2" class="w-6 h-6 animate-spin text-primary-500" />
       </div>
 
       <div v-else-if="course" class="p-6 space-y-6">
@@ -74,7 +74,7 @@ onMounted(() => loadCourse())
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">关联班级</h3>
             <button
-              class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-800 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors cursor-pointer"
+              class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors cursor-pointer"
               @click="loadClasses"
             >
               <UIcon name="i-lucide-plus" class="w-3.5 h-3.5" />
@@ -85,7 +85,7 @@ onMounted(() => loadCourse())
             <div
               v-for="cls in course.classes"
               :key="cls.id"
-              class="flex items-center justify-between px-4 py-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 cursor-pointer hover:border-teal-300 dark:hover:border-teal-700 transition-colors"
+              class="flex items-center justify-between px-4 py-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 cursor-pointer hover:border-primary-300 dark:hover:border-primary-700 transition-colors"
               @click="goToClass(cls.id)"
             >
               <div>
@@ -103,7 +103,7 @@ onMounted(() => loadCourse())
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">助教</h3>
             <button
-              class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-800 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors cursor-pointer"
+              class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors cursor-pointer"
               @click="loadTeachers"
             >
               <UIcon name="i-lucide-plus" class="w-3.5 h-3.5" />

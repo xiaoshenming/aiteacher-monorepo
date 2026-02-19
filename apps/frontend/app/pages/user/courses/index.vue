@@ -40,7 +40,7 @@ onMounted(() => loadData())
         <template #right>
           <div class="flex items-center gap-2">
             <button
-              class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-teal-500 hover:bg-teal-600 rounded-lg transition-colors cursor-pointer"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors cursor-pointer"
               @click="showCreateModal = true"
             >
               <UIcon name="i-lucide-plus" class="w-4 h-4" />

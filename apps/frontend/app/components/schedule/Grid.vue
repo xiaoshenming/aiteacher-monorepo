@@ -75,8 +75,8 @@ function cancelEdit() {
             :key="colIdx"
             class="border border-zinc-200 dark:border-zinc-700 px-2 py-1.5 min-w-[100px] h-16 align-top transition-colors"
             :class="[
-              editable ? 'cursor-pointer hover:bg-teal-50/50 dark:hover:bg-teal-900/10' : 'cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50',
-              getCell(rowIdx, colIdx - 1).course_name ? 'bg-teal-50/30 dark:bg-teal-900/10' : '',
+              editable ? 'cursor-pointer hover:bg-primary-50/50 dark:hover:bg-primary-900/10' : 'cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50',
+              getCell(rowIdx, colIdx - 1).course_name ? 'bg-primary-50/30 dark:bg-primary-900/10' : '',
             ]"
             @click="startEdit(rowIdx, colIdx - 1)"
           >
@@ -86,7 +86,7 @@ function cancelEdit() {
                   v-model="editForm.course_name"
                   type="text"
                   placeholder="课程"
-                  class="w-full px-1.5 py-0.5 text-xs rounded border border-teal-300 dark:border-teal-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none"
+                  class="w-full px-1.5 py-0.5 text-xs rounded border border-primary-300 dark:border-primary-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none"
                 >
                 <input
                   v-model="editForm.teacher"
@@ -102,7 +102,7 @@ function cancelEdit() {
                 >
                 <div class="flex gap-1">
                   <button
-                    class="px-1.5 py-0.5 text-xs text-white bg-teal-500 rounded hover:bg-teal-600 cursor-pointer"
+                    class="px-1.5 py-0.5 text-xs text-white bg-primary-500 rounded hover:bg-primary-600 cursor-pointer"
                     @click="saveEdit"
                   >
                     确定
@@ -118,7 +118,7 @@ function cancelEdit() {
             </template>
             <template v-else>
               <div v-if="getCell(rowIdx, colIdx - 1).course_name">
-                <p class="text-xs font-medium text-teal-700 dark:text-teal-300 line-clamp-1">
+                <p class="text-xs font-medium text-primary-700 dark:text-primary-300 line-clamp-1">
                   {{ getCell(rowIdx, colIdx - 1).course_name }}
                 </p>
                 <p v-if="getCell(rowIdx, colIdx - 1).teacher" class="text-xs text-zinc-400 mt-0.5">

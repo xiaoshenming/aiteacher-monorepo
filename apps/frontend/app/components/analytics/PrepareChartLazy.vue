@@ -20,7 +20,7 @@ const PrepareChart = defineAsyncComponent(() =>
           AI 使用趋势
         </h3>
         <div class="flex items-center justify-center h-72">
-          <div class="w-10 h-10 rounded-full border-4 border-zinc-200 dark:border-zinc-700 border-t-teal-500 animate-spin" />
+          <div class="w-10 h-10 rounded-full border-4 border-zinc-200 dark:border-zinc-700 border-t-primary-500 animate-spin" />
         </div>
       </div>
     </template>

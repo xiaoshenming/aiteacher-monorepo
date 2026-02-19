@@ -22,7 +22,7 @@ const emit = defineEmits<{
 }>()
 
 const isSource = computed(() => props.type === 'source')
-const themeColor = computed(() => isSource.value ? 'teal' : 'sky')
+const themeColor = computed(() => isSource.value ? 'primary' : 'sky')
 </script>
 
 <template>
@@ -30,12 +30,12 @@ const themeColor = computed(() => isSource.value ? 'teal' : 'sky')
     <div class="flex items-center gap-2 mb-3 px-1">
       <div
         class="flex items-center justify-center size-7 rounded-lg"
-        :class="isSource ? 'bg-teal-500/10' : 'bg-sky-500/10'"
+        :class="isSource ? 'bg-primary-500/10' : 'bg-sky-500/10'"
       >
         <UIcon
           :name="isSource ? 'i-lucide-text' : 'i-lucide-languages'"
           class="size-4"
-          :class="isSource ? 'text-teal-500' : 'text-sky-500'"
+          :class="isSource ? 'text-primary-500' : 'text-sky-500'"
         />
       </div>
       <span class="text-sm font-semibold text-highlighted">{{ isSource ? '原文转写' : '翻译结果' }}</span>
@@ -57,8 +57,8 @@ const themeColor = computed(() => isSource.value ? 'teal' : 'sky')
               <div
                 v-for="(t, idx) in transcripts"
                 :key="t.id"
-                class="group relative flex items-start gap-3 p-3 rounded-lg hover:bg-teal-500/5 dark:hover:bg-teal-500/10 transition-all duration-200"
-                :class="idx === transcripts.length - 1 ? 'bg-teal-500/5 dark:bg-teal-500/8' : ''"
+                class="group relative flex items-start gap-3 p-3 rounded-lg hover:bg-primary-500/5 dark:hover:bg-primary-500/10 transition-all duration-200"
+                :class="idx === transcripts.length - 1 ? 'bg-primary-500/5 dark:bg-primary-500/8' : ''"
               >
                 <div class="flex flex-col items-center gap-1 shrink-0 pt-0.5">
                   <span class="text-[10px] font-mono text-muted tabular-nums">{{ new Date(t.timestamp).toLocaleTimeString() }}</span>
@@ -97,18 +97,18 @@ const themeColor = computed(() => isSource.value ? 'teal' : 'sky')
             <div class="relative mb-4">
               <div
                 class="absolute inset-0 rounded-full animate-pulse scale-150"
-                :class="isSource ? 'bg-teal-500/10' : 'bg-sky-500/10'"
+                :class="isSource ? 'bg-primary-500/10' : 'bg-sky-500/10'"
               />
               <div
                 class="relative flex items-center justify-center size-16 rounded-full border"
                 :class="isSource
-                  ? 'bg-gradient-to-br from-teal-500/20 to-sky-500/20 border-teal-500/20'
-                  : 'bg-gradient-to-br from-sky-500/20 to-teal-500/20 border-sky-500/20'"
+                  ? 'bg-gradient-to-br from-primary-500/20 to-sky-500/20 border-primary-500/20'
+                  : 'bg-gradient-to-br from-sky-500/20 to-primary-500/20 border-sky-500/20'"
               >
                 <UIcon
                   :name="isSource ? 'i-lucide-mic' : 'i-lucide-languages'"
                   class="size-7"
-                  :class="isSource ? 'text-teal-500' : 'text-sky-500'"
+                  :class="isSource ? 'text-primary-500' : 'text-sky-500'"
                 />
               </div>
             </div>

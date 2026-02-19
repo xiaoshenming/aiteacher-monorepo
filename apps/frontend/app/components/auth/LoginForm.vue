@@ -30,7 +30,7 @@ const emit = defineEmits<{
         <label for="login-account" class="text-sm font-medium text-default">账号</label>
         <div class="input-group relative">
           <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-            <UIcon name="i-lucide-user" class="text-teal-500 dark:text-teal-400 text-lg" />
+            <UIcon name="i-lucide-user" class="text-primary-500 dark:text-primary-400 text-lg" />
           </div>
           <input
             id="login-account"
@@ -50,7 +50,7 @@ const emit = defineEmits<{
         <label for="login-password" class="text-sm font-medium text-default">密码</label>
         <div class="input-group relative">
           <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-            <UIcon name="i-lucide-lock" class="text-teal-500 dark:text-teal-400 text-lg" />
+            <UIcon name="i-lucide-lock" class="text-primary-500 dark:text-primary-400 text-lg" />
           </div>
           <input
             id="login-password"
@@ -71,12 +71,12 @@ const emit = defineEmits<{
           <input
             :checked="loginForm.rememberMe"
             type="checkbox"
-            class="w-4 h-4 rounded text-teal-600 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-teal-500"
+            class="w-4 h-4 rounded text-primary-600 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-primary-500"
             @change="loginForm.rememberMe = ($event.target as HTMLInputElement).checked"
           >
           <span class="text-sm text-muted">记住我</span>
         </label>
-        <a href="#" class="text-sm text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:underline transition-colors">忘记密码？</a>
+        <a href="#" class="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 hover:underline transition-colors">忘记密码？</a>
       </div>
 
       <button
@@ -92,7 +92,7 @@ const emit = defineEmits<{
     <!-- Mobile toggle link -->
     <p class="mt-6 text-center text-sm text-muted lg:hidden">
       还没有账号？
-      <button class="text-teal-600 dark:text-teal-400 font-medium hover:underline cursor-pointer" @click="emit('toggleToRegister')">
+      <button class="text-primary-600 dark:text-primary-400 font-medium hover:underline cursor-pointer" @click="emit('toggleToRegister')">
         立即注册
       </button>
     </p>

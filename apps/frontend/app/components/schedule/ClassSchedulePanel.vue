@@ -138,7 +138,7 @@ onMounted(() => loadData())
               取消编辑
             </button>
             <button
-              class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-teal-500 hover:bg-teal-600 rounded-lg transition-colors cursor-pointer"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors cursor-pointer"
               @click="showCreate = true"
             >
               <UIcon name="i-lucide-plus" class="w-4 h-4" />
@@ -152,7 +152,7 @@ onMounted(() => loadData())
     <template #body>
       <!-- 加载状态 -->
       <div v-if="loading" class="flex items-center justify-center py-24">
-        <UIcon name="i-lucide-loader-2" class="w-6 h-6 animate-spin text-teal-500" />
+        <UIcon name="i-lucide-loader-2" class="w-6 h-6 animate-spin text-primary-500" />
       </div>
 
       <!-- 空状态 -->
@@ -170,7 +170,7 @@ onMounted(() => loadData())
             :key="s.id"
             class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border transition-colors whitespace-nowrap cursor-pointer"
             :class="activeId === s.id
-              ? 'bg-teal-500 text-white border-teal-500'
+              ? 'bg-primary-500 text-white border-primary-500'
               : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'"
             @click="activeId = s.id; editing = false"
           >
@@ -178,7 +178,7 @@ onMounted(() => loadData())
             <span
               v-if="s.is_active"
               class="px-1.5 py-0.5 text-xs rounded-full"
-              :class="activeId === s.id ? 'bg-white/20' : 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400'"
+              :class="activeId === s.id ? 'bg-white/20' : 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'"
             >
               当前
             </span>
@@ -189,7 +189,7 @@ onMounted(() => loadData())
         <div v-if="activeSchedule && !editing" class="flex items-center gap-2 mb-4">
           <button
             v-if="!activeSchedule.is_active"
-            class="px-3 py-1.5 text-xs font-medium text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-800 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors cursor-pointer"
+            class="px-3 py-1.5 text-xs font-medium text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors cursor-pointer"
             @click="handleSetActive(activeSchedule.id)"
           >
             设为当前

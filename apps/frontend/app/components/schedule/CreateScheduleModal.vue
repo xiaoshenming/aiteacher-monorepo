@@ -31,7 +31,7 @@ watch(() => props.creating, () => {
           v-model="newName"
           type="text"
           placeholder="请输入课程表名称"
-          class="w-full px-3 py-2 text-sm rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+          class="w-full px-3 py-2 text-sm rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
           @keydown.enter="handleSubmit"
         >
         <div class="flex justify-end gap-2 mt-4">
@@ -43,7 +43,7 @@ watch(() => props.creating, () => {
           </button>
           <button
             :disabled="!newName.trim() || creating"
-            class="px-4 py-2 text-sm font-medium text-white bg-teal-500 hover:bg-teal-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            class="px-4 py-2 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
             @click="handleSubmit"
           >
             {{ creating ? '创建中...' : '创建' }}

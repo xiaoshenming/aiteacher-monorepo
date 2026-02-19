@@ -4,13 +4,13 @@ defineProps<{
   label: string
   value: string | number
   unit?: string
-  color?: 'teal' | 'indigo' | 'amber' | 'rose' | 'sky'
+  color?: 'primary' | 'indigo' | 'amber' | 'rose' | 'sky'
   trend?: number
   loading?: boolean
 }>()
 
 const colorMap: Record<string, { bg: string, icon: string }> = {
-  teal: { bg: 'bg-teal-50 dark:bg-teal-900/20', icon: 'text-teal-500' },
+  primary: { bg: 'bg-primary-50 dark:bg-primary-900/20', icon: 'text-primary-500' },
   indigo: { bg: 'bg-indigo-50 dark:bg-indigo-900/20', icon: 'text-indigo-500' },
   amber: { bg: 'bg-amber-50 dark:bg-amber-900/20', icon: 'text-amber-500' },
   rose: { bg: 'bg-rose-50 dark:bg-rose-900/20', icon: 'text-rose-500' },
@@ -23,12 +23,12 @@ const colorMap: Record<string, { bg: string, icon: string }> = {
     <div class="flex items-start justify-between">
       <div
         class="w-10 h-10 rounded-lg flex items-center justify-center"
-        :class="colorMap[color ?? 'teal']?.bg"
+        :class="colorMap[color ?? 'primary']?.bg"
       >
         <UIcon
           :name="icon"
           class="w-5 h-5"
-          :class="colorMap[color ?? 'teal']?.icon"
+          :class="colorMap[color ?? 'primary']?.icon"
         />
       </div>
 

@@ -62,7 +62,7 @@ const fields = computed(() => [
           <!-- 下载按钮 -->
           <div class="mt-6 flex justify-end">
             <button
-              class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-teal-500 hover:bg-teal-600 rounded-lg transition-colors cursor-pointer"
+              class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors cursor-pointer"
               @click="emit('download', resource)"
             >
               <UIcon name="i-lucide-download" class="w-4 h-4" />

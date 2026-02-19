@@ -51,7 +51,7 @@ const chartOption = computed(() => {
           },
         },
         data,
-        color: ['#14b8a6', '#6366f1', '#f59e0b', '#ef4444', '#06b6d4'],
+        color: ['var(--ui-primary)', '#6366f1', '#f59e0b', '#ef4444', '#06b6d4'],
       },
     ],
   }
@@ -74,7 +74,7 @@ function formatModelName(name: string): string {
 
     <template v-if="loading">
       <div class="flex items-center justify-center h-64">
-        <div class="w-32 h-32 rounded-full border-4 border-zinc-200 dark:border-zinc-700 border-t-teal-500 animate-spin" />
+        <div class="w-32 h-32 rounded-full border-4 border-zinc-200 dark:border-zinc-700 border-t-primary-500 animate-spin" />
       </div>
     </template>
 

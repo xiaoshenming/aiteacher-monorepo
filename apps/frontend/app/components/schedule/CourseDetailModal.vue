@@ -48,7 +48,7 @@ const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周�
         </div>
         <div class="flex justify-end mt-4">
           <button
-            class="px-4 py-2 text-sm font-medium text-white bg-teal-500 hover:bg-teal-600 rounded-lg transition-colors cursor-pointer"
+            class="px-4 py-2 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors cursor-pointer"
             @click="emit('edit')"
           >
             编辑课程表

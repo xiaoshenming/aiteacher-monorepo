@@ -74,7 +74,7 @@ onUnmounted(() => {
         alt="登录页背景"
         class="absolute inset-0 w-full h-full object-cover"
       >
-      <div class="absolute inset-0 bg-gradient-to-br from-teal-900/80 via-gray-900/70 to-teal-800/80" />
+      <div class="absolute inset-0 bg-gradient-to-br from-primary-900/80 via-gray-900/70 to-primary-800/80" />
     </div>
 
     <!-- Floating particles -->
@@ -157,8 +157,8 @@ onUnmounted(() => {
 }
 
 :deep(.auth-input):focus {
-  border-color: var(--color-teal-500);
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-500) 10%, transparent);
   background: white;
 }
 
@@ -173,14 +173,14 @@ onUnmounted(() => {
 }
 
 :is(.dark) :deep(.auth-input):focus {
-  border-color: var(--color-teal-400);
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+  border-color: var(--color-primary-400);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-400) 20%, transparent);
   background: var(--color-gray-600);
 }
 
 /* Icon scale on focus */
-:deep(.input-group):focus-within .text-teal-500,
-:deep(.input-group):focus-within .text-teal-400 {
+:deep(.input-group):focus-within .text-primary-500,
+:deep(.input-group):focus-within .text-primary-400 {
   transform: scale(1.15);
   transition: transform 0.2s ease;
 }
@@ -194,17 +194,17 @@ onUnmounted(() => {
   font-weight: 600;
   font-size: 0.875rem;
   color: white;
-  background: linear-gradient(135deg, var(--color-teal-500), var(--color-emerald-600));
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-emerald-600));
   border: none;
   border-radius: 0.75rem;
   cursor: pointer;
   transition: all 0.25s ease;
-  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary-500) 30%, transparent);
 }
 
 :deep(.auth-btn):hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(20, 184, 166, 0.4);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--color-primary-500) 40%, transparent);
 }
 
 :deep(.auth-btn):active:not(:disabled) {

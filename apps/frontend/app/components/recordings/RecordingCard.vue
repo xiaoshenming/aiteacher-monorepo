@@ -31,7 +31,7 @@ defineEmits<{
 </script>
 
 <template>
-  <div class="group flex flex-col rounded-xl border border-[var(--ui-border)] bg-[var(--ui-bg)] overflow-hidden hover:shadow-md hover:border-teal-300 dark:hover:border-teal-700 transition-all duration-200">
+  <div class="group flex flex-col rounded-xl border border-[var(--ui-border)] bg-[var(--ui-bg)] overflow-hidden hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition-all duration-200">
     <!-- 卡片顶部：缩略图/图标区域 -->
     <div
       class="relative aspect-video bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center cursor-pointer"

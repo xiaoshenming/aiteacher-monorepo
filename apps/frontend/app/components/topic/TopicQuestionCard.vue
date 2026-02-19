@@ -15,7 +15,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="group relative overflow-hidden rounded-xl border border-[var(--ui-border)] hover:border-teal-500/30 bg-[var(--ui-bg)] transition-all duration-200 hover:shadow-md">
+  <div class="group relative overflow-hidden rounded-xl border border-[var(--ui-border)] hover:border-primary-500/30 bg-[var(--ui-bg)] transition-all duration-200 hover:shadow-md">
     <!-- 题号色条 -->
     <div class="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl" :class="{
       'bg-emerald-500': question.difficulty === '简单',
@@ -27,7 +27,7 @@ const emit = defineEmits<{
       <div class="flex items-start justify-between gap-3">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-2">
-            <span class="flex items-center justify-center size-6 rounded-full bg-teal-500/10 text-xs font-bold text-teal-600 dark:text-teal-400 shrink-0">
+            <span class="flex items-center justify-center size-6 rounded-full bg-primary-500/10 text-xs font-bold text-primary-600 dark:text-primary-400 shrink-0">
               {{ index + 1 }}
             </span>
             <UBadge :label="question.type" size="xs" variant="subtle" />

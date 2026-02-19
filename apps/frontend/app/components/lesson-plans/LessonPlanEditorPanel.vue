@@ -55,7 +55,7 @@ onBeforeUnmount(() => cleanup())
             <span v-else-if="hasUnsavedChanges" class="text-xs text-amber-500">
               未保存
             </span>
-            <span v-else class="text-xs text-teal-500">
+            <span v-else class="text-xs text-primary-500">
               已保存
             </span>
             <UDropdownMenu :items="exportItems">
@@ -68,7 +68,7 @@ onBeforeUnmount(() => cleanup())
             </UDropdownMenu>
             <button
               :disabled="!hasUnsavedChanges || saving"
-              class="px-3 py-1.5 text-sm font-medium text-white bg-teal-500 hover:bg-teal-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              class="px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
               @click="savePlan"
             >
               保存
@@ -81,7 +81,7 @@ onBeforeUnmount(() => cleanup())
     <template #body>
       <!-- 加载状态 -->
       <div v-if="loading" class="flex items-center justify-center py-24">
-        <UIcon name="i-lucide-loader-2" class="w-6 h-6 animate-spin text-teal-500" />
+        <UIcon name="i-lucide-loader-2" class="w-6 h-6 animate-spin text-primary-500" />
       </div>
 
       <!-- 编辑器区域 -->

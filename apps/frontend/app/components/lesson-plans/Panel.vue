@@ -115,7 +115,7 @@ onMounted(() => loadData())
                 v-model="keyword"
                 type="text"
                 placeholder="搜索教案..."
-                class="pl-8 pr-3 py-1.5 text-sm rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 w-48"
+                class="pl-8 pr-3 py-1.5 text-sm rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 w-48"
               >
             </div>
 
@@ -123,14 +123,14 @@ onMounted(() => loadData())
             <div class="flex items-center rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
               <button
                 class="px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer"
-                :class="!showHistory ? 'bg-teal-500 text-white' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'"
+                :class="!showHistory ? 'bg-primary-500 text-white' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'"
                 @click="showHistory = false; page = 1"
               >
                 当前
               </button>
               <button
                 class="px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer"
-                :class="showHistory ? 'bg-teal-500 text-white' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'"
+                :class="showHistory ? 'bg-primary-500 text-white' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'"
                 @click="showHistory = true; page = 1"
               >
                 历史
@@ -139,7 +139,7 @@ onMounted(() => loadData())
 
             <!-- 新建按钮 -->
             <button
-              class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-teal-500 hover:bg-teal-600 rounded-lg transition-colors cursor-pointer"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors cursor-pointer"
               @click="showCreateModal = true"
             >
               <UIcon name="i-lucide-plus" class="w-4 h-4" />

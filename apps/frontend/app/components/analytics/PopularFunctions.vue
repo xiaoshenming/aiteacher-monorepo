@@ -83,7 +83,7 @@ const rankColors = ['text-amber-500', 'text-zinc-400', 'text-amber-700']
             <div class="h-1.5 bg-zinc-100 dark:bg-zinc-700 rounded-full overflow-hidden">
               <div
                 class="h-full rounded-full transition-all duration-500"
-                :class="index === 0 ? 'bg-teal-500' : index === 1 ? 'bg-indigo-500' : 'bg-zinc-300 dark:bg-zinc-500'"
+                :class="index === 0 ? 'bg-primary-500' : index === 1 ? 'bg-indigo-500' : 'bg-zinc-300 dark:bg-zinc-500'"
                 :style="{ width: getBarWidth(Number(fn.total_calls), Number(functions[0]?.total_calls ?? 0)) }"
               />
             </div>

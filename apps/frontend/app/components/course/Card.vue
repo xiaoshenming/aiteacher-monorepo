@@ -12,12 +12,12 @@ defineEmits<{
 
 <template>
   <div
-    class="group rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 hover:border-teal-300 dark:hover:border-teal-700 hover:shadow-md transition-all cursor-pointer p-5"
+    class="group rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-md transition-all cursor-pointer p-5"
     @click="$emit('click')"
   >
     <div class="flex items-start justify-between mb-3">
-      <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-teal-50 dark:bg-teal-900/20">
-        <UIcon name="i-lucide-book-open" class="w-5 h-5 text-teal-500" />
+      <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-primary-50 dark:bg-primary-900/20">
+        <UIcon name="i-lucide-book-open" class="w-5 h-5 text-primary-500" />
       </div>
     </div>
     <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 line-clamp-1 mb-1">

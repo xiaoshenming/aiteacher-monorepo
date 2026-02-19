@@ -66,7 +66,7 @@ onMounted(() => loadData())
     <template #body>
       <!-- 加载状态 -->
       <div v-if="loading" class="flex items-center justify-center py-24">
-        <UIcon name="i-lucide-loader-2" class="w-6 h-6 animate-spin text-teal-500" />
+        <UIcon name="i-lucide-loader-2" class="w-6 h-6 animate-spin text-primary-500" />
       </div>
 
       <div v-else-if="classInfo" class="p-6 space-y-6">
@@ -90,7 +90,7 @@ onMounted(() => loadData())
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">学生名单</h3>
             <button
-              class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-800 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors cursor-pointer"
+              class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors cursor-pointer"
               @click="showAddStudent = true"
             >
               <UIcon name="i-lucide-plus" class="w-3.5 h-3.5" />

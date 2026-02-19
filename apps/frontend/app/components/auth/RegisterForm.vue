@@ -26,7 +26,7 @@ const emit = defineEmits<{
         <label for="register-username" class="text-sm font-medium text-default">用户名</label>
         <div class="input-group relative">
           <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-            <UIcon name="i-lucide-user" class="text-teal-500 dark:text-teal-400 text-lg" />
+            <UIcon name="i-lucide-user" class="text-primary-500 dark:text-primary-400 text-lg" />
           </div>
           <input
             id="register-username"
@@ -45,7 +45,7 @@ const emit = defineEmits<{
         <label for="register-email" class="text-sm font-medium text-default">邮箱</label>
         <div class="input-group relative">
           <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-            <UIcon name="i-lucide-mail" class="text-teal-500 dark:text-teal-400 text-lg" />
+            <UIcon name="i-lucide-mail" class="text-primary-500 dark:text-primary-400 text-lg" />
           </div>
           <input
             id="register-email"
@@ -64,7 +64,7 @@ const emit = defineEmits<{
         <label for="register-password" class="text-sm font-medium text-default">密码</label>
         <div class="input-group relative">
           <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-            <UIcon name="i-lucide-lock" class="text-teal-500 dark:text-teal-400 text-lg" />
+            <UIcon name="i-lucide-lock" class="text-primary-500 dark:text-primary-400 text-lg" />
           </div>
           <input
             id="register-password"
@@ -84,7 +84,7 @@ const emit = defineEmits<{
         <div class="flex gap-2">
           <div class="input-group relative flex-1">
             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-              <UIcon name="i-lucide-shield-check" class="text-teal-500 dark:text-teal-400 text-lg" />
+              <UIcon name="i-lucide-shield-check" class="text-primary-500 dark:text-primary-400 text-lg" />
             </div>
             <input
               id="register-code"
@@ -103,7 +103,7 @@ const emit = defineEmits<{
             class="shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
             :class="countdown > 0
               ? 'bg-gray-100 dark:bg-gray-700 text-muted cursor-not-allowed'
-              : 'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-900/50 border border-teal-200 dark:border-teal-700'"
+              : 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/50 border border-primary-200 dark:border-primary-700'"
             aria-label="获取验证码"
             @click="emit('sendCode')"
           >
@@ -125,7 +125,7 @@ const emit = defineEmits<{
     <!-- Mobile toggle link -->
     <p class="mt-4 text-center text-sm text-muted lg:hidden">
       已有账号？
-      <button class="text-teal-600 dark:text-teal-400 font-medium hover:underline cursor-pointer" @click="emit('toggleToLogin')">
+      <button class="text-primary-600 dark:text-primary-400 font-medium hover:underline cursor-pointer" @click="emit('toggleToLogin')">
         立即登录
       </button>
     </p>

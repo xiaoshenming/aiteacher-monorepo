@@ -17,14 +17,14 @@ const emit = defineEmits<{
 <template>
   <div class="lg:col-span-2 space-y-4">
     <!-- 流式输出 -->
-    <div v-if="isStreaming || (rawContent && !parsedQuestions.length)" class="relative overflow-hidden rounded-xl border border-teal-500/20 bg-gradient-to-br from-teal-500/5 to-transparent">
+    <div v-if="isStreaming || (rawContent && !parsedQuestions.length)" class="relative overflow-hidden rounded-xl border border-primary-500/20 bg-gradient-to-br from-primary-500/5 to-transparent">
       <div class="p-5 space-y-3">
         <div class="flex items-center gap-2.5">
           <div v-if="isStreaming" class="relative flex items-center justify-center size-6">
-            <span class="absolute inset-0 rounded-full bg-teal-500/20 animate-ping" />
-            <UIcon name="i-lucide-sparkles" class="size-4 text-teal-500 relative z-10 animate-pulse" />
+            <span class="absolute inset-0 rounded-full bg-primary-500/20 animate-ping" />
+            <UIcon name="i-lucide-sparkles" class="size-4 text-primary-500 relative z-10 animate-pulse" />
           </div>
-          <span class="text-sm font-medium" :class="isStreaming ? 'text-teal-600 dark:text-teal-400' : 'text-muted'">
+          <span class="text-sm font-medium" :class="isStreaming ? 'text-primary-600 dark:text-primary-400' : 'text-muted'">
             {{ isStreaming ? 'AI 正在生成题目...' : '生成内容' }}
           </span>
         </div>
@@ -66,10 +66,10 @@ const emit = defineEmits<{
     <!-- 空状态 -->
     <div v-else-if="!isStreaming && !rawContent" class="flex flex-col items-center justify-center py-24">
       <div class="relative mb-6">
-        <div class="absolute inset-0 rounded-full bg-teal-500/5 scale-[2.5]" />
-        <div class="absolute inset-0 rounded-full bg-teal-500/10 scale-[1.8] animate-pulse" />
-        <div class="relative flex items-center justify-center size-20 rounded-2xl bg-gradient-to-br from-teal-500/20 to-sky-500/20 border border-teal-500/20">
-          <UIcon name="i-lucide-brain" class="size-9 text-teal-500" />
+        <div class="absolute inset-0 rounded-full bg-primary-500/5 scale-[2.5]" />
+        <div class="absolute inset-0 rounded-full bg-primary-500/10 scale-[1.8] animate-pulse" />
+        <div class="relative flex items-center justify-center size-20 rounded-2xl bg-gradient-to-br from-primary-500/20 to-sky-500/20 border border-primary-500/20">
+          <UIcon name="i-lucide-brain" class="size-9 text-primary-500" />
         </div>
       </div>
       <p class="text-lg font-semibold text-highlighted mb-1">AI 智能出题</p>

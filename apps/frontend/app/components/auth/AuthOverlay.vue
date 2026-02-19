@@ -14,7 +14,7 @@ const emit = defineEmits<{
     class="absolute top-0 left-0 h-full w-1/2 overflow-hidden transition-all duration-700 ease-in-out z-50 hidden lg:block"
     :class="[isRegisterMode ? 'translate-x-0 rounded-r-[80px] rounded-l-[24px]' : 'translate-x-full rounded-l-[80px] rounded-r-[24px]']"
   >
-    <div class="absolute inset-0 bg-gradient-to-br from-teal-500 to-emerald-600 text-white h-full w-full">
+    <div class="absolute inset-0 bg-gradient-to-br from-primary-500 to-emerald-600 text-white h-full w-full">
       <!-- Decorative circles -->
       <div class="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-white/10" />
       <div class="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-white/10" />

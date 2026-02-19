@@ -37,11 +37,11 @@ const localCount = computed({
 <template>
   <div class="lg:col-span-1">
     <div class="sticky top-6 space-y-4">
-      <div class="relative rounded-xl p-[1px] bg-gradient-to-b from-teal-500/30 via-teal-500/10 to-transparent">
+      <div class="relative rounded-xl p-[1px] bg-gradient-to-b from-primary-500/30 via-primary-500/10 to-transparent">
         <div class="rounded-xl bg-[var(--ui-bg)] p-5 space-y-5">
           <!-- 标题 -->
           <div class="flex items-center gap-2.5">
-            <div class="flex items-center justify-center size-8 rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 shadow-lg shadow-teal-500/20">
+            <div class="flex items-center justify-center size-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 shadow-lg shadow-primary-500/20">
               <UIcon name="i-lucide-settings-2" class="size-4 text-white" />
             </div>
             <div>
@@ -77,7 +77,7 @@ const localCount = computed({
                 <UIcon name="i-lucide-hash" class="size-3.5" />
                 数量
               </label>
-              <span class="text-sm font-bold text-teal-500 tabular-nums">{{ localCount }} 题</span>
+              <span class="text-sm font-bold text-primary-500 tabular-nums">{{ localCount }} 题</span>
             </div>
             <div class="relative">
               <input
@@ -85,7 +85,7 @@ const localCount = computed({
                 type="range"
                 min="1"
                 max="20"
-                class="w-full h-1.5 rounded-full appearance-none cursor-pointer bg-teal-500/15 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-teal-500 [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:shadow-teal-500/30 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110"
+                class="w-full h-1.5 rounded-full appearance-none cursor-pointer bg-primary-500/15 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary-500 [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:shadow-primary-500/30 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110"
               >
               <div class="flex justify-between mt-1">
                 <span class="text-[10px] text-muted">1</span>
@@ -131,7 +131,7 @@ const localCount = computed({
                 :key="t"
                 class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 border"
                 :class="selectedTypes.includes(t)
-                  ? 'bg-teal-500/10 border-teal-500/30 text-teal-600 dark:text-teal-400'
+                  ? 'bg-primary-500/10 border-primary-500/30 text-primary-600 dark:text-primary-400'
                   : 'border-[var(--ui-border)] text-muted hover:border-[var(--ui-border-hover)] hover:text-highlighted'"
                 @click="emit('toggleType', t)"
               >
