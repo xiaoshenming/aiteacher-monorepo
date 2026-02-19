@@ -50,6 +50,9 @@
       },
       "services": {
         "projects": ["service-asr", "LandPPT"]
+      },
+      "tools": {
+        "projects": ["excalidraw"]
       }
     }
   }
