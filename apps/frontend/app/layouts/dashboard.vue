@@ -1,41 +1,12 @@
 <script setup lang="ts">
 const { open, navItems, roleTitle } = useDashboardNav()
-const { isNotificationsSlideoverOpen } = useDashboard()
-const userStore = useUserStore()
-const { nextTheme, startViewTransitionFromCenter } = useColorModeTransition()
+const layoutStore = useLayoutStore()
 
-const userMenuItems = computed(() => [
-  [{
-    label: userStore.userInfo.name || '用户',
-    slot: 'account' as const,
-    disabled: true,
-  }],
-  [{
-    label: '通知',
-    icon: 'i-lucide-bell',
-    onSelect: () => {
-      isNotificationsSlideoverOpen.value = true
-    },
-  }, {
-    label: nextTheme.value === 'light' ? '浅色模式' : '深色模式',
-    icon: nextTheme.value === 'light' ? 'i-lucide-sun' : 'i-lucide-moon',
-    onSelect: startViewTransitionFromCenter,
-  }],
-  [{
-    label: '返回首页',
-    icon: 'i-lucide-home',
-    onSelect: () => {
-      navigateTo('/')
-    },
-  }, {
-    label: '退出登录',
-    icon: 'i-lucide-log-out',
-    onSelect: () => {
-      userStore.logout()
-      navigateTo('/login')
-    },
-  }],
-])
+// 初始化 CSS 变量注入
+useLayoutCustomization()
+
+// 侧边栏折叠状态同步
+const sidebarCollapsed = computed(() => layoutStore.sidebarCollapsed)
 </script>
 
 <template>
@@ -45,7 +16,11 @@ const userMenuItems = computed(() => [
       v-model:open="open"
       collapsible
       resizable
-      class="bg-elevated/25"
+      :class="[
+        layoutStore.sidebarGlassEffect ? 'backdrop-blur-md bg-elevated/50' : 'bg-elevated/25',
+        layoutStore.sidebarPosition === 'right' ? 'order-last' : '',
+      ]"
+      :style="{ width: sidebarCollapsed ? undefined : `${layoutStore.sidebarWidth}px` }"
       :ui="{ footer: 'lg:border-t lg:border-default' }"
     >
       <template #header="{ collapsed }">
@@ -58,62 +33,32 @@ const userMenuItems = computed(() => [
       </template>
 
       <template #default="{ collapsed }">
-        <nav aria-label="仪表盘导航">
         <ClientOnly>
-          <UNavigationMenu
-            :collapsed="collapsed"
-            :items="navItems[0]"
-            orientation="vertical"
-            tooltip
-          />
-
-          <UNavigationMenu
-            v-if="navItems[1]?.length"
-            :collapsed="collapsed"
-            :items="navItems[1]"
-            orientation="vertical"
-            tooltip
-            class="mt-auto"
-          />
+          <LayoutSidebarNav :items="navItems.flat()" :collapsed="collapsed" />
         </ClientOnly>
-        </nav>
       </template>
 
       <template #footer="{ collapsed }">
-        <ClientOnly>
-          <UDropdownMenu :items="userMenuItems">
-            <UButton
-              :avatar="userStore.userInfo.avatar ? { src: userStore.userInfo.avatar, alt: userStore.userInfo.name } : undefined"
-              :icon="!userStore.userInfo.avatar ? 'i-lucide-user' : undefined"
-              :label="collapsed ? undefined : userStore.userInfo.name || '用户'"
-              :class="collapsed ? 'justify-center' : ''"
-              color="neutral"
-              variant="ghost"
-              block
-              :ui="{ trailingIcon: 'ms-auto' }"
-              :trailing-icon="collapsed ? undefined : 'i-lucide-chevrons-up-down'"
-              :aria-label="collapsed ? '用户菜单' : undefined"
-            />
-
-            <template #account>
-              <div class="text-left">
-                <p class="font-medium text-highlighted truncate">
-                  {{ userStore.userInfo.name || '用户' }}
-                </p>
-                <p class="text-xs text-muted truncate">
-                  {{ userStore.userInfo.email || userStore.roleLabel }}
-                </p>
-              </div>
-            </template>
-          </UDropdownMenu>
-        </ClientOnly>
+        <div class="flex items-center" :class="collapsed ? 'justify-center' : 'px-2 gap-2'">
+          <UIcon name="i-lucide-graduation-cap" class="text-muted text-sm shrink-0" />
+          <span v-if="!collapsed" class="text-xs text-dimmed truncate">AI 教师平台</span>
+        </div>
       </template>
     </UDashboardSidebar>
 
-    <slot />
+    <div class="flex-1 flex flex-col min-w-0" :class="layoutStore.sidebarPosition === 'right' ? 'order-first' : ''">
+      <!-- 顶部栏 -->
+      <LayoutDashboardHeader />
+
+      <!-- 主内容 -->
+      <main class="flex-1 overflow-auto" :style="{ fontSize: `${layoutStore.fontSize}px` }">
+        <slot />
+      </main>
+    </div>
 
     <ClientOnly>
       <NotificationsSlideover />
+      <LayoutSettingsDrawer />
     </ClientOnly>
   </UDashboardGroup>
 </template>
