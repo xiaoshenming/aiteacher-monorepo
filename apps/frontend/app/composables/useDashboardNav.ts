@@ -106,6 +106,12 @@ function getTeacherNav(closeSidebar: () => void): DashboardNavItem[][] {
       onSelect: closeSidebar,
     },
     {
+      label: '协作白板',
+      icon: 'i-lucide-pen-tool',
+      to: '/user/whiteboard',
+      onSelect: closeSidebar,
+    },
+    {
       label: 'VIP订阅',
       icon: 'i-lucide-crown',
       to: '/user/subscription',
