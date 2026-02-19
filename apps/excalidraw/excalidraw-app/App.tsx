@@ -370,7 +370,27 @@ const initializeScene = async (opts: {
 
 const ExcalidrawWrapper = () => {
   const [errorMessage, setErrorMessage] = useState("");
-  const isCollabDisabled = isRunningInIframe();
+  const [isIframeAuthenticated, setIsIframeAuthenticated] = useState(false);
+
+  useEffect(() => {
+    if (
+      isRunningInIframe() &&
+      import.meta.env.VITE_APP_ALLOW_IFRAME_COLLAB === "true"
+    ) {
+      let cleanup: (() => void) | undefined;
+      import("./auth/auth-bridge").then(({ initAuthBridge, onAuth }) => {
+        initAuthBridge();
+        cleanup = onAuth((state) => {
+          if (state.token) {
+            setIsIframeAuthenticated(true);
+          }
+        });
+      });
+      return () => cleanup?.();
+    }
+  }, []);
+
+  const isCollabDisabled = isRunningInIframe() && !isIframeAuthenticated;
 
   const { editorTheme, appTheme, setAppTheme } = useHandleAppTheme();
 

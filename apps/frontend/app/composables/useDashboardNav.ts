@@ -283,6 +283,12 @@ function getStudentNav(closeSidebar: () => void): DashboardNavItem[][] {
       to: '/student/assignments',
       onSelect: closeSidebar,
     },
+    {
+      label: '协作白板',
+      icon: 'i-lucide-pen-tool',
+      to: '/student/whiteboard',
+      onSelect: closeSidebar,
+    },
   ], [
     {
       label: '帮助与支持',

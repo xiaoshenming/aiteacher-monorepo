@@ -1,25 +1,43 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import http from "http";
+import cors from "cors";
 import { Server, Socket } from "socket.io";
+import { socketAuthMiddleware } from "./middleware/socketAuth";
+import roomsRouter from "./routes/rooms";
 
 const PORT = parseInt(process.env.PORT || "10008", 10);
+const CORS_ORIGINS = (process.env.CORS_ORIGINS || "http://localhost:10003,http://localhost:10007")
+  .split(",")
+  .map((s) => s.trim());
 
 const app = express();
 const server = http.createServer(app);
 
+// Middleware
+app.use(cors({ origin: CORS_ORIGINS, credentials: true }));
+app.use(express.json());
+
+// Routes
+app.get("/", (_req, res) => {
+  res.send("excalidraw-room is running");
+});
+app.use("/api/rooms", roomsRouter);
+
+// Socket.IO
 const io = new Server(server, {
   transports: ["websocket", "polling"],
   cors: {
-    origin: "*",
+    origin: CORS_ORIGINS,
     methods: ["GET", "POST"],
+    credentials: true,
   },
   allowEIO3: true,
 });
 
-// Health check
-app.get("/", (_req, res) => {
-  res.send("excalidraw-room is running");
-});
+io.use(socketAuthMiddleware);
 
 io.on("connection", (socket: Socket) => {
   io.to(socket.id).emit("init-room");

@@ -470,10 +470,17 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     existingRoomLinkData: null | { roomId: string; roomKey: string },
   ) => {
     if (!this.state.username) {
-      import("@excalidraw/random-username").then(({ getRandomUsername }) => {
-        const username = getRandomUsername();
-        this.setUsername(username);
-      });
+      // Prefer authenticated username from auth bridge
+      const { getAuthUser } = await import("../auth/auth-bridge");
+      const authUser = getAuthUser();
+      if (authUser?.username) {
+        this.setUsername(authUser.username);
+      } else {
+        import("@excalidraw/random-username").then(({ getRandomUsername }) => {
+          const username = getRandomUsername();
+          this.setUsername(username);
+        });
+      }
     }
 
     if (this.portal.socket) {
@@ -518,9 +525,12 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     this.fallbackInitializationHandler = fallbackInitializationHandler;
 
     try {
+      const { getAuthToken } = await import("../auth/auth-bridge");
+      const token = getAuthToken();
       this.portal.socket = this.portal.open(
         socketIOClient(import.meta.env.VITE_APP_WS_SERVER_URL, {
           transports: ["websocket", "polling"],
+          ...(token ? { auth: { token } } : {}),
         }),
         roomId,
         roomKey,
