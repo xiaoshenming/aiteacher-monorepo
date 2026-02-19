@@ -390,7 +390,10 @@ const ExcalidrawWrapper = () => {
     }
   }, []);
 
-  const isCollabDisabled = isRunningInIframe() && !isIframeAuthenticated;
+  const isCollabDisabled =
+    isRunningInIframe() &&
+    !isIframeAuthenticated &&
+    !isCollaborationLink(window.location.href);
 
   const { editorTheme, appTheme, setAppTheme } = useHandleAppTheme();
 

@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { randomBytes } from "crypto";
 import redis from "../config/redis";
 
 const ROOM_TTL = 7 * 24 * 60 * 60; // 7天
@@ -79,7 +80,7 @@ export async function createRoom(
     title: title || "未命名白板",
     creatorId,
     creatorName,
-    roomKey: nanoid(24),
+    roomKey: randomBytes(16).toString("base64url"),
     createdAt: now,
     lastActiveAt: now,
     isActive: true,

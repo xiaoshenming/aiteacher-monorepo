@@ -16,6 +16,11 @@ const error = ref('')
 const isFullscreen = ref(false)
 const editingTitle = ref(false)
 const editTitle = ref('')
+const embedRef = ref<{ requestSave: () => Promise<void> } | null>(null)
+
+onBeforeRouteLeave(async () => {
+  await embedRef.value?.requestSave()
+})
 
 async function fetchRoom() {
   loading.value = true
@@ -70,6 +75,7 @@ onMounted(fetchRoom)
       />
     </div>
     <WhiteboardExcalidrawEmbed
+      ref="embedRef"
       :room-id="roomId"
       :room-key="roomKey"
       mode="fullscreen"
@@ -142,6 +148,7 @@ onMounted(fetchRoom)
       <!-- Whiteboard embed -->
       <WhiteboardExcalidrawEmbed
         v-else-if="room && roomKey"
+        ref="embedRef"
         :room-id="roomId"
         :room-key="roomKey"
         mode="panel"

@@ -15,7 +15,12 @@ const iframeRef = ref<HTMLIFrameElement | null>(null)
 const status = ref<'loading' | 'ready' | 'error'>('loading')
 const errorMessage = ref('')
 
+const iframeSrc = computed(() =>
+  `${EXCALIDRAW_ORIGIN}/#room=${props.roomId},${props.roomKey}`,
+)
+
 let timeoutTimer: ReturnType<typeof setTimeout> | null = null
+let saveResolve: (() => void) | null = null
 
 function sendToIframe(type: string, payload: Record<string, unknown> = {}) {
   iframeRef.value?.contentWindow?.postMessage(
@@ -27,10 +32,10 @@ function sendToIframe(type: string, payload: Record<string, unknown> = {}) {
 function onMessage(event: MessageEvent) {
   if (event.origin !== EXCALIDRAW_ORIGIN) return
 
-  const { type } = event.data || {}
+  const { source, type } = event.data || {}
+  if (source !== 'aiteacher-excalidraw') return
 
-  if (type === 'ready') {
-    // Excalidraw is ready, send auth
+  if (type === 'excalidraw:ready') {
     sendToIframe('auth:init', {
       token: userStore.token,
       user: {
@@ -39,7 +44,6 @@ function onMessage(event: MessageEvent) {
         avatar: userStore.userInfo.avatar,
       },
     })
-    // Join room
     sendToIframe('room:join', {
       roomId: props.roomId,
       roomKey: props.roomKey,
@@ -51,7 +55,7 @@ function onMessage(event: MessageEvent) {
     }
   }
 
-  if (type === 'token-refresh-request') {
+  if (type === 'auth:request-token-refresh') {
     sendToIframe('auth:init', {
       token: userStore.token,
       user: {
@@ -61,7 +65,25 @@ function onMessage(event: MessageEvent) {
       },
     })
   }
+
+  if (type === 'save:done') {
+    saveResolve?.()
+    saveResolve = null
+  }
 }
+
+/** Request Excalidraw to save, returns a promise that resolves when done (or after timeout) */
+function requestSave(): Promise<void> {
+  if (status.value !== 'ready') return Promise.resolve()
+  return new Promise<void>((resolve) => {
+    saveResolve = resolve
+    sendToIframe('save:request')
+    // Don't block navigation forever — 3s max wait
+    setTimeout(resolve, 3000)
+  })
+}
+
+defineExpose({ requestSave })
 
 onMounted(() => {
   window.addEventListener('message', onMessage)
@@ -83,10 +105,9 @@ onBeforeUnmount(() => {
 function retry() {
   status.value = 'loading'
   errorMessage.value = ''
-  // Force iframe reload
   const iframe = iframeRef.value
   if (iframe) {
-    iframe.src = `${EXCALIDRAW_ORIGIN}?t=${Date.now()}`
+    iframe.src = `${EXCALIDRAW_ORIGIN}/#room=${props.roomId},${props.roomKey}&t=${Date.now()}`
   }
   timeoutTimer = setTimeout(() => {
     if (status.value === 'loading') {
@@ -127,7 +148,7 @@ const containerClass = computed(() =>
     <!-- Excalidraw iframe -->
     <iframe
       ref="iframeRef"
-      :src="EXCALIDRAW_ORIGIN"
+      :src="iframeSrc"
       :class="containerClass"
       class="border-0"
       sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-modals allow-downloads"

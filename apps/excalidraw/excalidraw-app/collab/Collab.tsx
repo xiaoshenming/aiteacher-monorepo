@@ -202,6 +202,8 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   }
 
   private onUmmount: (() => void) | null = null;
+  private handleParentSaveRequest: ((event: MessageEvent) => void) | null =
+    null;
 
   componentDidMount() {
     window.addEventListener(EVENT.BEFORE_UNLOAD, this.beforeUnload);
@@ -224,6 +226,27 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     };
 
     this.onOfflineStatusToggle();
+
+    // Listen for save requests from parent iframe (Nuxt)
+    this.handleParentSaveRequest = (event: MessageEvent) => {
+      const data = event.data;
+      if (
+        data?.source === "aiteacher-nuxt" &&
+        data?.type === "save:request" &&
+        this.isCollaborating()
+      ) {
+        const syncableElements = getSyncableElements(
+          this.excalidrawAPI.getSceneElementsIncludingDeleted(),
+        );
+        this.saveCollabRoomToFirebase(syncableElements).then(() => {
+          window.parent?.postMessage(
+            { source: "aiteacher-excalidraw", type: "save:done" },
+            "*",
+          );
+        });
+      }
+    };
+    window.addEventListener("message", this.handleParentSaveRequest);
 
     const collabAPI: CollabAPI = {
       isCollaborating: this.isCollaborating,
@@ -274,6 +297,9 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       this.idleTimeoutId = null;
     }
     this.onUmmount?.();
+    if (this.handleParentSaveRequest) {
+      window.removeEventListener("message", this.handleParentSaveRequest);
+    }
   }
 
   isCollaborating = () => appJotaiStore.get(isCollaboratingAtom)!;

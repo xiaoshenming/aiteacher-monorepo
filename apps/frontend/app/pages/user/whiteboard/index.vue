@@ -94,38 +94,40 @@ onMounted(fetchRooms)
 
       <!-- Room list -->
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-        <UCard
+        <NuxtLink
           v-for="room in rooms"
           :key="room.id"
-          class="cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
-          @click="navigateTo(`/user/whiteboard/${room.id}`)"
+          :to="`/user/whiteboard/${room.id}`"
+          class="block"
         >
-          <div class="flex flex-col gap-2">
-            <div class="flex items-center justify-between">
-              <h3 class="font-medium truncate">{{ room.title }}</h3>
-              <UButton
-                icon="i-lucide-trash-2"
-                size="xs"
-                color="neutral"
-                variant="ghost"
-                @click.stop="handleDelete(room.id)"
-              />
+          <UCard class="cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all h-full">
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center justify-between">
+                <h3 class="font-medium truncate">{{ room.title }}</h3>
+                <UButton
+                  icon="i-lucide-trash-2"
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  @click.prevent="handleDelete(room.id)"
+                />
+              </div>
+              <div class="flex items-center gap-3 text-xs text-muted">
+                <span class="flex items-center gap-1">
+                  <UIcon name="i-lucide-user" class="size-3" />
+                  {{ room.creatorName || '我' }}
+                </span>
+              </div>
+              <p class="text-xs text-dimmed">
+                {{ formatTime(room.lastActiveAt || room.createdAt) }}
+              </p>
             </div>
-            <div class="flex items-center gap-3 text-xs text-muted">
-              <span class="flex items-center gap-1">
-                <UIcon name="i-lucide-user" class="size-3" />
-                {{ room.creatorName || '我' }}
-              </span>
-            </div>
-            <p class="text-xs text-dimmed">
-              {{ formatTime(room.lastActiveAt || room.createdAt) }}
-            </p>
-          </div>
-        </UCard>
+          </UCard>
+        </NuxtLink>
       </div>
 
       <!-- Create modal -->
-      <UModal v-model:open="showCreateModal">
+      <UModal v-model:open="showCreateModal" title="新建白板" description="创建一个新的协作白板">
         <template #content>
           <div class="p-6 space-y-4">
             <h3 class="text-lg font-semibold">新建白板</h3>
