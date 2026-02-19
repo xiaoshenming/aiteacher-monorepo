@@ -3,7 +3,7 @@ import type { ThemeColor, SidebarPosition, LayoutDensity, BorderRadius, ContentM
 
 const layoutStore = useLayoutStore()
 const { navItems } = useDashboardNav()
-const { startViewTransitionFromCenter, nextTheme } = useColorModeTransition()
+const { startViewTransitionFromEvent, nextTheme } = useColorModeTransition()
 
 const open = computed({
   get: () => layoutStore.settingsDrawerOpen,
@@ -221,7 +221,7 @@ function toggleSection(key: string) {
                 size="xs"
                 color="neutral"
                 variant="outline"
-                @click="startViewTransitionFromCenter"
+                @click="startViewTransitionFromEvent($event)"
               />
             </div>
           </div>

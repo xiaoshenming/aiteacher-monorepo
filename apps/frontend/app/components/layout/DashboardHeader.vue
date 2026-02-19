@@ -11,7 +11,7 @@ const layoutStore = useLayoutStore()
 const userStore = useUserStore()
 const { breadcrumbs } = useBreadcrumb()
 const { isNotificationsSlideoverOpen } = useDashboard()
-const { nextTheme, startViewTransitionFromCenter } = useColorModeTransition()
+const { nextTheme, startViewTransitionFromEvent } = useColorModeTransition()
 
 // 鼠标跟随光斑
 const headerRef = ref<HTMLElement>()
@@ -258,7 +258,7 @@ onMounted(() => {
         size="sm"
         class="color-mode-btn"
         :aria-label="nextTheme === 'light' ? '切换亮色模式' : '切换暗色模式'"
-        @click="startViewTransitionFromCenter"
+        @click="startViewTransitionFromEvent($event)"
       />
     </UTooltip>
 
