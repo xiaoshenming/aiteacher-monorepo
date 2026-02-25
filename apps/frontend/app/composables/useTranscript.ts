@@ -1,15 +1,15 @@
 import type { Recording, TranscriptSegment } from '~/types/recording'
 
+const showTranscriptModal = ref(false)
+const transcriptSegments = ref<TranscriptSegment[]>([])
+const transcriptFullText = ref('')
+const transcriptLoading = ref(false)
+const transcriptTitle = ref('')
+const transcriptStatus = ref('')
+
 export function useTranscript() {
   const { getTranscript } = useRecordings()
   const toast = useToast()
-
-  const showTranscriptModal = ref(false)
-  const transcriptSegments = ref<TranscriptSegment[]>([])
-  const transcriptFullText = ref('')
-  const transcriptLoading = ref(false)
-  const transcriptTitle = ref('')
-  const transcriptStatus = ref('')
 
   async function viewTranscript(recording: Recording) {
     transcriptTitle.value = recording.title

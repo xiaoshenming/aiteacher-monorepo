@@ -1,15 +1,15 @@
 import type { Recording, AINote } from '~/types/recording'
 
+const showNotesModal = ref(false)
+const notesLoading = ref(false)
+const notesTitle = ref('')
+const notesData = ref<AINote | null>(null)
+const notesPollingTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+const showNotesRecordingId = ref('')
+
 export function useAINotes() {
   const { getNotes, generateNotes } = useRecordings()
   const toast = useToast()
-
-  const showNotesModal = ref(false)
-  const notesLoading = ref(false)
-  const notesTitle = ref('')
-  const notesData = ref<AINote | null>(null)
-  const notesPollingTimer = ref<ReturnType<typeof setTimeout> | null>(null)
-  const showNotesRecordingId = ref('')
 
   const parsedKeywords = computed(() => {
     if (!notesData.value?.keywords) return []

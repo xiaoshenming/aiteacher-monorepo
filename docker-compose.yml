@@ -8,7 +8,7 @@ services:
       dockerfile: Dockerfile
     container_name: aiteacher-backend-main
     ports:
-      - "3000:3000"
+      - "10001:10001"
     environment:
       - NODE_ENV=development
     env_file:
@@ -27,7 +27,7 @@ services:
       dockerfile: Dockerfile
     container_name: aiteacher-backend-cloud
     ports:
-      - "5001:5001"
+      - "10002:10002"
     environment:
       - NODE_ENV=development
     env_file:
@@ -46,7 +46,7 @@ services:
       dockerfile: Dockerfile
     container_name: aiteacher-service-asr
     ports:
-      - "8766:8766"
+      - "10005:10005"
     environment:
       - PYTHONUNBUFFERED=1
     env_file:
@@ -64,12 +64,12 @@ services:
       dockerfile: Dockerfile
     container_name: aiteacher-frontend
     ports:
-      - "3001:3000"
+      - "10003:10003"
     environment:
       - NODE_ENV=development
-      - NUXT_PUBLIC_API_BASE_URL=http://backend-main:3000
-      - NUXT_PUBLIC_CLOUD_API_BASE_URL=http://backend-cloud:5001
-      - NUXT_PUBLIC_ASR_API_BASE_URL=http://service-asr:8766
+      - NUXT_PUBLIC_API_BASE_URL=http://backend-main:10001
+      - NUXT_PUBLIC_CLOUD_API_BASE_URL=http://backend-cloud:10002
+      - NUXT_PUBLIC_ASR_API_BASE_URL=http://service-asr:10005
     volumes:
       - ./apps/frontend:/app
       - /app/node_modules
