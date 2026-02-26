@@ -9,7 +9,7 @@
     </template>
 
     <template #body>
-      <UserDashboardPanel />
+      <UserFlowDashboardPanel />
     </template>
   </UDashboardPanel>
 </template>
