@@ -14,6 +14,7 @@ function getTypeIcon(type: string): string {
     lesson: 'i-lucide-file-text',
     resource: 'i-lucide-folder',
     tool: 'i-lucide-wrench',
+    news: 'i-lucide-newspaper',
   }
   return map[type] ?? 'i-lucide-sparkles'
 }
@@ -24,9 +25,15 @@ function getTypeLabel(type: string): string {
     lesson: '教案',
     resource: '资源',
     tool: '工具',
+    news: '热点资讯',
   }
   return map[type] ?? type
 }
+
+const isNewsFallback = computed(() => top4.value.length > 0 && top4.value[0].type === 'news')
+
+const cardTitle = computed(() => isNewsFallback.value ? '科技热点' : '智能推荐')
+const cardIcon = computed(() => isNewsFallback.value ? 'i-lucide-newspaper' : 'i-lucide-sparkles')
 
 function getMatchColor(score: number): string {
   if (score >= 80) return 'text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-900/20'
@@ -38,8 +45,8 @@ function getMatchColor(score: number): string {
 <template>
   <div class="rounded-xl border border-[var(--ui-border)] bg-[var(--ui-bg)] p-5">
     <h3 class="text-sm font-semibold text-[var(--ui-text-highlighted)] mb-4 flex items-center gap-2">
-      <UIcon name="i-lucide-sparkles" class="w-4 h-4" />
-      智能推荐
+      <UIcon :name="cardIcon" class="w-4 h-4" />
+      {{ cardTitle }}
     </h3>
 
     <template v-if="loading">
@@ -72,20 +79,21 @@ function getMatchColor(score: number): string {
             <UIcon :name="getTypeIcon(rec.type)" class="w-4 h-4 text-indigo-500" />
           </div>
           <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2">
-              <p class="text-sm font-medium text-[var(--ui-text-highlighted)] truncate">
-                {{ rec.title }}
+            <p class="text-sm font-medium text-[var(--ui-text-highlighted)] truncate">
+              {{ rec.title }}
+            </p>
+            <div class="flex items-center gap-2 mt-0.5">
+              <p class="text-xs text-[var(--ui-text-muted)]">
+                {{ rec.type === 'news' ? (rec.description || '热点资讯') : getTypeLabel(rec.type) }}
               </p>
               <span
+                v-if="rec.type !== 'news' && rec.match_score > 0"
                 class="text-xs px-1.5 py-0.5 rounded-full shrink-0"
                 :class="getMatchColor(rec.match_score)"
               >
                 {{ rec.match_score }}%
               </span>
             </div>
-            <p class="text-xs text-[var(--ui-text-muted)] mt-0.5">
-              {{ getTypeLabel(rec.type) }}
-            </p>
           </div>
         </div>
       </div>

@@ -63,6 +63,28 @@ export function useDashboardData() {
     }
   }
 
+  // 当推荐为空时，用新闻热点作为兜底
+  async function fetchNewsAsFallback(): Promise<Recommendation[]> {
+    try {
+      const res = await apiFetch<any>('/news/list', {
+        params: { typeId: 537, page: 1 },
+        showError: false,
+      })
+      const list = res?.data ?? []
+      if (!Array.isArray(list)) return []
+      return list.slice(0, 5).map((item: any, i: number) => ({
+        id: item.newsId || String(i),
+        title: item.title || '未知标题',
+        type: 'news',
+        match_score: 0,
+        description: item.source || '热点资讯',
+      }))
+    }
+    catch {
+      return []
+    }
+  }
+
   async function loadData(): Promise<void> {
     loading.value = true
     const userId = userStore.userInfo?.id?.toString()
@@ -93,6 +115,11 @@ export function useDashboardData() {
       if (recsRes.status === 'fulfilled') recommendations.value = recsRes.value
       if (assignRes.status === 'fulfilled') pendingAssignments.value = assignRes.value
       if (msgRes.status === 'fulfilled') unreadMessages.value = msgRes.value
+
+      // 推荐为空时，用新闻热点兜底
+      if (recommendations.value.length === 0) {
+        recommendations.value = await fetchNewsAsFallback()
+      }
     }
     finally {
       loading.value = false
