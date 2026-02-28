@@ -10,6 +10,27 @@ const calibratingId = ref<string | null>(null)
 
 const langOptions = ['中文', '英文', '日文', '韩文', '法文', '德文', '西班牙文']
 
+// 语言显示名 → 代码的映射
+const langCodeMap: Record<string, string> = {
+  '中文': 'zh',
+  '英文': 'en',
+  '日文': 'ja',
+  '韩文': 'ko',
+  '法文': 'fr',
+  '德文': 'de',
+  '西班牙文': 'es',
+}
+
+// 当语言切换时，同步更新 composable 内部的配置并通知 WebSocket
+watch([sourceLang, targetLang], ([src, tgt]) => {
+  const srcCode = langCodeMap[src] || 'zh'
+  const tgtCode = langCodeMap[tgt] || 'en'
+  interpreter.language.value = srcCode
+  interpreter.translationMode.value = `${srcCode}2${tgtCode}`
+  // 如果正在录音，实时推送新配置到后端
+  interpreter.sendLanguageConfig()
+}, { immediate: true })
+
 onBeforeUnmount(() => {
   interpreter.cleanup()
 })
@@ -26,7 +47,9 @@ function toggleRecording() {
 async function calibrateTranslation(id: string, text: string) {
   calibratingId.value = id
   try {
-    const result = await interpreter.translateText(text, sourceLang.value, targetLang.value)
+    const srcCode = langCodeMap[sourceLang.value] || 'zh'
+    const tgtCode = langCodeMap[targetLang.value] || 'en'
+    const result = await interpreter.translateText(text, srcCode, tgtCode)
     if (result) {
       interpreter.updateTranslation(id, result)
       toast.add({ title: '校准完成', color: 'success' })

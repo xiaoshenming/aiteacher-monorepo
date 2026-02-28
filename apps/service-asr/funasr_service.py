@@ -951,20 +951,31 @@ class QwenTranslator:
 
         Args:
             text: 需要翻译的文本
-            mode: 翻译模式 (zh2en=中译英, en2zh=英译中)
+            mode: 翻译模式，格式为 "{src}2{tgt}"，如 zh2en, en2zh, zh2ja 等
         """
         if not text or not self.client:
             return None
 
         try:
-            # 配置翻译参数
-            if mode == "zh2en":
-                target_lang = "English"
-                source_lang = "Chinese"
-            elif mode == "en2zh":
-                target_lang = "Chinese"
-                source_lang = "English"
-            else:
+            # 语言代码到名称的映射
+            lang_names = {
+                "zh": "Chinese",
+                "en": "English",
+                "ja": "Japanese",
+                "ko": "Korean",
+                "fr": "French",
+                "de": "German",
+                "es": "Spanish",
+            }
+
+            # 解析翻译模式
+            parts = mode.split("2", 1)
+            if len(parts) != 2:
+                return None
+            src_code, tgt_code = parts
+            source_lang = lang_names.get(src_code)
+            target_lang = lang_names.get(tgt_code)
+            if not source_lang or not target_lang or src_code == tgt_code:
                 return None
 
             payload = {

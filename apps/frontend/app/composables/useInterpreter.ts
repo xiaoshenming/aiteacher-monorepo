@@ -174,10 +174,22 @@ export function useInterpreter() {
     currentText.value = ''
   }
 
-  async function translateText(text: string, sourceLang: string, targetLang: string): Promise<string> {
+  // 向 WebSocket 发送语言配置更新
+  function sendLanguageConfig() {
+    if (ws?.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'config',
+        language: language.value,
+        mode: translationMode.value,
+        enable_correction: enableCorrection.value,
+      }))
+    }
+  }
+
+  async function translateText(text: string, from: string, to: string): Promise<string> {
     const res = await apiFetch<{ code: number, data: { result: string } }>('ai/translate', {
       method: 'POST',
-      body: { text, sourceLang, targetLang },
+      body: { text, from, to },
     })
     return res.data?.result || ''
   }
@@ -220,6 +232,7 @@ export function useInterpreter() {
     enableCorrection,
     startRecording,
     stopRecording,
+    sendLanguageConfig,
     translateText,
     generateSummary,
     updateTranslation,
