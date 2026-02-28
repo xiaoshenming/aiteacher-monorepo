@@ -198,7 +198,7 @@ onUnmounted(() => {
       >
         <!-- 毛玻璃遮罩 -->
         <div
-          class="absolute inset-0 bg-black/30 backdrop-blur-md transition-opacity duration-300"
+          class="absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity duration-300"
           @click="close"
         />
 
