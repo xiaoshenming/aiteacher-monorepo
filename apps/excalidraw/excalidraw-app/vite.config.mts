@@ -15,6 +15,7 @@ export default defineConfig(({ mode }) => {
   return {
     server: {
       port: Number(envVars.VITE_APP_PORT || 3000),
+      host: '0.0.0.0',
       // don't auto-open browser (embedded via iframe)
       open: false,
     },

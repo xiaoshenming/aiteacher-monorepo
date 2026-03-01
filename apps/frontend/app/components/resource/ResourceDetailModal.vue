@@ -23,8 +23,9 @@ const fields = computed(() => [
   { label: '省份', value: props.resource?.province },
   { label: '城市', value: props.resource?.city },
   { label: '年份', value: props.resource?.year },
-  { label: '类型', value: props.resource?.type },
-  { label: '上传时间', value: props.resource ? formatDate(props.resource.created_at) : '' },
+  { label: '版本', value: props.resource?.version || props.resource?.edition },
+  { label: '标签', value: props.resource?.label },
+  { label: '上传时间', value: props.resource ? formatDate(props.resource.created_at ?? '') : '' },
 ])
 </script>
 

@@ -39,6 +39,7 @@ const port = process.env.PORT || 10001; // 默认端口
 // CORS 配置 - 限制为前端域名白名单
 const allowedOrigins = [
   'http://localhost:10003', // 开发环境
+  'http://10.3.36.36:10003', // 局域网访问
   process.env.FRONTEND_URL, // 生产环境（从环境变量读取）
 ].filter(Boolean); // 过滤掉 undefined
 

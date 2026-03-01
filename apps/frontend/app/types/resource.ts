@@ -17,11 +17,21 @@ export interface ResourceItem {
   subject: string
   province: string
   city: string
-  year: string
-  type: string
-  cover_url?: string
-  file_url?: string
-  created_at: string
+  label?: string
+  // testpaper 字段
+  uploadTime?: string
+  // textbook 字段
+  createTime?: string
+  version?: string
+  semester?: string
+  publisher?: string
+  publicationYear?: string | number
+  edition?: string
+  // 前端归一化虚拟字段
+  year?: string
+  created_at?: string
+  cover?: string          // 后端原始字段
+  cover_url?: string      // 前端计算字段
 }
 
 export interface ResourceListResponse {

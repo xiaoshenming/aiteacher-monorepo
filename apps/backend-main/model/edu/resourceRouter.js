@@ -1,9 +1,62 @@
 const express = require("express")
 const path = require("path")
+const { spawn } = require("child_process")
+const jwt = require('jsonwebtoken')
 const db = require('../../config/db');
 const authorize = require("../auth/authUtils");
 const logger = require("../../utils/logger");
+require('dotenv').config();
 
+const WEBDAV_URL = process.env.WEBDAV_URL;
+const WEBDAV_USER = process.env.WEBDAV_USER;
+const WEBDAV_PASS = process.env.WEBDAV_PASS;
+const JWT_SECRET = process.env.JWT_SECRET;
+
+// 用 curl 从 WebDAV 代理封面图（绕过 Node.js TLS 指纹限制）
+function proxyFromWebDAV(coverPath, res) {
+    const davPath = coverPath.replace(/^\/Resource/, '');
+    const webdavUrl = `${WEBDAV_URL}${davPath}`;
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    return new Promise((resolve, reject) => {
+        const curl = spawn('curl', ['-s', '--fail', '-k', '-u', `${WEBDAV_USER}:${WEBDAV_PASS}`, '--max-time', '15', webdavUrl]);
+        curl.stdout.pipe(res);
+        curl.on('close', code => code === 0 ? resolve() : reject(new Error(`curl exit ${code}`)));
+        curl.on('error', reject);
+    });
+}
+
+// 用 curl 从 WebDAV 代理 PDF 文件（downloadUrl 含 Windows 反斜杠，需转换）
+function proxyBodyFromWebDAV(downloadUrl, title, res) {
+    const davPath = downloadUrl
+        .replace(/^\/Resource/, '')
+        .replace(/\\/g, '/');
+    const webdavUrl = `${WEBDAV_URL}${davPath}`;
+    const filename = encodeURIComponent(title + '.pdf');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${filename}`);
+    return new Promise((resolve, reject) => {
+        const curl = spawn('curl', ['-s', '--fail', '-k', '-u', `${WEBDAV_USER}:${WEBDAV_PASS}`, '--max-time', '60', webdavUrl]);
+        curl.stdout.pipe(res);
+        curl.on('close', code => code === 0 ? resolve() : reject(new Error(`curl exit ${code}`)));
+        curl.on('error', reject);
+    });
+}
+
+// 验证 query token（文件下载链接，浏览器直接打开无 Authorization header）
+async function verifyQueryToken(req, res) {
+    const token = req.query.token;
+    if (!token) {
+        res.status(401).json({ code: 401, message: '未提供授权信息', data: null });
+        return null;
+    }
+    try {
+        return jwt.verify(token, JWT_SECRET);
+    } catch (e) {
+        res.status(401).json({ code: 401, message: '无效的 Token', data: null });
+        return null;
+    }
+}
 // 创建路由
 const Router = express.Router()
 
@@ -129,24 +182,16 @@ Router.get("/paper/testpaper/:id", authorize(["2", "3", "4"]), async (req, res) 
  *   试卷的封面图片
  */
 Router.get("/paper/testpaper/download/cover/:id", authorize(["2", "3", "4"]), async (req, res) => {
-    // 获取试卷 ID
     const { id } = req.params;
-
-    // 动态 SQL 语句
-    let sql = `SELECT * FROM testpaper WHERE id = ?`;
-    const params = [id];
-
-    // 执行 SQL 查询
-    db.query(sql, params, (err, results) => {
-        
-        if (err) {
-            return res.status(500).json({ code: 500, message: '数据库查询失败', error: err });
+    let sql = `SELECT cover FROM testpaper WHERE id = ?`;
+    db.query(sql, [id], async (err, results) => {
+        if (err) return res.status(500).json({ code: 500, message: '数据库查询失败', error: err });
+        if (results.length === 0) return res.status(404).json({ code: 404, message: '试卷不存在', data: null });
+        try {
+            await proxyFromWebDAV(results[0].cover, res);
+        } catch (e) {
+            if (!res.headersSent) res.status(502).json({ code: 502, message: '封面获取失败' });
         }
-        if (results.length === 0) {
-            return res.status(404).json({ code: 404, message: '试卷不存在', data: null });
-        }
-        const filePath = path.join(__dirname, `../../../${results[0].cover}`);
-        res.download(filePath);
     });
 });
 
@@ -159,39 +204,24 @@ Router.get("/paper/testpaper/download/cover/:id", authorize(["2", "3", "4"]), as
  * 返回数据：
  *   试卷的 PDF 文件
  */
-Router.get("/paper/testpaper/download/body/:id", authorize(["2", "3", "4"]), async (req, res) => {
-    // 获取试卷 ID
+Router.get("/paper/testpaper/download/body/:id", async (req, res) => {
+    const decoded = await verifyQueryToken(req, res);
+    if (!decoded) return;
+
     const { id } = req.params;
+    db.query(`SELECT title, downloadUrl FROM testpaper WHERE id = ?`, [id], async (err, results) => {
+        if (err) return res.status(500).json({ code: 500, message: '数据库查询失败', error: err });
+        if (results.length === 0) return res.status(404).json({ code: 404, message: '试卷不存在', data: null });
 
-    // 动态 SQL 语句 (查询文件所在地址)
-    let sql = `SELECT * FROM testpaper WHERE id = ?`;
-    const params = [id];
+        // 异步增加浏览量（不阻塞下载）
+        db.query(`UPDATE testpaper SET views = views + 1 WHERE id = ?`, [id], () => {});
 
-    // 执行 SQL 查询（查询文件所在地址）
-    db.query(sql, params, (err, results) => {
-        
-        if (err) {
-            return res.status(500).json({ code: 500, message: '数据库查询失败', error: err });
+        try {
+            await proxyBodyFromWebDAV(results[0].downloadUrl, results[0].title, res);
+        } catch (e) {
+            logger.error('[WebDAV] 试卷PDF获取失败:', e.message);
+            if (!res.headersSent) res.status(502).json({ code: 502, message: '文件获取失败' });
         }
-        if (results.length === 0) {
-            return res.status(404).json({ code: 404, message: '试卷不存在', data: null });
-        }
-
-        // 动态 SQL 语句 (为该试卷增加预览量)
-        sql = `UPDATE testpaper SET views = views + 1 WHERE id = ?`;
-        params[0] = id;
-
-        // 执行 SQL 更新（为该试卷增加预览量）
-        db.query(sql, params, (err, results) => {
-            if (err) {
-                logger.error('数据库更新失败:', err);
-                return res.status(500).json({ code: 500, message: '数据库更新失败', error: err });
-            }
-        });
-
-        // 为客户端返回 试卷DOCX/PDF 文件
-        const filePath = path.join(__dirname, `../../../${results[0].downloadUrl}`);
-        res.download(filePath);
     });
 });
 
@@ -449,24 +479,16 @@ Router.get("/paper/textbook/:id", authorize(["2", "3", "4"]), async (req, res) =
  *   课本的封面图
  */
 Router.get("/paper/textbook/download/cover/:id", authorize(["2", "3", "4"]), async (req, res) => {
-    // 获取课本 ID
     const { id } = req.params;
-
-    // 动态 SQL 语句
-    let sql = `SELECT * FROM textbook WHERE id = ?`;
-    const params = [id];
-
-    // 执行 SQL 查询
-    db.query(sql, params, (err, results) => {
-        
-        if (err) {
-            return res.status(500).json({ code: 500, message: '数据库查询失败', error: err });
+    let sql = `SELECT cover FROM textbook WHERE id = ?`;
+    db.query(sql, [id], async (err, results) => {
+        if (err) return res.status(500).json({ code: 500, message: '数据库查询失败', error: err });
+        if (results.length === 0) return res.status(404).json({ code: 404, message: '课本不存在', data: null });
+        try {
+            await proxyFromWebDAV(results[0].cover, res);
+        } catch (e) {
+            if (!res.headersSent) res.status(502).json({ code: 502, message: '封面获取失败' });
         }
-        if (results.length === 0) {
-            return res.status(404).json({ code: 404, message: '课本不存在', data: null });
-        }
-        const filePath = path.join(__dirname, `../../../${results[0].cover}`);
-        res.download(filePath);
     });
 });
 
@@ -479,38 +501,23 @@ Router.get("/paper/textbook/download/cover/:id", authorize(["2", "3", "4"]), asy
  * 返回数据：
  *   课本的 PDF 文件
  */
-Router.get("/paper/textbook/download/body/:id", authorize(["2", "3", "4"]), async (req, res) => {
-    // 获取课本 ID
+Router.get("/paper/textbook/download/body/:id", async (req, res) => {
+    const decoded = await verifyQueryToken(req, res);
+    if (!decoded) return;
+
     const { id } = req.params;
+    db.query(`SELECT title, downloadUrl FROM textbook WHERE id = ?`, [id], async (err, results) => {
+        if (err) return res.status(500).json({ code: 500, message: '数据库查询失败', error: err });
+        if (results.length === 0) return res.status(404).json({ code: 404, message: '课本不存在', data: null });
 
-    // 动态 SQL 语句(查询文件所在地址)
-    let sql = `SELECT * FROM textbook WHERE id = ?`;
-    const params = [id];
+        db.query(`UPDATE textbook SET views = views + 1 WHERE id = ?`, [id], () => {});
 
-    // 执行 SQL 查询(查询文件所在地址)
-    db.query(sql, params, (err, results) => {
-        
-        if (err) {
-            return res.status(500).json({ code: 500, message: '数据库查询失败', error: err });
+        try {
+            await proxyBodyFromWebDAV(results[0].downloadUrl, results[0].title, res);
+        } catch (e) {
+            logger.error('[WebDAV] 课本PDF获取失败:', e.message);
+            if (!res.headersSent) res.status(502).json({ code: 502, message: '文件获取失败' });
         }
-        if (results.length === 0) {
-            return res.status(404).json({ code: 404, message: '课本不存在', data: null });
-        }
-
-        // 动态 SQL 语句(为该课本增加预览量)
-        sql = `UPDATE textbook SET views = views + 1 WHERE id = ?`;
-        params[0] = id;
-
-        // 执行 SQL 更新(为该课本增加预览量)
-        db.query(sql, params, (err, results) => {
-            if (err) {
-                logger.error('数据库更新失败:', err);
-            }
-        });
-
-        // 为客户端返回 课本PDF 文件
-        const filePath = path.join(__dirname, `../../../${results[0].downloadUrl}`);
-        res.download(filePath);
     });
 });
 

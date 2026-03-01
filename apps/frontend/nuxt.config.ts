@@ -34,7 +34,7 @@ export default defineNuxtConfig({
           options: { cacheName: 'static-assets' },
         },
         {
-          urlPattern: /^https?:\/\/localhost:\d+\/api\//i,
+          urlPattern: /^https?:\/\/(localhost|10\.3\.36\.36):\d+\/api\//i,
           handler: 'NetworkFirst',
           options: { cacheName: 'api-cache' },
         },
@@ -88,13 +88,14 @@ export default defineNuxtConfig({
 
   devServer: {
     port: 10003,
+    host: '0.0.0.0',
   },
 
   runtimeConfig: {
     public: {
-      apiBase: 'http://localhost:10001/api/',
-      apiCloud: 'http://localhost:10002/api/',
-      landpptBase: 'http://localhost:10006',
+      apiBase: 'http://10.3.36.36:10001/api/',
+      apiCloud: 'http://10.3.36.36:10002/api/',
+      landpptBase: 'http://10.3.36.36:10006',
     },
   },
 

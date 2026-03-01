@@ -14,6 +14,7 @@ const apidownload = require("./router/apidownload.js")
 const umoEditorApi = require("./router/umoEditorApi.js") // 导入UmoEditor API路由
 const analyticsRouter = require("./router/analytics.js") // 导入数据分析API路由
 const recordingRouter = require("./router/recording.js") // 导入课堂录制API路由
+const webdavProxyRouter = require("./router/webdavProxy.js") // 导入WebDAV资源代理路由
 
 // 导入任务队列并启动 Worker
 const { ASRTaskQueue } = require('./utils/asrQueue');
@@ -27,6 +28,7 @@ const app = express()
 // CORS 配置 - 限制为前端域名白名单
 const allowedOrigins = [
   'http://localhost:10003', // 开发环境
+  'http://10.3.36.36:10003', // 局域网访问
   process.env.FRONTEND_URL, // 生产环境（从环境变量读取）
 ].filter(Boolean); // 过滤掉 undefined
 
@@ -70,6 +72,8 @@ app.use("/api", apidownload);
 app.use("/api/editor/file", express.static(path.join(__dirname, "storage/editor/files")));
 // 录制文件访问 - 不需要全局认证
 app.use("/api/recording/file", express.static(path.join(__dirname, "storage/audio")));
+// WebDAV资源代理 - 不需要全局认证（静态资源）
+app.use("/Resource", webdavProxyRouter);
 
 // 应用全局认证中间件
 app.use((req, res, next) => {
