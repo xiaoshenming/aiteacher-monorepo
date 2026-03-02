@@ -1,35 +1,127 @@
 const asyncHandler = require('../../utils/asyncHandler');
 const db = require('../../config/db');
 
+// GET /admin/system/stats → 匹配前端 SystemStats 类型
 exports.getDashboardStats = asyncHandler(async (req, res) => {
-    // Mock data for demonstration as we might not have populated cross-service tables
-    const stats = {
-        recordings: {
-            totalDuration: 12500, // minutes
-            dailyTrend: [
-                { date: '2025-03-01', duration: 120 },
-                { date: '2025-03-02', duration: 150 },
-                { date: '2025-03-03', duration: 180 },
-                { date: '2025-03-04', duration: 90 },
-                { date: '2025-03-05', duration: 210 },
-                { date: '2025-03-06', duration: 240 },
-                { date: '2025-03-07', duration: 300 }
-            ]
-        },
-        aiUsage: {
-            totalRequests: 450,
-            byType: [
-                { name: '教案生成', value: 150 },
-                { name: '题目生成', value: 120 },
-                { name: '课件优化', value: 80 },
-                { name: '其他', value: 100 }
-            ]
-        }
-    };
+  const conn = db.promise();
 
-    res.json({
-        code: 200,
-        message: 'Dashboard stats retrieved',
-        data: stats
-    });
+  const [[userRow]] = await conn.query('SELECT COUNT(*) as c FROM user');
+  const [[teacherRow]] = await conn.query("SELECT COUNT(*) as c FROM loginverification WHERE role='2'");
+  const [[studentRow]] = await conn.query("SELECT COUNT(*) as c FROM loginverification WHERE role='0'");
+  const [[courseRow]] = await conn.query('SELECT COUNT(*) as c FROM course');
+  const [[planRow]] = await conn.query('SELECT COUNT(*) as c FROM lessonplans');
+  const [[recordRow]] = await conn.query('SELECT COUNT(*) as c FROM course_recordings');
+
+  let totalFiles = 0;
+  try {
+    const [[fileRow]] = await conn.query('SELECT COUNT(*) as c FROM file');
+    totalFiles = fileRow.c;
+  } catch {}
+
+  let todayActiveUsers = 0;
+  try {
+    const [[activeRow]] = await conn.query(
+      "SELECT COUNT(DISTINCT user_id) as c FROM ai_usage_stats WHERE call_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)"
+    );
+    todayActiveUsers = activeRow.c;
+  } catch {}
+
+  res.json({
+    code: 200,
+    message: 'ok',
+    data: {
+      totalUsers: userRow.c,
+      totalTeachers: teacherRow.c,
+      totalStudents: studentRow.c,
+      totalCourses: courseRow.c,
+      totalLessonPlans: planRow.c,
+      totalFiles,
+      totalRecordings: recordRow.c,
+      todayActiveUsers,
+    }
+  });
+});
+
+// GET /admin/stats/extended → 扩展统计（AI 趋势、最近用户、AI 分布、学校统计）
+exports.getExtendedStats = asyncHandler(async (req, res) => {
+  const conn = db.promise();
+
+  // 近 30 天 AI 调用趋势
+  const [aiTrend] = await conn.query(`
+    SELECT call_date as date,
+           SUM(call_count) as calls,
+           SUM(token_consumed) as tokens
+    FROM ai_usage_stats
+    WHERE call_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+    GROUP BY call_date
+    ORDER BY call_date ASC
+  `);
+
+  // 最近注册用户（前 8 名）
+  const [recentUsers] = await conn.query(`
+    SELECT u.id, u.username, lv.role, s.schoolName, u.avatar
+    FROM user u
+    LEFT JOIN loginverification lv ON lv.uid = u.id
+    LEFT JOIN school s ON u.schoolId = s.id
+    ORDER BY u.id DESC
+    LIMIT 8
+  `);
+
+  // AI 功能分布
+  const [aiByFunction] = await conn.query(`
+    SELECT function_name as name, SUM(call_count) as value
+    FROM ai_usage_stats
+    GROUP BY function_name
+    ORDER BY value DESC
+  `);
+
+  // AI 模型分布
+  const [aiByModel] = await conn.query(`
+    SELECT model_name as name, SUM(call_count) as calls, SUM(token_consumed) as tokens
+    FROM ai_usage_stats
+    GROUP BY model_name
+    ORDER BY calls DESC
+  `);
+
+  // 总 token 消耗、总 AI 调用数
+  let totalAiCalls = 0, totalTokens = 0;
+  try {
+    const [[sumRow]] = await conn.query(
+      'SELECT SUM(call_count) as calls, SUM(token_consumed) as tokens FROM ai_usage_stats'
+    );
+    totalAiCalls = Number(sumRow.calls) || 0;
+    totalTokens = Number(sumRow.tokens) || 0;
+  } catch {}
+
+  // 学校用户分布
+  const [schoolStats] = await conn.query(`
+    SELECT s.schoolName, COUNT(u.id) as userCount
+    FROM school s
+    LEFT JOIN user u ON u.schoolId = s.id
+    GROUP BY s.id, s.schoolName
+    ORDER BY userCount DESC
+    LIMIT 10
+  `);
+
+  // 各角色分布
+  const [roleStats] = await conn.query(`
+    SELECT role, COUNT(*) as count
+    FROM loginverification
+    GROUP BY role
+    ORDER BY role ASC
+  `);
+
+  res.json({
+    code: 200,
+    data: {
+      aiTrend,
+      recentUsers,
+      aiByFunction,
+      aiByModel,
+      totalAiCalls,
+      totalTokens,
+      schoolStats,
+      roleStats,
+    }
+  });
 });

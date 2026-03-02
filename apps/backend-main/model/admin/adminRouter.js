@@ -14,6 +14,9 @@ router.get("/system/health", authorize(["3", "4"]), systemController.getSystemHe
 // Dashboard Stats
 router.get("/system/stats", authorize(["3", "4"]), statsController.getDashboardStats);
 
+// Extended Dashboard Stats (AI trend, recent users, distributions)
+router.get("/stats/extended", authorize(["3", "4"]), statsController.getExtendedStats);
+
 // 获取本校用户列表
 router.get("/user", authorize(["3", "4"]), async (req, res) => {
   try {

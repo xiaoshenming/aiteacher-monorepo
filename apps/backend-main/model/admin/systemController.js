@@ -64,6 +64,30 @@ exports.getSystemHealth = asyncHandler(async (req, res) => {
     res.json({
         code: 200,
         message: 'System health check',
-        data: health
+        data: {
+            services: [
+                {
+                    name: 'MySQL',
+                    status: health.mysql === 'up' ? 'healthy' : 'unhealthy',
+                    message: health.mysql_error || '连接正常'
+                },
+                {
+                    name: 'Redis',
+                    status: health.redis === 'up' ? 'healthy' : 'unhealthy',
+                    message: health.redis_error || '连接正常'
+                },
+                {
+                    name: 'RabbitMQ',
+                    status: health.rabbitmq === 'up' ? 'healthy' : 'unhealthy',
+                    message: health.rabbitmq_error || '连接正常'
+                },
+                {
+                    name: 'FunASR',
+                    status: health.funasr === 'up' ? 'healthy' : 'unhealthy',
+                    message: health.funasr_error || '连接正常'
+                },
+            ],
+            timestamp: health.timestamp
+        }
     });
 });

@@ -1,4 +1,4 @@
-import type { SystemHealth, SystemStats, AuthRequest } from '~/types/admin'
+import type { SystemHealth, SystemStats, AuthRequest, ExtendedStats, MonitorSystemData, MonitorService, MonitorStats } from '~/types/admin'
 
 export function useAdminSystem() {
   const { apiFetch } = useApi()
@@ -38,6 +38,26 @@ export function useAdminSystem() {
     return await apiFetch<{ count: number }>('authentication/count')
   }
 
+  async function fetchExtendedStats() {
+    const res = await apiFetch<{ code: number; data: ExtendedStats }>('admin/stats/extended')
+    return res.data
+  }
+
+  async function fetchMonitorSystem() {
+    const res = await apiFetch<{ code: number; data: MonitorSystemData }>('admin/monitor/system')
+    return res.data
+  }
+
+  async function fetchMonitorServices() {
+    const res = await apiFetch<{ code: number; data: { services: MonitorService[] } }>('admin/monitor/services')
+    return res.data?.services || []
+  }
+
+  async function fetchMonitorStats() {
+    const res = await apiFetch<{ code: number; data: MonitorStats }>('admin/monitor/stats')
+    return res.data
+  }
+
   return {
     fetchHealth,
     fetchStats,
@@ -46,5 +66,9 @@ export function useAdminSystem() {
     rejectAuth,
     deleteAuth,
     fetchAuthCount,
+    fetchExtendedStats,
+    fetchMonitorSystem,
+    fetchMonitorServices,
+    fetchMonitorStats,
   }
 }
