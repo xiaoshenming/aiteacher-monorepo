@@ -1,3 +1,3 @@
 <template>
-  <AdminAdminDashboardPanel />
+  <AdminDashboardPanel />
 </template>

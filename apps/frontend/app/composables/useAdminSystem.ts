@@ -4,11 +4,13 @@ export function useAdminSystem() {
   const { apiFetch } = useApi()
 
   async function fetchHealth() {
-    return await apiFetch<SystemHealth>('admin/system/health')
+    const res = await apiFetch<{ code: number; data: SystemHealth }>('admin/system/health')
+    return res.data
   }
 
   async function fetchStats() {
-    return await apiFetch<SystemStats>('admin/system/stats')
+    const res = await apiFetch<{ code: number; data: SystemStats }>('admin/system/stats')
+    return res.data
   }
 
   async function fetchAuthRequests() {

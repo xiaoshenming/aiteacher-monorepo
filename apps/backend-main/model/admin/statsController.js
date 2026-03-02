@@ -47,15 +47,16 @@ exports.getExtendedStats = asyncHandler(async (req, res) => {
   const conn = db.promise();
 
   // 近 30 天 AI 调用趋势
-  const [aiTrend] = await conn.query(`
-    SELECT call_date as date,
-           SUM(call_count) as calls,
-           SUM(token_consumed) as tokens
+  const [aiTrendRaw] = await conn.query(`
+    SELECT DATE_FORMAT(call_date, '%Y-%m-%d') as date,
+           CAST(SUM(call_count) AS UNSIGNED) as calls,
+           CAST(SUM(token_consumed) AS UNSIGNED) as tokens
     FROM ai_usage_stats
     WHERE call_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-    GROUP BY call_date
-    ORDER BY call_date ASC
+    GROUP BY DATE_FORMAT(call_date, '%Y-%m-%d')
+    ORDER BY date ASC
   `);
+  const aiTrend = aiTrendRaw.map(r => ({ date: r.date, calls: Number(r.calls), tokens: Number(r.tokens) }));
 
   // 最近注册用户（前 8 名）
   const [recentUsers] = await conn.query(`
@@ -68,20 +69,22 @@ exports.getExtendedStats = asyncHandler(async (req, res) => {
   `);
 
   // AI 功能分布
-  const [aiByFunction] = await conn.query(`
-    SELECT function_name as name, SUM(call_count) as value
+  const [aiByFunctionRaw] = await conn.query(`
+    SELECT function_name as name, CAST(SUM(call_count) AS UNSIGNED) as value
     FROM ai_usage_stats
     GROUP BY function_name
     ORDER BY value DESC
   `);
+  const aiByFunction = aiByFunctionRaw.map(r => ({ name: r.name, value: Number(r.value) }));
 
   // AI 模型分布
-  const [aiByModel] = await conn.query(`
-    SELECT model_name as name, SUM(call_count) as calls, SUM(token_consumed) as tokens
+  const [aiByModelRaw] = await conn.query(`
+    SELECT model_name as name, CAST(SUM(call_count) AS UNSIGNED) as calls, CAST(SUM(token_consumed) AS UNSIGNED) as tokens
     FROM ai_usage_stats
     GROUP BY model_name
     ORDER BY calls DESC
   `);
+  const aiByModel = aiByModelRaw.map(r => ({ name: r.name, calls: Number(r.calls), tokens: Number(r.tokens) }));
 
   // 总 token 消耗、总 AI 调用数
   let totalAiCalls = 0, totalTokens = 0;
