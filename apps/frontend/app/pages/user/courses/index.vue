@@ -8,6 +8,8 @@ const toast = useToast()
 const loading = ref(true)
 const list = ref<Course[]>([])
 const showCreateModal = ref(false)
+const showEditModal = ref(false)
+const editingCourse = ref<Course | null>(null)
 
 async function loadData() {
   loading.value = true
@@ -25,6 +27,26 @@ async function loadData() {
 
 function openDetail(course: Course) {
   router.push(`/user/courses/${course.id}`)
+}
+
+function handleEdit(course: Course) {
+  editingCourse.value = course
+  showEditModal.value = true
+}
+
+async function handleDelete(course: Course) {
+  const confirmed = confirm(`确定要删除课程「${course.name}」吗？此操作不可恢复。`)
+  if (!confirmed) return
+
+  try {
+    await courses.deleteCourse(course.id)
+    toast.add({ title: '课程删除成功', color: 'success' })
+    await loadData()
+  }
+  catch (err) {
+    console.error('删除课程失败:', err)
+    toast.add({ title: '删除课程失败', color: 'error' })
+  }
 }
 
 onMounted(() => loadData())
@@ -83,6 +105,8 @@ onMounted(() => loadData())
             :key="course.id"
             :course="course"
             @click="openDetail(course)"
+            @edit="handleEdit(course)"
+            @delete="handleDelete(course)"
           />
         </div>
       </div>
@@ -91,6 +115,13 @@ onMounted(() => loadData())
         :open="showCreateModal"
         @update:open="showCreateModal = $event"
         @created="loadData"
+      />
+
+      <CourseEditModal
+        :open="showEditModal"
+        :course="editingCourse"
+        @update:open="showEditModal = $event"
+        @updated="loadData"
       />
     </template>
   </UDashboardPanel>
