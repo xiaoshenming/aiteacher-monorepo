@@ -34,6 +34,19 @@ export function useCourses() {
     })
   }
 
+  async function updateCourse(id: number, data: Partial<Course>) {
+    return apiFetch<MutationResponse>(`courses/${id}`, {
+      method: 'PUT',
+      body: data,
+    })
+  }
+
+  async function deleteCourse(id: number) {
+    return apiFetch<MutationResponse>(`courses/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
   async function fetchCourses() {
     const res = await apiFetch<ListResponse<Course>>('courses')
     return res.data.courses ?? []
@@ -127,6 +140,8 @@ export function useCourses() {
 
   return {
     createCourse,
+    updateCourse,
+    deleteCourse,
     fetchCourses,
     fetchCourseDetail,
     addAssistant,
