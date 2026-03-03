@@ -92,8 +92,10 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:10003",
         "http://127.0.0.1:10003",
+        "http://10.3.36.36:10003",  # 局域网 IP
         "http://localhost:10006",
         "http://127.0.0.1:10006",
+        "http://10.3.36.36:10006",  # 局域网 IP
     ],
     allow_credentials=True,
     allow_methods=["*"],
