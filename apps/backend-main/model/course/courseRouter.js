@@ -106,4 +106,32 @@ router.post(
   }
 );
 
+// 更新课程信息（仅主讲教师）
+router.put("/:courseId", authorize(["2", "3", "4"]), ...validateId('courseId'), async (req, res) => {
+  try {
+    const result = await courseUtils.updateCourse(
+      req.params.courseId,
+      req.user.id,
+      req.body
+    );
+    res.json({ code: 200, message: result.message, data: null });
+  } catch (error) {
+    res.status(400).json({ code: 400, message: error.message, data: null });
+  }
+});
+
+// 删除课程（主讲教师或管理员）
+router.delete("/:courseId", authorize(["2", "3", "4"]), ...validateId('courseId'), async (req, res) => {
+  try {
+    const result = await courseUtils.deleteCourse(
+      req.params.courseId,
+      req.user.id,
+      req.user.role
+    );
+    res.json({ code: 200, message: result.message, data: null });
+  } catch (error) {
+    res.status(400).json({ code: 400, message: error.message, data: null });
+  }
+});
+
 module.exports = router;

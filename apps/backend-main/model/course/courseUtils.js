@@ -362,6 +362,155 @@ async function getCourseDetails(courseId, teacherId) {
   }
 }
 
+/**
+ * 更新课程信息
+ */
+async function updateCourse(courseId, teacherId, courseData) {
+  const connection = db.promise();
+
+  try {
+    // 获取用户的uid
+    const [userResult] = await connection.query(
+      "SELECT uid FROM loginverification WHERE id = ?",
+      [teacherId]
+    );
+
+    if (userResult.length === 0) {
+      throw new Error("教师不存在");
+    }
+
+    const teacherUid = userResult[0].uid;
+
+    // 验证是否为主讲教师
+    const [teacherCourse] = await connection.query(
+      "SELECT * FROM teacher_course WHERE teacher_id = ? AND course_id = ? AND is_main_teacher = 1",
+      [teacherUid, courseId]
+    );
+
+    if (teacherCourse.length === 0) {
+      throw new Error("只有主讲教师可以编辑课程");
+    }
+
+    // 构建更新字段
+    const updates = [];
+    const values = [];
+
+    if (courseData.name !== undefined) {
+      updates.push("name = ?");
+      values.push(courseData.name);
+    }
+    if (courseData.subject !== undefined) {
+      updates.push("subject = ?");
+      values.push(courseData.subject);
+    }
+    if (courseData.description !== undefined) {
+      updates.push("description = ?");
+      values.push(courseData.description);
+    }
+    if (courseData.credit !== undefined) {
+      updates.push("credit = ?");
+      values.push(courseData.credit);
+    }
+    if (courseData.hours !== undefined) {
+      updates.push("hours = ?");
+      values.push(courseData.hours);
+    }
+    if (courseData.gradeLevel !== undefined) {
+      updates.push("grade_level = ?");
+      values.push(courseData.gradeLevel);
+    }
+    if (courseData.difficulty !== undefined) {
+      updates.push("difficulty = ?");
+      values.push(courseData.difficulty);
+    }
+    if (courseData.isElective !== undefined) {
+      updates.push("is_elective = ?");
+      values.push(courseData.isElective ? 1 : 0);
+    }
+    if (courseData.coverImage !== undefined) {
+      updates.push("cover_image = ?");
+      values.push(courseData.coverImage);
+    }
+    if (courseData.textbookId !== undefined) {
+      updates.push("textbook_id = ?");
+      values.push(courseData.textbookId);
+    }
+
+    if (updates.length === 0) {
+      throw new Error("没有需要更新的字段");
+    }
+
+    // 更新课程
+    values.push(courseId);
+    await connection.query(
+      `UPDATE course SET ${updates.join(", ")}, updateTime = NOW() WHERE id = ?`,
+      values
+    );
+
+    return { message: "课程更新成功" };
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * 删除课程
+ */
+async function deleteCourse(courseId, userId, userRole) {
+  const connection = db.promise();
+  await connection.beginTransaction();
+
+  try {
+    // 检查权限：管理员(3)、超级管理员(4) 或 主讲教师
+    let hasPermission = false;
+
+    if (userRole >= 3) {
+      // 管理员和超级管理员可以删除任何课程
+      hasPermission = true;
+    } else {
+      // 普通教师需要验证是否为主讲教师
+      const [userResult] = await connection.query(
+        "SELECT uid FROM loginverification WHERE id = ?",
+        [userId]
+      );
+
+      if (userResult.length > 0) {
+        const teacherUid = userResult[0].uid;
+        const [teacherCourse] = await connection.query(
+          "SELECT * FROM teacher_course WHERE teacher_id = ? AND course_id = ? AND is_main_teacher = 1",
+          [teacherUid, courseId]
+        );
+        hasPermission = teacherCourse.length > 0;
+      }
+    }
+
+    if (!hasPermission) {
+      throw new Error("没有权限删除此课程");
+    }
+
+    // 删除关联的助教记录
+    await connection.query(
+      "DELETE FROM teacher_course WHERE course_id = ?",
+      [courseId]
+    );
+
+    // 删除关联的班级记录
+    await connection.query(
+      "DELETE FROM course_class WHERE course_id = ?",
+      [courseId]
+    );
+
+    // 删除课程
+    await connection.query("DELETE FROM course WHERE id = ?", [courseId]);
+
+    await connection.commit();
+    return { message: "课程删除成功" };
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  }
+}
+
 module.exports = {
   createCourse,
   getTeacherCourses,
@@ -369,4 +518,6 @@ module.exports = {
   removeCourseAssistant,
   addClassToCourse,
   getCourseDetails,
+  updateCourse,
+  deleteCourse,
 };
