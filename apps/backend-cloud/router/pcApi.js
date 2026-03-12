@@ -21,8 +21,8 @@ const chunkUpload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => cb(null, CHUNK_STORAGE_PATH),
     filename: (req, file, cb) => {
-      const { fileMd5, chunkIndex } = req.body
-      cb(null, `${fileMd5}-${chunkIndex}`)
+      // 使用临时文件名，因为此时 req.body 可能还未完全解析
+      cb(null, `temp-${Date.now()}-${Math.random().toString(36).substring(7)}`)
     }
   })
 })
@@ -65,6 +65,20 @@ router.post('/chunk/upload', chunkUpload.single('chunk'), async (req, res) => {
     if (!fileMd5 || chunkIndex === undefined) {
       return res.status(400).json({ code: 400, message: '缺少必要参数', data: null })
     }
+
+    // 重命名上传的文件为正确的格式
+    const tempPath = req.file.path
+    const targetFileName = `${fileMd5}-${chunkIndex}`
+    const targetPath = path.join(CHUNK_STORAGE_PATH, targetFileName)
+    
+    // 如果目标文件已存在，先删除
+    if (fs.existsSync(targetPath)) {
+      await fs.remove(targetPath)
+    }
+    
+    // 重命名文件
+    await fs.move(tempPath, targetPath)
+
     // 检查该分片是否已存在
     const [rows] = await db.query(
       'SELECT id FROM file_chunk WHERE file_md5 = ? AND chunk_index = ?',
@@ -74,14 +88,14 @@ router.post('/chunk/upload', chunkUpload.single('chunk'), async (req, res) => {
       // 已存在则更新（或直接跳过），防止重复插入
       await db.query(
         'UPDATE file_chunk SET chunk_path = ? WHERE file_md5 = ? AND chunk_index = ?',
-        [req.file.path, fileMd5, chunkIndex]
+        [targetPath, fileMd5, chunkIndex]
       )
     } else {
       await db.query('INSERT INTO file_chunk SET ?', {
         file_md5: fileMd5,
         chunk_index: chunkIndex,
         total_chunks: totalChunks,
-        chunk_path: req.file.path
+        chunk_path: targetPath
       })
     }
     res.json({ code: 200, message: '分片上传成功', data: null })
