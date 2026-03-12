@@ -117,7 +117,7 @@ router.post("/sendGlobal", authorize(["3", "4"]), async (req, res) => {
  * GET /api/notification
  * 拉取当前用户通知：先从 RabbitMQ 队列取消息写入数据库，再分页返回数据库中的通知
  */
-router.get("/", authorize(["1", "2", "3", "4"]), async (req, res) => {
+router.get("/", authorize(["0", "1", "2", "3", "4"]), async (req, res) => {
   try {
     const userId = req.user.id;
     const [lv] = await db
@@ -198,7 +198,7 @@ router.get("/", authorize(["1", "2", "3", "4"]), async (req, res) => {
  * PUT /api/notification/:id/read
  * 标记通知为已读
  */
-router.put("/:id/read", authorize(["1", "2", "3", "4"]), async (req, res) => {
+router.put("/:id/read", authorize(["0", "1", "2", "3", "4"]), async (req, res) => {
   try {
     const notificationId = req.params.id;
     const userId = req.user.id;
@@ -239,7 +239,7 @@ router.put("/:id/read", authorize(["1", "2", "3", "4"]), async (req, res) => {
  * DELETE /api/notification/:id
  * 删除（逻辑删除）通知
  */
-router.delete("/:id", authorize(["1", "2", "3", "4"]), async (req, res) => {
+router.delete("/:id", authorize(["0", "1", "2", "3", "4"]), async (req, res) => {
   try {
     const notificationId = req.params.id;
     const userId = req.user.id;
@@ -284,7 +284,7 @@ router.delete("/:id", authorize(["1", "2", "3", "4"]), async (req, res) => {
  * GET /api/notification/count
  * 获取当前用户队列中的通知消息数量
  */
-router.get("/count", authorize(["1", "2", "3", "4"]), async (req, res) => {
+router.get("/count", authorize(["0", "1", "2", "3", "4"]), async (req, res) => {
   try {
     const userId = req.user.id;
     const [lv] = await db
