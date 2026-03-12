@@ -17,7 +17,8 @@ const TYPE_LABELS: Record<string, string> = {
   taskItem: '任务项',
   image: '图片',
   table: '表格',
-  horizontalRule: '分割线'
+  horizontalRule: '分割线',
+  coverBlock: '背景图区块'
 }
 
 export function useEditorDragHandle<T extends EditorCustomHandlers>(customHandlers?: T) {
@@ -43,10 +44,79 @@ export function useEditorDragHandle<T extends EditorCustomHandlers>(customHandle
           { kind: 'codeBlock', label: '代码块', icon: 'i-lucide-square-code' }
         ]
       }, {
+        label: '设为背景图区块',
+        icon: 'i-lucide-image-plus',
+        onSelect: () => {
+          if (pos === undefined) return
+          const node = editor.state.doc.nodeAt(pos)
+          if (!node) return
+          const content = node.toJSON()
+          editor.chain().focus()
+            .deleteRange({ from: pos, to: pos + node.nodeSize })
+            .insertContentAt(pos, {
+              type: 'coverBlock',
+              content: [content]
+            })
+            .run()
+        }
+      }, {
         kind: 'clearFormatting',
         pos,
         label: '清除格式',
         icon: 'i-lucide-rotate-ccw'
+      }]
+    }
+
+    if (nodeType === 'coverBlock') {
+      return [{
+        label: '更换背景图',
+        icon: 'i-lucide-image-plus',
+        onSelect: () => {
+          const input = document.createElement('input')
+          input.type = 'file'
+          input.accept = 'image/*'
+          input.onchange = async () => {
+            const file = input.files?.[0]
+            if (!file || pos === undefined) return
+            const formData = new FormData()
+            formData.append('file', file)
+            try {
+              const config = useRuntimeConfig()
+              const userStore = useUserStore()
+              const result = await $fetch<{ code: number, data: { url: string } }>('editor/upload', {
+                baseURL: config.public.apiCloud as string,
+                method: 'POST',
+                body: formData,
+                headers: {
+                  Authorization: userStore.token ? `Bearer ${userStore.token}` : '',
+                  deviceType: 'pc'
+                }
+              })
+              const node = editor.state.doc.nodeAt(pos)
+              if (node && node.type.name === 'coverBlock') {
+                const tr = editor.state.tr.setNodeMarkup(pos, undefined, { ...node.attrs, src: result.data.url })
+                editor.view.dispatch(tr)
+              }
+            } catch (e) {
+              console.error('背景图上传失败', e)
+            }
+          }
+          input.click()
+        }
+      }, {
+        label: '移除背景（保留内容）',
+        icon: 'i-lucide-image-off',
+        onSelect: () => {
+          if (pos === undefined) return
+          const node = editor.state.doc.nodeAt(pos)
+          if (!node) return
+          const contents: any[] = []
+          node.content.forEach(child => contents.push(child.toJSON()))
+          editor.chain().focus()
+            .deleteRange({ from: pos, to: pos + node.nodeSize })
+            .insertContentAt(pos, contents)
+            .run()
+        }
       }]
     }
 

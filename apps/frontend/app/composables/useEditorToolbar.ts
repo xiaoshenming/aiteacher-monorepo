@@ -175,6 +175,69 @@ export function useEditorToolbar<T extends EditorCustomHandlers>(_customHandlers
     const node = editor.state.doc.nodeAt(editor.state.selection.from)
 
     return [[{
+      icon: 'i-lucide-align-left',
+      tooltip: { text: '左对齐' },
+      onClick: () => editor.chain().focus().updateAttributes('image', { align: 'left' }).run()
+    }, {
+      icon: 'i-lucide-align-center',
+      tooltip: { text: '居中' },
+      onClick: () => editor.chain().focus().updateAttributes('image', { align: 'center' }).run()
+    }, {
+      icon: 'i-lucide-align-right',
+      tooltip: { text: '右对齐' },
+      onClick: () => editor.chain().focus().updateAttributes('image', { align: 'right' }).run()
+    }], [{
+      icon: 'i-lucide-circle',
+      tooltip: { text: '圆角' },
+      content: { align: 'start' },
+      items: [{
+        label: '无',
+        onSelect: () => editor.chain().focus().updateAttributes('image', { borderRadius: 0 }).run()
+      }, {
+        label: '小 (4px)',
+        onSelect: () => editor.chain().focus().updateAttributes('image', { borderRadius: 4 }).run()
+      }, {
+        label: '中 (8px)',
+        onSelect: () => editor.chain().focus().updateAttributes('image', { borderRadius: 8 }).run()
+      }, {
+        label: '大 (16px)',
+        onSelect: () => editor.chain().focus().updateAttributes('image', { borderRadius: 16 }).run()
+      }]
+    }, {
+      icon: 'i-lucide-eclipse',
+      tooltip: { text: '阴影' },
+      content: { align: 'start' },
+      items: [{
+        label: '无',
+        onSelect: () => editor.chain().focus().updateAttributes('image', { shadow: 'none' }).run()
+      }, {
+        label: '小',
+        onSelect: () => editor.chain().focus().updateAttributes('image', { shadow: 'sm' }).run()
+      }, {
+        label: '中',
+        onSelect: () => editor.chain().focus().updateAttributes('image', { shadow: 'md' }).run()
+      }, {
+        label: '大',
+        onSelect: () => editor.chain().focus().updateAttributes('image', { shadow: 'lg' }).run()
+      }]
+    }, {
+      icon: 'i-lucide-square',
+      tooltip: { text: '边框' },
+      content: { align: 'start' },
+      items: [{
+        label: '无',
+        onSelect: () => editor.chain().focus().updateAttributes('image', { borderWidth: 0 }).run()
+      }, {
+        label: '细 (1px)',
+        onSelect: () => editor.chain().focus().updateAttributes('image', { borderWidth: 1 }).run()
+      }, {
+        label: '中 (2px)',
+        onSelect: () => editor.chain().focus().updateAttributes('image', { borderWidth: 2 }).run()
+      }, {
+        label: '粗 (4px)',
+        onSelect: () => editor.chain().focus().updateAttributes('image', { borderWidth: 4 }).run()
+      }]
+    }], [{
       icon: 'i-lucide-download',
       to: node?.attrs?.src,
       download: true,
@@ -185,10 +248,8 @@ export function useEditorToolbar<T extends EditorCustomHandlers>(_customHandlers
       onClick: () => {
         const { state } = editor
         const { selection } = state
-
         const pos = selection.from
         const node = state.doc.nodeAt(pos)
-
         if (node && node.type.name === 'image') {
           editor.chain().focus().deleteRange({ from: pos, to: pos + node.nodeSize }).insertContentAt(pos, { type: 'imageUpload' }).run()
         }
@@ -199,10 +260,8 @@ export function useEditorToolbar<T extends EditorCustomHandlers>(_customHandlers
       onClick: () => {
         const { state } = editor
         const { selection } = state
-
         const pos = selection.from
         const node = state.doc.nodeAt(pos)
-
         if (node && node.type.name === 'image') {
           editor.chain().focus().deleteRange({ from: pos, to: pos + node.nodeSize }).run()
         }
@@ -256,10 +315,88 @@ export function useEditorToolbar<T extends EditorCustomHandlers>(_customHandlers
     }]]
   }
 
+  const getCoverBlockToolbarItems = (editor: Editor): EditorToolbarItem<T>[][] => {
+    return [[{
+      icon: 'i-lucide-image-plus',
+      tooltip: { text: '更换背景图' },
+      onClick: () => {
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.accept = 'image/*'
+        input.onchange = async () => {
+          const file = input.files?.[0]
+          if (!file) return
+          const formData = new FormData()
+          formData.append('file', file)
+          try {
+            const config = useRuntimeConfig()
+            const userStore = useUserStore()
+            const result = await $fetch<{ code: number, data: { url: string } }>('editor/upload', {
+              baseURL: config.public.apiCloud as string,
+              method: 'POST',
+              body: formData,
+              headers: {
+                Authorization: userStore.token ? `Bearer ${userStore.token}` : '',
+                deviceType: 'pc'
+              }
+            })
+            editor.chain().focus().updateAttributes('coverBlock', { src: result.data.url }).run()
+          } catch (e) {
+            console.error('背景图上传失败', e)
+          }
+        }
+        input.click()
+      }
+    }, {
+      icon: 'i-lucide-maximize',
+      tooltip: { text: '填充方式' },
+      content: { align: 'start' },
+      items: [{
+        label: '铺满裁切 (Cover)',
+        onSelect: () => editor.chain().focus().updateAttributes('coverBlock', { objectFit: 'cover' }).run()
+      }, {
+        label: '完整显示 (Contain)',
+        onSelect: () => editor.chain().focus().updateAttributes('coverBlock', { objectFit: 'contain' }).run()
+      }]
+    }], [{
+      icon: 'i-lucide-sun-dim',
+      tooltip: { text: '遮罩透明度' },
+      content: { align: 'start' },
+      items: [{
+        label: '无遮罩',
+        onSelect: () => editor.chain().focus().updateAttributes('coverBlock', { overlayOpacity: 0 }).run()
+      }, {
+        label: '浅 (20%)',
+        onSelect: () => editor.chain().focus().updateAttributes('coverBlock', { overlayOpacity: 20 }).run()
+      }, {
+        label: '中 (40%)',
+        onSelect: () => editor.chain().focus().updateAttributes('coverBlock', { overlayOpacity: 40 }).run()
+      }, {
+        label: '深 (60%)',
+        onSelect: () => editor.chain().focus().updateAttributes('coverBlock', { overlayOpacity: 60 }).run()
+      }, {
+        label: '很深 (80%)',
+        onSelect: () => editor.chain().focus().updateAttributes('coverBlock', { overlayOpacity: 80 }).run()
+      }]
+    }], [{
+      icon: 'i-lucide-trash',
+      tooltip: { text: '删除区块' },
+      onClick: () => {
+        const { state } = editor
+        const pos = state.selection.$from.before(1)
+        const node = state.doc.nodeAt(pos)
+        if (node && node.type.name === 'coverBlock') {
+          editor.chain().focus().deleteRange({ from: pos, to: pos + node.nodeSize }).run()
+        }
+      }
+    }]]
+  }
+
   return {
     toolbarItems,
     bubbleToolbarItems,
     getImageToolbarItems,
-    getTableToolbarItems
+    getTableToolbarItems,
+    getCoverBlockToolbarItems
   }
 }

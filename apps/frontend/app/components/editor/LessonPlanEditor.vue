@@ -2,28 +2,15 @@
 import type { EditorCustomHandlers } from '@nuxt/ui'
 import type { Editor } from '@tiptap/vue-3'
 import { CellSelection } from '@tiptap/pm/tables'
-import { mergeAttributes } from '@tiptap/core'
-import Image from '@tiptap/extension-image'
 import CodeBlockShiki from 'tiptap-extension-code-block-shiki'
 import { ImageUpload } from '~/components/editor/ImageUploadExtension'
+import { ResizableImage } from '~/components/editor/ResizableImageExtension'
+import { CoverBlock } from '~/components/editor/CoverBlockExtension'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import { Table, TableRow, TableHeader, TableCell } from '@tiptap/extension-table'
 
 const config = useRuntimeConfig()
-
-// 自定义 Image 扩展：相对路径动态拼接 apiCloud 域名
-const CustomImage = Image.extend({
-  renderHTML({ HTMLAttributes }) {
-    let { src } = HTMLAttributes
-    // 将 /api/ 开头的路径转换为完整的 API URL
-    if (src && !src.startsWith('http') && src.startsWith('/api/')) {
-      const base = (config.public.apiCloud as string).replace(/\/$/, '')
-      src = `${base}${src.replace(/^\/api/, '')}`
-    }
-    return ['img', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, { src })]
-  },
-})
 
 const modelValue = defineModel<string>({ default: '' })
 
@@ -69,13 +56,22 @@ const customHandlers = {
     isActive: (editor: Editor) => editor.isActive('table'),
     isDisabled: undefined
   },
+  coverBlock: {
+    canExecute: (editor: Editor) => editor.can().insertContent({ type: 'coverBlock' }),
+    execute: (editor: Editor) => editor.chain().focus().insertContent({
+      type: 'coverBlock',
+      content: [{ type: 'paragraph' }]
+    }),
+    isActive: (editor: Editor) => editor.isActive('coverBlock'),
+    isDisabled: undefined
+  },
   ...aiHandlers
 } satisfies EditorCustomHandlers
 
 const { items: emojiItems } = useEditorEmojis()
 const { items: suggestionItems } = useEditorSuggestions(customHandlers)
 const { getItems: getDragHandleItems, onNodeChange } = useEditorDragHandle(customHandlers)
-const { toolbarItems, bubbleToolbarItems, getImageToolbarItems, getTableToolbarItems } = useEditorToolbar(customHandlers, { aiLoading })
+const { toolbarItems, bubbleToolbarItems, getImageToolbarItems, getTableToolbarItems, getCoverBlockToolbarItems } = useEditorToolbar(customHandlers, { aiLoading })
 
 const extensions = computed(() => [
   CodeBlockShiki.configure({
@@ -86,8 +82,9 @@ const extensions = computed(() => [
     }
   }),
   completionExtension,
-  CustomImage,
+  ResizableImage,
   ImageUpload,
+  CoverBlock,
   Table.configure({ resizable: false }),
   TableRow,
   TableHeader,
@@ -150,6 +147,16 @@ defineExpose({ editor: computed(() => editorRef.value?.editor) })
       layout="bubble"
       :should-show="({ editor: e, view }: any) => {
         return e.isActive('image') && view.hasFocus()
+      }"
+    />
+
+    <!-- 背景图区块工具栏 -->
+    <UEditorToolbar
+      :editor="editor"
+      :items="getCoverBlockToolbarItems(editor)"
+      layout="bubble"
+      :should-show="({ editor: e, view }: any) => {
+        return e.isActive('coverBlock') && view.hasFocus()
       }"
     />
 

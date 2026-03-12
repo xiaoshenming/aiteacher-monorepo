@@ -66,6 +66,10 @@ export function useEditorSuggestions<T extends EditorCustomHandlers>(_customHand
     label: '图片',
     icon: 'i-lucide-image'
   }, {
+    kind: 'coverBlock',
+    label: '背景图区块',
+    icon: 'i-lucide-image-plus'
+  }, {
     kind: 'table',
     label: '表格',
     icon: 'i-lucide-table'
