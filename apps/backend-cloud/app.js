@@ -5,7 +5,7 @@ const path = require("path");
 const cookieParser = require("cookie-parser")
 // 导入工具类
 const authenticate = require("./utils/auth-middleware.js")
-const { globalLimiter } = require("./middleware/rateLimiter")
+const { mediaLimiter, fileUploadLimiter, apiLimiter } = require("./middleware/rateLimiter")
 // 导入路由
 const testRouter = require("./router/test.js")
 const pcApiRouter = require("./router/pcApi.js")
@@ -62,8 +62,19 @@ app.get('/health', (req, res) => {
   res.json({ status: 'healthy' });
 });
 
-// 全局限流：100 req/15min
-app.use(globalLimiter)
+// 分类限流中间件（按路径类型分别限流）
+app.use((req, res, next) => {
+  // 媒体播放/下载类 API - 高频限流
+  if (req.path.includes('/download') || req.path.includes('/preview') || req.path.includes('/stream')) {
+    return mediaLimiter(req, res, next);
+  }
+  // 文件上传/分片操作 API - 中等限流
+  if (req.path.includes('/chunk') || req.path.includes('/upload') || req.path.includes('/delete')) {
+    return fileUploadLimiter(req, res, next);
+  }
+  // 其他 API - 低频限流
+  return apiLimiter(req, res, next);
+});
 
 
 // 路径鉴权，不通过全局中间件
