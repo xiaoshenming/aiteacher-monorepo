@@ -4,13 +4,20 @@ const rateLimit = require("express-rate-limit");
 // 视频播放/下载类 API - 高频限流（适用于流式播放、下载等场景）
 const mediaLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1分钟
-  max: 1000, // 1000次请求/分钟
+  max: 10000, // 10000次请求/分钟（支持视频 Range 请求）
   message: { code: 429, message: "媒体播放请求过于频繁，请稍后再试", data: null },
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => {
     // 只对媒体相关的路径生效
     return !req.path.includes('/download') && !req.path.includes('/preview') && !req.path.includes('/stream');
+  },
+  // 对 Range 请求使用单独的计数 key，避免影响普通请求
+  keyGenerator: (req) => {
+    const ip = req.ip || req.connection.remoteAddress;
+    const isRangeRequest = req.headers['range'];
+    // Range 请求和普通请求分开计数
+    return isRangeRequest ? `${ip}-range` : `${ip}-full`;
   }
 });
 
