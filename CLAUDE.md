@@ -91,9 +91,57 @@ LandPPT ──→ SQLite + 多 AI 提供商
   - `/login` 登录注册
   - `/dashboard` 仪表盘
   - `/user/*` 教师端（白板、录制、同传、出题、题库、作业、教案、PPT、课程表、分析、订阅等）
-  - `/student/*` 学生端（作业中心、学情分析）
+  - `/student/*` 学生端（首页仪表盘、课程、课程表、作业、考试、成绩、学情分析、个人中心、协作白板）
   - `/admin/*` 管理员
   - `/superadmin/*` 超级管理员（监控、安全、备份、日志、PPT 配置）
+
+### 前端 UI 风格规范
+
+修改或新建前端页面时，必须遵守以下设计系统，保持全站视觉一致性。
+
+**主题色（app.config.ts）**
+- 主色：`teal`（通过 `text-primary`, `bg-primary`, `border-primary` 等语义类使用）
+- 中性色：`zinc`
+- 不要使用鲜艳的蓝紫色渐变（如 `from-blue-500 to-indigo-600`），不要使用高饱和度的多彩渐变背景
+
+**语义 Token（优先使用，自动适配暗色模式）**
+- 文字层级：`text-highlighted`（强调）> 默认 > `text-muted`（次要）> `text-dimmed`（最弱）
+- 背景层级：`bg-elevated`（侧边栏）> `bg-default`（卡片）> `bg-accented`（hover/骨架屏）
+- 边框：`border-default`
+
+**卡片样式**
+- 标准卡片：`rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50`
+- hover 效果：`hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200`
+- UCard 全局已配置 hover 上浮效果，无需重复添加
+- 参考组件：`app/components/course/Card.vue`
+
+**颜色使用规则**
+- 辅助色用半透明：`bg-teal-500/10 text-teal-500`、`bg-blue-500/10 text-blue-500` 等
+- 图标背景：`w-10 h-10 rounded-lg bg-xxx-500/10 flex items-center justify-center`
+- 装饰性渐变横幅（低饱和度）：`bg-gradient-to-r from-primary/10 via-primary/5 to-transparent`
+- 分数/状态着色：>=90 `text-green-600`、>=70 `text-primary`、<70 `text-amber-600`
+
+**组件使用**
+- UBadge：`variant="subtle"` + `size="sm"` 或 `size="xs"`
+- UButton：`variant="soft"` / `variant="ghost"` / `color="neutral"` 用于次要操作，`color="primary"` 用于主操作
+- 页面布局：`UDashboardPanel` > `#header`（`UDashboardNavbar` + `UDashboardSidebarCollapse`）> `#body`
+- 图表容器：`<ClientOnly><DashboardChartLazy title="xxx" :option="xxxOption" /></ClientOnly>`
+
+**ECharts 图表配色**
+- 主色：`#14b8a6`（teal-500）
+- 面积填充：`rgba(20, 184, 166, 0.1)`
+- 雷达图填充：`rgba(20, 184, 166, 0.2)`
+- 辅助色：`#99f6e4`（teal-200）、`#0d9488`（teal-600）
+
+**暗色模式**
+- 所有硬编码颜色必须有 `dark:` 对应（如 `bg-white dark:bg-zinc-800/50`）
+- 优先使用语义 token 自动适配
+- 课程表等多色区分场景用柔和半透明色：`bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800`
+
+**布局自定义系统**
+- `app/stores/layout.ts`（Pinia 持久化）管理所有布局偏好
+- 支持：侧边栏位置/宽度/毛玻璃、密度（compact/comfortable/spacious）、圆角（none/small/large）、字号、Zen 渐变背景等
+- 布局组件在 `app/layouts/dashboard.vue`
 
 ### 主后端 (apps/backend-main)
 
