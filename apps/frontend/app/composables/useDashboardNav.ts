@@ -258,44 +258,17 @@ function getSuperAdminNav(closeSidebar: () => void): DashboardNavItem[][] {
 
 function getStudentNav(closeSidebar: () => void): DashboardNavItem[][] {
   return [[
-    {
-      label: '首页',
-      icon: 'i-lucide-house',
-      to: '/student',
-      exact: true,
-      onSelect: closeSidebar,
-    },
-    {
-      label: '我的课程',
-      icon: 'i-lucide-book-open',
-      to: '/student/courses',
-      onSelect: closeSidebar,
-    },
-    {
-      label: '学情分析',
-      icon: 'i-lucide-bar-chart-3',
-      to: '/student/data',
-      onSelect: closeSidebar,
-    },
-    {
-      label: '作业中心',
-      icon: 'i-lucide-clipboard-list',
-      to: '/student/assignments',
-      onSelect: closeSidebar,
-    },
-    {
-      label: '协作白板',
-      icon: 'i-lucide-pen-tool',
-      to: '/student/whiteboard',
-      onSelect: closeSidebar,
-    },
+    { label: '首页', icon: 'i-lucide-house', to: '/student', exact: true, onSelect: closeSidebar },
+    { label: '我的课程', icon: 'i-lucide-book-open', to: '/student/courses', onSelect: closeSidebar },
+    { label: '课程表', icon: 'i-lucide-calendar-days', to: '/student/schedule', onSelect: closeSidebar },
+    { label: '作业中心', icon: 'i-lucide-clipboard-list', to: '/student/assignments', onSelect: closeSidebar },
+    { label: '考试中心', icon: 'i-lucide-file-check', to: '/student/exams', onSelect: closeSidebar },
+    { label: '成绩查询', icon: 'i-lucide-trophy', to: '/student/grades', onSelect: closeSidebar },
+    { label: '学情分析', icon: 'i-lucide-bar-chart-3', to: '/student/data', onSelect: closeSidebar },
+    { label: '协作白板', icon: 'i-lucide-pen-tool', to: '/student/whiteboard', onSelect: closeSidebar },
+    { label: '个人中心', icon: 'i-lucide-user', to: '/student/profile', onSelect: closeSidebar },
   ], [
-    {
-      label: '帮助与支持',
-      icon: 'i-lucide-circle-help',
-      to: '/student/help',
-      onSelect: closeSidebar,
-    },
+    { label: '帮助与支持', icon: 'i-lucide-circle-help', to: '/student/help', onSelect: closeSidebar },
   ]]
 }
 
