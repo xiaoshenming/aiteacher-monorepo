@@ -11,22 +11,6 @@ const typeColors: Record<string, string> = {
   homework: 'info', quiz: 'neutral', exam: 'error',
 }
 
-const cardGradients = [
-  'from-blue-500/10 to-cyan-500/10 border-blue-500/20',
-  'from-purple-500/10 to-pink-500/10 border-purple-500/20',
-  'from-emerald-500/10 to-teal-500/10 border-emerald-500/20',
-  'from-orange-500/10 to-amber-500/10 border-orange-500/20',
-  'from-rose-500/10 to-red-500/10 border-rose-500/20',
-  'from-indigo-500/10 to-violet-500/10 border-indigo-500/20',
-]
-const cardAccents = [
-  'text-blue-600 dark:text-blue-400',
-  'text-purple-600 dark:text-purple-400',
-  'text-emerald-600 dark:text-emerald-400',
-  'text-orange-600 dark:text-orange-400',
-  'text-rose-600 dark:text-rose-400',
-  'text-indigo-600 dark:text-indigo-400',
-]
 
 const columns = [
   { accessorKey: 'title', header: '名称' },
@@ -48,9 +32,15 @@ const totalExams = computed(() => {
 })
 
 function scoreColor(score: number) {
-  if (score >= 90) return 'text-emerald-600 dark:text-emerald-400'
-  if (score >= 70) return 'text-blue-600 dark:text-blue-400'
-  return 'text-orange-600 dark:text-orange-400'
+  if (score >= 90) return 'text-green-600 dark:text-green-400'
+  if (score >= 70) return 'text-primary'
+  return 'text-amber-600 dark:text-amber-400'
+}
+
+function barColor(score: number) {
+  if (score >= 90) return 'bg-green-500'
+  if (score >= 70) return 'bg-primary'
+  return 'bg-amber-500'
 }
 
 function formatDate(d: string | null) {
@@ -90,24 +80,22 @@ onMounted(async () => {
           <!-- GPA 总览区域 -->
           <div
             v-if="summary.length"
-            class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 dark:from-primary-600 dark:to-primary-900 p-8 text-white"
+            class="rounded-xl border border-default p-6 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent"
           >
-            <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-            <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-            <div class="relative z-10 flex flex-col sm:flex-row items-center gap-6">
+            <div class="flex flex-col sm:flex-row items-center gap-6">
               <div class="text-center sm:text-left">
-                <p class="text-white/70 text-sm mb-1">总平均分</p>
-                <p class="text-6xl font-bold tracking-tight">{{ totalAvg }}</p>
+                <p class="text-sm text-muted mb-1">总平均分</p>
+                <p class="text-4xl font-bold text-primary">{{ totalAvg }}</p>
               </div>
-              <div class="hidden sm:block w-px h-16 bg-white/20" />
+              <div class="hidden sm:block w-px h-12 bg-zinc-200 dark:bg-zinc-700" />
               <div class="flex gap-8 text-center">
                 <div>
-                  <p class="text-3xl font-bold">{{ summary.length }}</p>
-                  <p class="text-white/70 text-xs mt-1">科目数</p>
+                  <p class="text-2xl font-bold text-highlighted">{{ summary.length }}</p>
+                  <p class="text-sm text-muted mt-0.5">科目数</p>
                 </div>
                 <div>
-                  <p class="text-3xl font-bold">{{ totalExams }}</p>
-                  <p class="text-white/70 text-xs mt-1">考核总次数</p>
+                  <p class="text-2xl font-bold text-highlighted">{{ totalExams }}</p>
+                  <p class="text-sm text-muted mt-0.5">考核次数</p>
                 </div>
               </div>
             </div>
@@ -118,32 +106,30 @@ onMounted(async () => {
             <h2 class="text-base font-semibold text-highlighted mb-4">各科成绩汇总</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div
-                v-for="(s, i) in summary" :key="s.course_name"
-                class="rounded-xl border bg-gradient-to-br p-5 transition-all hover:scale-[1.02] hover:shadow-lg"
-                :class="cardGradients[i % cardGradients.length]"
+                v-for="s in summary" :key="s.course_name"
+                class="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-4"
               >
                 <div class="flex items-start justify-between mb-3">
-                  <p class="text-sm font-semibold text-highlighted">
+                  <p class="text-highlighted font-medium">
                     {{ s.course_name || '未知课程' }}
                   </p>
-                  <span class="text-xs text-muted bg-default/50 rounded-full px-2 py-0.5">
+                  <span class="text-xs text-muted">
                     {{ s.count }} 次考核
                   </span>
                 </div>
-                <p class="text-4xl font-bold mb-3" :class="scoreColor(Number(s.avg_score))">
+                <p class="text-2xl font-bold mb-3" :class="scoreColor(Number(s.avg_score))">
                   {{ s.avg_score }}
                 </p>
-                <!-- 进度条 -->
-                <div class="w-full h-2 rounded-full bg-default/30 mb-3">
+                <div class="w-full h-2 rounded-full bg-zinc-200 dark:bg-zinc-700 mb-3">
                   <div
                     class="h-full rounded-full transition-all duration-500"
-                    :class="Number(s.avg_score) >= 90 ? 'bg-emerald-500' : Number(s.avg_score) >= 70 ? 'bg-blue-500' : 'bg-orange-500'"
+                    :class="barColor(Number(s.avg_score))"
                     :style="{ width: `${Math.min(Number(s.avg_score), 100)}%` }"
                   />
                 </div>
                 <div class="flex justify-between text-xs text-muted">
-                  <span>最高 <span class="font-medium" :class="cardAccents[i % cardAccents.length]">{{ s.max_score }}</span></span>
-                  <span>最低 <span class="font-medium" :class="cardAccents[i % cardAccents.length]">{{ s.min_score }}</span></span>
+                  <span>最高 <span class="font-medium text-highlighted">{{ s.max_score }}</span></span>
+                  <span>最低 <span class="font-medium text-highlighted">{{ s.min_score }}</span></span>
                 </div>
               </div>
             </div>
@@ -160,7 +146,7 @@ onMounted(async () => {
                 <UBadge
                   :color="typeColors[row.original.type] || 'neutral'"
                   variant="subtle"
-                  size="sm"
+                  size="xs"
                 >
                   {{ typeLabels[row.original.type] || row.original.type }}
                 </UBadge>
@@ -177,7 +163,7 @@ onMounted(async () => {
               <template #feedback-cell="{ row }">
                 <span
                   v-if="row.original.feedback"
-                  class="inline-block text-xs bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-lg px-3 py-1.5 max-w-xs"
+                  class="text-sm text-muted italic max-w-xs inline-block"
                 >
                   {{ row.original.feedback }}
                 </span>

@@ -26,10 +26,10 @@ const bestSubject = computed(() => {
 })
 
 const overviewCards = computed(() => [
-  { label: '总科目数', value: totalSubjects.value, icon: 'i-lucide-book-open', gradient: 'from-blue-500 to-cyan-500' },
-  { label: '平均正确率', value: `${avgAccuracy.value}%`, icon: 'i-lucide-target', gradient: 'from-emerald-500 to-teal-500' },
-  { label: '总练习次数', value: totalPractice.value, icon: 'i-lucide-pencil-line', gradient: 'from-purple-500 to-pink-500' },
-  { label: '最强科目', value: bestSubject.value, icon: 'i-lucide-trophy', gradient: 'from-orange-500 to-amber-500' },
+  { label: '总科目数', value: totalSubjects.value, icon: 'i-lucide-book-open', iconBg: 'bg-primary/10', iconColor: 'text-primary' },
+  { label: '平均正确率', value: `${avgAccuracy.value}%`, icon: 'i-lucide-target', iconBg: 'bg-green-500/10', iconColor: 'text-green-500' },
+  { label: '总练习次数', value: totalPractice.value, icon: 'i-lucide-pencil-line', iconBg: 'bg-amber-500/10', iconColor: 'text-amber-500' },
+  { label: '最强科目', value: bestSubject.value, icon: 'i-lucide-trophy', iconBg: 'bg-violet-500/10', iconColor: 'text-violet-500' },
 ])
 
 // 成绩趋势图（带平均线）
@@ -60,14 +60,14 @@ const scoreOption = computed(() => {
       name: '成绩', type: 'line', smooth: true,
       data: scores,
       symbol: 'circle', symbolSize: 8,
-      itemStyle: { color: '#6366f1' },
+      itemStyle: { color: '#14b8a6' },
       lineStyle: { width: 3 },
       areaStyle: {
         color: {
           type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
           colorStops: [
-            { offset: 0, color: 'rgba(99,102,241,0.3)' },
-            { offset: 1, color: 'rgba(99,102,241,0.02)' },
+            { offset: 0, color: 'rgba(20, 184, 166, 0.1)' },
+            { offset: 1, color: 'rgba(20, 184, 166, 0.01)' },
           ],
         },
       },
@@ -98,7 +98,7 @@ const radarOption = computed(() => {
       axisName: { color: '#666', fontSize: 12 },
       splitLine: { lineStyle: { color: '#e5e7eb' } },
       splitArea: {
-        areaStyle: { color: ['rgba(99,102,241,0.02)', 'rgba(99,102,241,0.05)'] },
+        areaStyle: { color: ['rgba(20, 184, 166, 0.02)', 'rgba(20, 184, 166, 0.05)'] },
       },
     },
     series: [{
@@ -107,17 +107,11 @@ const radarOption = computed(() => {
         value: data.value.scores.map((s: any) => s.avg_score || 0),
         name: '平均分',
         symbol: 'circle', symbolSize: 6,
-        lineStyle: { width: 2, color: '#8b5cf6' },
+        lineStyle: { width: 2, color: '#14b8a6' },
         areaStyle: {
-          color: {
-            type: 'radial', x: 0.5, y: 0.5, r: 0.5,
-            colorStops: [
-              { offset: 0, color: 'rgba(139,92,246,0.4)' },
-              { offset: 1, color: 'rgba(139,92,246,0.05)' },
-            ],
-          },
+          color: 'rgba(20, 184, 166, 0.2)',
         },
-        itemStyle: { color: '#8b5cf6' },
+        itemStyle: { color: '#14b8a6' },
       }],
     }],
   }
@@ -152,13 +146,7 @@ const completionOption = computed(() => {
         data: data.value.completion.map((c: any) => c.total),
         itemStyle: {
           borderRadius: [4, 4, 0, 0],
-          color: {
-            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-            colorStops: [
-              { offset: 0, color: '#93c5fd' },
-              { offset: 1, color: '#3b82f6' },
-            ],
-          },
+          color: '#99f6e4',
         },
       },
       {
@@ -166,13 +154,7 @@ const completionOption = computed(() => {
         data: data.value.completion.map((c: any) => c.completed),
         itemStyle: {
           borderRadius: [4, 4, 0, 0],
-          color: {
-            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-            colorStops: [
-              { offset: 0, color: '#6ee7b7' },
-              { offset: 1, color: '#10b981' },
-            ],
-          },
+          color: '#14b8a6',
         },
       },
     ],
@@ -180,24 +162,17 @@ const completionOption = computed(() => {
 })
 
 // 知识点掌握等级配色
-const masteryConfig: Record<string, { color: string, badge: string }> = {
-  '优秀': { color: 'success', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
-  '良好': { color: 'info', badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
-  '一般': { color: 'warning', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
-  '需加强': { color: 'error', badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+const masteryConfig: Record<string, string> = {
+  '优秀': 'success',
+  '良好': 'info',
+  '一般': 'warning',
+  '需加强': 'error',
 }
-const subjectColors = [
-  'from-blue-500/10 to-cyan-500/10 border-blue-200 dark:border-blue-800',
-  'from-purple-500/10 to-pink-500/10 border-purple-200 dark:border-purple-800',
-  'from-emerald-500/10 to-teal-500/10 border-emerald-200 dark:border-emerald-800',
-  'from-orange-500/10 to-amber-500/10 border-orange-200 dark:border-orange-800',
-  'from-rose-500/10 to-red-500/10 border-rose-200 dark:border-rose-800',
-  'from-indigo-500/10 to-violet-500/10 border-indigo-200 dark:border-indigo-800',
-]
+
 function accuracyBarColor(acc: number) {
-  if (acc >= 90) return 'bg-emerald-500'
-  if (acc >= 70) return 'bg-blue-500'
-  if (acc >= 50) return 'bg-orange-500'
+  if (acc >= 90) return 'bg-green-500'
+  if (acc >= 70) return 'bg-primary'
+  if (acc >= 50) return 'bg-amber-500'
   return 'bg-red-500'
 }
 
@@ -259,15 +234,17 @@ onMounted(async () => {
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div
               v-for="card in overviewCards" :key="card.label"
-              class="relative overflow-hidden rounded-xl bg-gradient-to-br p-5"
-              :class="card.gradient"
+              class="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-4"
             >
-              <div class="relative z-10">
-                <UIcon :name="card.icon" class="text-2xl text-white/80 mb-2" />
-                <p class="text-2xl font-bold text-white">{{ card.value }}</p>
-                <p class="text-xs text-white/70 mt-1">{{ card.label }}</p>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center" :class="card.iconBg">
+                  <UIcon :name="card.icon" class="text-xl" :class="card.iconColor" />
+                </div>
+                <div>
+                  <p class="text-xl font-bold text-highlighted">{{ card.value }}</p>
+                  <p class="text-xs text-muted mt-0.5">{{ card.label }}</p>
+                </div>
               </div>
-              <div class="absolute -bottom-4 -right-4 w-20 h-20 bg-white/10 rounded-full" />
             </div>
           </div>
 
@@ -291,25 +268,25 @@ onMounted(async () => {
             <h2 class="text-base font-semibold text-highlighted mb-4">知识点掌握情况</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div
-                v-for="(s, i) in data.subjects" :key="s.id"
-                class="rounded-xl border bg-gradient-to-br p-5 transition-all hover:shadow-md"
-                :class="subjectColors[i % subjectColors.length]"
+                v-for="s in data.subjects" :key="s.id"
+                class="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-4"
               >
                 <div class="flex items-start justify-between mb-3">
                   <p class="text-sm font-semibold text-highlighted">{{ s.subject }}</p>
-                  <span
-                    class="text-xs font-medium rounded-full px-2.5 py-0.5"
-                    :class="masteryConfig[s.mastery_level]?.badge || 'bg-gray-100 text-gray-600'"
+                  <UBadge
+                    :color="masteryConfig[s.mastery_level] || 'neutral'"
+                    variant="subtle"
+                    size="xs"
                   >
                     {{ s.mastery_level }}
-                  </span>
+                  </UBadge>
                 </div>
                 <div class="mb-2">
                   <div class="flex justify-between text-xs text-muted mb-1">
                     <span>正确率</span>
                     <span class="font-medium text-highlighted">{{ s.homework_accuracy }}%</span>
                   </div>
-                  <div class="w-full h-2.5 rounded-full bg-default/30">
+                  <div class="w-full h-2.5 rounded-full bg-zinc-200 dark:bg-zinc-700">
                     <div
                       class="h-full rounded-full transition-all duration-500"
                       :class="accuracyBarColor(Number(s.homework_accuracy))"
@@ -327,12 +304,12 @@ onMounted(async () => {
           <!-- 学习建议 -->
           <div v-if="suggestions.length">
             <h2 class="text-base font-semibold text-highlighted mb-4">学习建议</h2>
-            <div class="rounded-xl border border-primary-200 dark:border-primary-800 bg-primary-50/50 dark:bg-primary-900/10 p-5 space-y-3">
+            <div class="rounded-xl border border-default p-5 space-y-3">
               <div
                 v-for="(tip, i) in suggestions" :key="i"
                 class="flex gap-3 items-start"
               >
-                <UIcon name="i-lucide-lightbulb" class="text-primary-500 mt-0.5 shrink-0" />
+                <UIcon name="i-lucide-lightbulb" class="text-primary mt-0.5 shrink-0" />
                 <p class="text-sm text-highlighted leading-relaxed">{{ tip }}</p>
               </div>
             </div>

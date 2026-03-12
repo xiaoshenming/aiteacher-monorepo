@@ -32,10 +32,10 @@ const filters = [
 const stats = computed(() => {
   const list = exams.value
   return [
-    { label: '总考试', value: list.length, icon: 'i-lucide-file-check', color: 'text-primary' },
-    { label: '未参加', value: list.filter(e => e.submission_status === 'pending').length, icon: 'i-lucide-clock', color: 'text-orange-500' },
-    { label: '已提交', value: list.filter(e => e.submission_status === 'submitted').length, icon: 'i-lucide-send', color: 'text-blue-500' },
-    { label: '已批改', value: list.filter(e => e.submission_status === 'graded').length, icon: 'i-lucide-check-circle', color: 'text-green-500' },
+    { label: '总考试', value: list.length, icon: 'i-lucide-file-check', color: 'text-teal-500', bg: 'bg-teal-500/10' },
+    { label: '未参加', value: list.filter(e => e.submission_status === 'pending').length, icon: 'i-lucide-clock', color: 'text-orange-500', bg: 'bg-orange-500/10' },
+    { label: '已提交', value: list.filter(e => e.submission_status === 'submitted').length, icon: 'i-lucide-send', color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { label: '已批改', value: list.filter(e => e.submission_status === 'graded').length, icon: 'i-lucide-check-circle', color: 'text-green-500', bg: 'bg-green-500/10' },
   ]
 })
 
@@ -100,9 +100,9 @@ onMounted(async () => {
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div
               v-for="s in stats" :key="s.label"
-              class="flex items-center gap-3 p-4 rounded-xl border border-default bg-default/50"
+              class="flex items-center gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-4"
             >
-              <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <div :class="['w-10 h-10 rounded-lg flex items-center justify-center shrink-0', s.bg]">
                 <UIcon :name="s.icon" :class="['text-xl', s.color]" />
               </div>
               <div>
@@ -114,21 +114,20 @@ onMounted(async () => {
 
           <!-- 筛选 -->
           <div class="flex gap-2">
-            <button
+            <UButton
               v-for="f in filters" :key="f.value"
-              class="px-3 py-1.5 text-sm rounded-lg transition-colors"
-              :class="activeFilter === f.value
-                ? 'bg-primary text-white'
-                : 'bg-elevated text-muted hover:text-highlighted'"
+              size="sm"
+              :variant="activeFilter === f.value ? 'solid' : 'ghost'"
+              :color="activeFilter === f.value ? 'primary' : 'neutral'"
               @click="activeFilter = f.value"
             >
               {{ f.label }}
-            </button>
+            </UButton>
           </div>
 
           <!-- 空状态 -->
           <div v-if="filteredExams.length === 0" class="flex flex-col items-center py-16 gap-3">
-            <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <div class="w-16 h-16 rounded-full bg-teal-500/10 flex items-center justify-center">
               <UIcon name="i-lucide-inbox" class="text-3xl text-primary" />
             </div>
             <p class="text-muted">
@@ -140,18 +139,18 @@ onMounted(async () => {
           <div v-else class="space-y-3">
             <div
               v-for="e in filteredExams" :key="e.id"
-              class="rounded-xl border border-default overflow-hidden transition-all hover:shadow-sm cursor-pointer"
+              class="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
               @click="toggleExpand(e.id)"
             >
               <!-- 卡片主体 -->
-              <div class="p-4 flex items-start gap-4">
+              <div class="p-5 flex items-start gap-4">
                 <div class="flex-1 min-w-0 space-y-2">
                   <div class="flex items-center gap-2 flex-wrap">
-                    <h3 class="text-base font-semibold text-highlighted truncate">{{ e.title }}</h3>
-                    <UBadge v-if="e.subject" color="neutral" variant="subtle" size="xs">{{ e.subject }}</UBadge>
-                    <UBadge v-if="e.course_name" color="neutral" variant="outline" size="xs">{{ e.course_name }}</UBadge>
+                    <h3 class="text-highlighted font-medium truncate">{{ e.title }}</h3>
+                    <UBadge v-if="e.subject" color="neutral" variant="subtle" size="sm">{{ e.subject }}</UBadge>
+                    <UBadge v-if="e.course_name" color="neutral" variant="subtle" size="sm">{{ e.course_name }}</UBadge>
                   </div>
-                  <div class="flex items-center gap-3 text-xs text-muted">
+                  <div class="flex items-center gap-3 text-sm text-muted">
                     <span class="flex items-center gap-1">
                       <UIcon name="i-lucide-calendar" class="text-sm" />
                       <span
@@ -179,7 +178,7 @@ onMounted(async () => {
                 <!-- 右侧状态 + 成绩 -->
                 <div class="flex items-center gap-3 shrink-0">
                   <div v-if="e.submission_status === 'graded' && e.score !== null" class="text-right">
-                    <p class="text-2xl font-bold" :class="scorePercent(e.score, e.total_score) >= 60 ? 'text-green-500' : 'text-red-500'">
+                    <p class="text-lg font-bold text-primary">
                       {{ e.score }}
                     </p>
                     <p class="text-xs text-muted">/ {{ e.total_score }}</p>
@@ -187,13 +186,14 @@ onMounted(async () => {
                   <UBadge
                     :color="(statusColors[e.submission_status] as any) || 'neutral'"
                     variant="subtle"
+                    size="sm"
                     :icon="statusIcons[e.submission_status]"
                   >
                     {{ statusLabels[e.submission_status] || e.submission_status }}
                   </UBadge>
                   <UIcon
                     name="i-lucide-chevron-down"
-                    class="text-muted transition-transform"
+                    class="text-muted transition-transform duration-200"
                     :class="{ 'rotate-180': expandedId === e.id }"
                   />
                 </div>
@@ -201,24 +201,26 @@ onMounted(async () => {
 
               <!-- 展开详情 -->
               <Transition name="expand">
-                <div v-if="expandedId === e.id" class="border-t border-default bg-elevated/50 p-4 space-y-3">
-                  <div v-if="e.description" class="text-sm text-muted leading-relaxed">
-                    {{ e.description }}
-                  </div>
-                  <div class="flex flex-wrap gap-4 text-xs text-muted">
-                    <span>满分：{{ e.total_score }}</span>
-                    <span v-if="e.submit_time">提交时间：{{ formatDate(e.submit_time) }}</span>
-                    <span v-if="e.grade_time">批改时间：{{ formatDate(e.grade_time) }}</span>
-                  </div>
-                  <div v-if="e.submission_status === 'graded' && e.score !== null" class="flex items-center gap-3">
-                    <div class="w-full bg-default rounded-full h-2">
-                      <div
-                        class="h-2 rounded-full transition-all"
-                        :class="scorePercent(e.score, e.total_score) >= 60 ? 'bg-green-500' : 'bg-red-500'"
-                        :style="{ width: `${scorePercent(e.score, e.total_score)}%` }"
-                      />
+                <div v-if="expandedId === e.id" class="px-5 pb-5">
+                  <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4 space-y-3">
+                    <div v-if="e.description" class="text-sm text-muted leading-relaxed">
+                      {{ e.description }}
                     </div>
-                    <span class="text-xs text-muted shrink-0">{{ scorePercent(e.score, e.total_score) }}%</span>
+                    <div class="flex flex-wrap gap-4 text-xs text-muted">
+                      <span>满分：{{ e.total_score }}</span>
+                      <span v-if="e.submit_time">提交时间：{{ formatDate(e.submit_time) }}</span>
+                      <span v-if="e.grade_time">批改时间：{{ formatDate(e.grade_time) }}</span>
+                    </div>
+                    <div v-if="e.submission_status === 'graded' && e.score !== null" class="flex items-center gap-3">
+                      <div class="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2">
+                        <div
+                          class="h-2 rounded-full transition-all"
+                          :class="scorePercent(e.score, e.total_score) >= 60 ? 'bg-teal-500' : 'bg-red-500'"
+                          :style="{ width: `${scorePercent(e.score, e.total_score)}%` }"
+                        />
+                      </div>
+                      <span class="text-xs text-muted shrink-0">{{ scorePercent(e.score, e.total_score) }}%</span>
+                    </div>
                   </div>
                 </div>
               </Transition>
@@ -233,19 +235,17 @@ onMounted(async () => {
 <style scoped>
 .expand-enter-active,
 .expand-leave-active {
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   overflow: hidden;
 }
 .expand-enter-from,
 .expand-leave-to {
   opacity: 0;
   max-height: 0;
-  padding-top: 0;
-  padding-bottom: 0;
 }
 .expand-enter-to,
 .expand-leave-from {
   opacity: 1;
-  max-height: 300px;
+  max-height: 400px;
 }
 </style>

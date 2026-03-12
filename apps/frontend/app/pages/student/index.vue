@@ -118,16 +118,15 @@ onMounted(async () => {
     <template #body>
       <div class="p-6 space-y-6">
         <!-- Welcome banner -->
-        <div class="relative rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-6 text-white">
-          <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.15),transparent_60%)]" />
-          <div class="relative flex items-center justify-between">
+        <div class="rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6">
+          <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-white/80">{{ todayStr }}</p>
-              <h1 class="text-2xl font-bold mt-1">{{ greeting }}，{{ userStore.userInfo.name || '同学' }}</h1>
-              <p class="text-sm text-white/70 mt-1">{{ userStore.roleLabel }} · 学生中心</p>
+              <p class="text-sm text-muted">{{ todayStr }}</p>
+              <h1 class="text-xl font-semibold text-highlighted mt-1">{{ greeting }}，{{ userStore.userInfo.name || '同学' }}</h1>
+              <p class="text-sm text-muted mt-1">{{ userStore.roleLabel }} · 学生中心</p>
             </div>
-            <div class="hidden sm:flex w-16 h-16 rounded-full bg-white/20 items-center justify-center">
-              <UIcon name="i-lucide-graduation-cap" class="text-3xl" />
+            <div class="hidden sm:flex w-14 h-14 rounded-full bg-primary/10 items-center justify-center">
+              <UIcon name="i-lucide-graduation-cap" class="text-2xl text-primary" />
             </div>
           </div>
         </div>
@@ -141,15 +140,15 @@ onMounted(async () => {
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div
               v-for="s in statCards" :key="s.label"
-              class="p-4 rounded-xl border border-default bg-default/50 hover:shadow-md transition-shadow"
+              class="p-4 rounded-xl border border-default"
             >
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg flex items-center justify-center ring-1" :class="[s.bg, s.ring]">
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center" :class="s.bg">
                   <UIcon :name="s.icon" class="text-lg" :class="s.color" />
                 </div>
                 <div>
                   <p class="text-xs text-muted">{{ s.label }}</p>
-                  <p class="text-xl font-bold text-highlighted">{{ s.value }}</p>
+                  <p class="text-2xl font-bold text-highlighted">{{ s.value }}</p>
                 </div>
               </div>
             </div>
@@ -159,10 +158,10 @@ onMounted(async () => {
           <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
             <NuxtLink
               v-for="item in shortcuts" :key="item.to" :to="item.to"
-              class="flex flex-col items-center gap-2 p-4 rounded-xl border border-default hover:shadow-md hover:-translate-y-0.5 transition-all"
+              class="flex flex-col items-center gap-2 p-3 rounded-lg border border-default hover:border-primary-300 hover:shadow-sm transition-all"
             >
               <div class="w-10 h-10 rounded-lg flex items-center justify-center" :class="item.bg">
-                <UIcon :name="item.icon" class="text-lg" :class="item.color" />
+                <UIcon :name="item.icon" class="text-lg text-primary" />
               </div>
               <span class="text-xs text-highlighted">{{ item.label }}</span>
             </NuxtLink>
@@ -170,9 +169,9 @@ onMounted(async () => {
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Today's courses -->
-            <div class="rounded-xl border border-default p-5">
+            <div class="rounded-xl border border-default p-4">
               <h2 class="text-sm font-medium text-muted mb-3 flex items-center gap-2">
-                <UIcon name="i-lucide-calendar-clock" class="text-indigo-500" />
+                <UIcon name="i-lucide-calendar-clock" class="text-primary" />
                 今日课程
               </h2>
               <div v-if="todayCourses.length === 0" class="text-center py-6 text-muted text-sm">
@@ -181,7 +180,7 @@ onMounted(async () => {
               <div v-else class="space-y-2">
                 <div
                   v-for="(c, i) in todayCourses" :key="i"
-                  class="flex items-center gap-3 p-3 rounded-lg bg-default/50"
+                  class="flex items-center gap-3 bg-primary/5 rounded-lg p-3"
                 >
                   <div class="text-center shrink-0 w-14">
                     <p class="text-xs font-mono text-primary">{{ formatTime(c.start_time) }}</p>
@@ -197,16 +196,16 @@ onMounted(async () => {
             </div>
 
             <!-- Learning progress -->
-            <div class="rounded-xl border border-default p-5">
+            <div class="rounded-xl border border-default p-4">
               <h2 class="text-sm font-medium text-muted mb-3 flex items-center gap-2">
-                <UIcon name="i-lucide-trending-up" class="text-green-500" />
+                <UIcon name="i-lucide-trending-up" class="text-primary" />
                 学习进度
               </h2>
               <div class="flex flex-col items-center py-4">
                 <div class="relative w-32 h-32">
                   <svg class="w-full h-full -rotate-90" viewBox="0 0 120 120">
-                    <circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" stroke-width="10" class="text-gray-200 dark:text-gray-700" />
-                    <circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" class="text-primary" :stroke-dasharray="`${completionProgress * 3.267} 326.7`" />
+                    <circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" stroke-width="10" class="text-zinc-200 dark:text-zinc-700" />
+                    <circle cx="60" cy="60" r="52" fill="none" stroke="#14b8a6" stroke-width="10" stroke-linecap="round" :stroke-dasharray="`${completionProgress * 3.267} 326.7`" />
                   </svg>
                   <div class="absolute inset-0 flex items-center justify-center">
                     <span class="text-2xl font-bold text-highlighted">{{ completionProgress }}%</span>
@@ -219,15 +218,15 @@ onMounted(async () => {
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Recent assignments -->
-            <div v-if="dashData?.recentAssignments?.length" class="rounded-xl border border-default p-5">
-              <h2 class="text-sm font-medium text-muted mb-3 flex items-center gap-2">
+            <div v-if="dashData?.recentAssignments?.length" class="rounded-xl border border-default">
+              <h2 class="text-sm font-medium text-muted px-5 pt-4 pb-2 flex items-center gap-2">
                 <UIcon name="i-lucide-clipboard-list" class="text-orange-500" />
                 近期作业
               </h2>
-              <div class="space-y-2">
+              <div>
                 <div
                   v-for="a in dashData.recentAssignments" :key="a.id"
-                  class="flex items-center justify-between p-3 rounded-lg bg-default/50"
+                  class="flex items-center justify-between p-4 border-b border-default last:border-0"
                 >
                   <div class="min-w-0 flex-1">
                     <p class="text-sm font-medium text-highlighted truncate">{{ a.title }}</p>
@@ -244,15 +243,15 @@ onMounted(async () => {
             </div>
 
             <!-- Recent grades -->
-            <div v-if="dashData?.recentGrades?.length" class="rounded-xl border border-default p-5">
-              <h2 class="text-sm font-medium text-muted mb-3 flex items-center gap-2">
+            <div v-if="dashData?.recentGrades?.length" class="rounded-xl border border-default">
+              <h2 class="text-sm font-medium text-muted px-5 pt-4 pb-2 flex items-center gap-2">
                 <UIcon name="i-lucide-award" class="text-amber-500" />
                 最近成绩
               </h2>
-              <div class="space-y-2">
+              <div>
                 <div
                   v-for="(g, i) in dashData.recentGrades" :key="i"
-                  class="flex items-center justify-between p-3 rounded-lg bg-default/50"
+                  class="flex items-center justify-between p-4 border-b border-default last:border-0"
                 >
                   <div class="min-w-0">
                     <p class="text-sm font-medium text-highlighted truncate">{{ g.title }}</p>

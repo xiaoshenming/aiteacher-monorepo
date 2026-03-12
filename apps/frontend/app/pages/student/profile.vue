@@ -115,125 +115,117 @@ onMounted(loadProfile)
         <UIcon name="i-lucide-loader-2" class="animate-spin text-3xl text-primary" />
       </div>
 
-      <div v-else-if="profile" class="space-y-6 pb-8">
+      <div v-else-if="profile" class="space-y-6 pb-8 px-6">
         <!-- Banner -->
-        <div class="relative h-52 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 overflow-hidden">
-          <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.15),transparent_70%)]" />
-          <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.1),transparent_50%)]" />
-        </div>
-
-        <!-- Avatar + Name overlay -->
-        <div class="relative px-6 -mt-20 flex flex-col sm:flex-row items-center sm:items-end gap-4">
-          <div class="relative">
-            <div class="w-28 h-28 rounded-full border-4 border-white dark:border-gray-900 shadow-lg overflow-hidden bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center ring-4 ring-indigo-500/20">
-              <img
-                v-if="profile.avatar"
-                :src="profile.avatar"
-                :alt="profile.username"
-                class="w-full h-full object-cover"
-              >
-              <UIcon v-else name="i-lucide-user" class="text-5xl text-white" />
+        <div class="rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-8">
+          <div class="flex flex-col sm:flex-row items-center gap-5">
+            <div class="relative shrink-0">
+              <div class="w-20 h-20 rounded-full bg-primary/10 border-2 border-primary/30 flex items-center justify-center overflow-hidden">
+                <img
+                  v-if="profile.avatar"
+                  :src="profile.avatar"
+                  :alt="profile.username"
+                  class="w-full h-full object-cover"
+                >
+                <UIcon v-else name="i-lucide-user" class="text-3xl text-primary" />
+              </div>
             </div>
-            <div class="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-green-500 border-3 border-white dark:border-gray-900 flex items-center justify-center">
-              <UIcon name="i-lucide-check" class="text-white text-xs" />
+            <div class="text-center sm:text-left">
+              <h1 class="text-2xl font-bold text-highlighted">{{ profile.username }}</h1>
+              <p class="text-muted text-sm mt-1">
+                学号 {{ profile.student_number }}
+                <span v-if="profile.school_name"> · {{ profile.school_name }}</span>
+              </p>
             </div>
-          </div>
-          <div class="text-center sm:text-left sm:pb-1">
-            <h1 class="text-2xl font-bold text-highlighted">{{ profile.username }}</h1>
-            <p class="text-sm text-muted mt-0.5">
-              学号 {{ profile.student_number }}
-              <span v-if="profile.school_name"> · {{ profile.school_name }}</span>
-            </p>
           </div>
         </div>
 
-        <div class="px-6 space-y-6">
-          <!-- Info cards grid -->
-          <div>
-            <h2 class="text-sm font-medium text-muted mb-3">个人信息</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              <div
-                v-for="item in infoCards" :key="item.label"
-                class="flex items-center gap-3 p-4 rounded-xl border border-default bg-default/50 hover:bg-elevated/80 transition-colors"
-              >
-                <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" :class="item.bg">
-                  <UIcon :name="item.icon" class="text-lg" :class="item.color" />
-                </div>
-                <div class="min-w-0">
-                  <p class="text-xs text-muted">{{ item.label }}</p>
-                  <p class="text-sm font-medium text-highlighted truncate">{{ item.value }}</p>
-                </div>
+        <!-- Info cards grid -->
+        <div>
+          <h2 class="text-sm font-medium text-muted mb-3">个人信息</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <div
+              v-for="item in infoCards" :key="item.label"
+              class="flex items-center gap-3 p-4 rounded-xl border border-default"
+            >
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" :class="item.bg">
+                <UIcon :name="item.icon" class="text-lg" :class="item.color" />
+              </div>
+              <div class="min-w-0">
+                <p class="text-xs text-muted">{{ item.label }}</p>
+                <p class="text-sm text-highlighted font-medium truncate">{{ item.value }}</p>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Editable section -->
-          <div class="rounded-xl border border-default p-5">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-sm font-medium text-muted">联系信息</h2>
-              <UButton
-                :icon="editing ? 'i-lucide-x' : 'i-lucide-pencil'"
-                variant="ghost"
-                size="sm"
-                @click="toggleEdit"
-              >
-                {{ editing ? '取消' : '编辑' }}
-              </UButton>
-            </div>
-            <div v-if="!editing" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div class="flex items-center gap-3 p-3 rounded-lg bg-default/50">
-                <UIcon name="i-lucide-mail" class="text-orange-500" />
-                <div>
-                  <p class="text-xs text-muted">邮箱</p>
-                  <p class="text-sm text-highlighted">{{ profile.email || '未设置' }}</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-3 p-3 rounded-lg bg-default/50">
-                <UIcon name="i-lucide-phone" class="text-cyan-500" />
-                <div>
-                  <p class="text-xs text-muted">手机号</p>
-                  <p class="text-sm text-highlighted">{{ profile.phoneNumber || '未设置' }}</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-3 p-3 rounded-lg bg-default/50">
-                <UIcon name="i-lucide-map-pin" class="text-red-500" />
-                <div>
-                  <p class="text-xs text-muted">地址</p>
-                  <p class="text-sm text-highlighted">{{ profile.address || '未设置' }}</p>
-                </div>
+        <!-- Editable section -->
+        <div class="rounded-xl border border-default p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-medium text-muted">联系信息</h2>
+            <UButton
+              :icon="editing ? 'i-lucide-x' : 'i-lucide-pencil'"
+              color="primary"
+              variant="ghost"
+              size="sm"
+              @click="toggleEdit"
+            >
+              {{ editing ? '取消' : '编辑' }}
+            </UButton>
+          </div>
+          <div v-if="!editing" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-accented">
+              <UIcon name="i-lucide-mail" class="text-orange-500" />
+              <div>
+                <p class="text-xs text-muted">邮箱</p>
+                <p class="text-sm text-highlighted">{{ profile.email || '未设置' }}</p>
               </div>
             </div>
-            <div v-else class="space-y-4">
-              <UFormField label="邮箱">
-                <UInput v-model="editForm.email" icon="i-lucide-mail" placeholder="请输入邮箱" />
-              </UFormField>
-              <UFormField label="手机号">
-                <UInput v-model="editForm.phoneNumber" icon="i-lucide-phone" placeholder="请输入手机号" />
-              </UFormField>
-              <UFormField label="地址">
-                <UInput v-model="editForm.address" icon="i-lucide-map-pin" placeholder="请输入地址" />
-              </UFormField>
-              <div class="flex gap-2">
-                <UButton :loading="saving" @click="saveProfile">保存修改</UButton>
-                <UButton variant="ghost" @click="toggleEdit">取消</UButton>
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-accented">
+              <UIcon name="i-lucide-phone" class="text-cyan-500" />
+              <div>
+                <p class="text-xs text-muted">手机号</p>
+                <p class="text-sm text-highlighted">{{ profile.phoneNumber || '未设置' }}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-accented">
+              <UIcon name="i-lucide-map-pin" class="text-red-500" />
+              <div>
+                <p class="text-xs text-muted">地址</p>
+                <p class="text-sm text-highlighted">{{ profile.address || '未设置' }}</p>
               </div>
             </div>
           </div>
+          <div v-else class="space-y-4">
+            <UFormField label="邮箱">
+              <UInput v-model="editForm.email" icon="i-lucide-mail" placeholder="请输入邮箱" />
+            </UFormField>
+            <UFormField label="手机号">
+              <UInput v-model="editForm.phoneNumber" icon="i-lucide-phone" placeholder="请输入手机号" />
+            </UFormField>
+            <UFormField label="地址">
+              <UInput v-model="editForm.address" icon="i-lucide-map-pin" placeholder="请输入地址" />
+            </UFormField>
+            <div class="flex gap-2">
+              <UButton color="primary" :loading="saving" @click="saveProfile">保存修改</UButton>
+              <UButton variant="ghost" @click="toggleEdit">取消</UButton>
+            </div>
+          </div>
+        </div>
 
-          <!-- Achievement stats -->
-          <div v-if="statsData">
-            <h2 class="text-sm font-medium text-muted mb-3">学习足迹</h2>
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <div
-                v-for="item in achievementStats" :key="item.label"
-                class="p-4 rounded-xl border border-default bg-default/50 text-center"
-              >
-                <div class="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center" :class="item.bg">
-                  <UIcon :name="item.icon" class="text-lg" :class="item.color" />
-                </div>
-                <p class="text-xl font-bold text-highlighted">{{ item.value }}</p>
-                <p class="text-xs text-muted mt-1">{{ item.label }}</p>
+        <!-- Achievement stats -->
+        <div v-if="statsData" class="rounded-xl border border-default p-5">
+          <h2 class="text-sm font-medium text-muted mb-4">学习足迹</h2>
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div
+              v-for="item in achievementStats" :key="item.label"
+              class="p-4 rounded-xl border border-default text-center"
+            >
+              <div class="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center" :class="item.bg">
+                <UIcon :name="item.icon" class="text-lg" :class="item.color" />
               </div>
+              <p class="text-2xl font-bold text-highlighted">{{ item.value }}</p>
+              <p class="text-xs text-muted mt-1">{{ item.label }}</p>
             </div>
           </div>
         </div>

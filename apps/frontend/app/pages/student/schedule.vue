@@ -12,22 +12,12 @@ const timeSlots = [
 ]
 
 const colors = [
-  'bg-gradient-to-br from-blue-500 to-indigo-600 text-white',
-  'bg-gradient-to-br from-emerald-500 to-teal-600 text-white',
-  'bg-gradient-to-br from-rose-500 to-pink-600 text-white',
-  'bg-gradient-to-br from-amber-500 to-orange-600 text-white',
-  'bg-gradient-to-br from-violet-500 to-purple-600 text-white',
-  'bg-gradient-to-br from-cyan-500 to-sky-600 text-white',
-  'bg-gradient-to-br from-fuchsia-500 to-pink-600 text-white',
-  'bg-gradient-to-br from-lime-500 to-green-600 text-white',
-]
-
-const headerColors = [
-  'bg-gradient-to-r from-blue-500 to-indigo-500',
-  'bg-gradient-to-r from-emerald-500 to-teal-500',
-  'bg-gradient-to-r from-rose-500 to-pink-500',
-  'bg-gradient-to-r from-amber-500 to-orange-500',
-  'bg-gradient-to-r from-violet-500 to-purple-500',
+  'bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800',
+  'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800',
+  'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800',
+  'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800',
+  'bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800',
+  'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800',
 ]
 
 const courseColorMap = new Map<string, string>()
@@ -78,9 +68,8 @@ onMounted(async () => {
               <tr>
                 <th class="p-2 text-sm rounded-lg w-24" />
                 <th
-                  v-for="(d, di) in [1,2,3,4,5]" :key="d"
-                  class="p-3 text-sm font-bold text-white rounded-lg shadow-md"
-                  :class="headerColors[di]"
+                  v-for="d in [1,2,3,4,5]" :key="d"
+                  class="p-3 text-sm font-medium text-highlighted rounded-lg bg-zinc-50 dark:bg-zinc-800"
                 >
                   {{ dayNames[d] }}
                 </th>
@@ -88,26 +77,26 @@ onMounted(async () => {
             </thead>
             <tbody>
               <tr v-for="slot in timeSlots" :key="slot.label">
-                <td class="p-2 text-center rounded-lg bg-gray-100 dark:bg-gray-800">
-                  <div class="text-xs font-bold text-gray-700 dark:text-gray-200">{{ slot.label }}</div>
-                  <div class="text-[10px] text-gray-400 mt-0.5">{{ slot.start }}-{{ slot.end }}</div>
+                <td class="p-2 text-center rounded-lg bg-zinc-50 dark:bg-zinc-800">
+                  <div class="text-xs font-medium text-highlighted">{{ slot.label }}</div>
+                  <div class="text-[10px] text-muted mt-0.5">{{ slot.start }}-{{ slot.end }}</div>
                 </td>
                 <td
                   v-for="d in [1,2,3,4,5]" :key="d"
                   class="align-top h-24 rounded-lg"
-                  :class="getCell(d, slot).length === 0 ? 'border-2 border-dashed border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30' : ''"
+                  :class="getCell(d, slot).length === 0 ? 'border-2 border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/30' : ''"
                 >
                   <div
                     v-for="(c, i) in getCell(d, slot)" :key="i"
-                    class="p-2.5 rounded-lg text-xs shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-default"
+                    class="p-2.5 rounded-lg text-xs hover:scale-105 transition-all duration-200 cursor-default"
                     :class="getCourseColor(c.course_name)"
                   >
-                    <p class="font-bold text-sm leading-tight">{{ c.course_name }}</p>
-                    <p v-if="c.classroom" class="mt-1 opacity-90 flex items-center gap-1">
+                    <p class="font-semibold text-sm leading-tight">{{ c.course_name }}</p>
+                    <p v-if="c.classroom" class="mt-1 opacity-80 flex items-center gap-1">
                       <UIcon name="i-lucide-map-pin" class="text-[10px]" />
                       {{ c.classroom }}
                     </p>
-                    <p v-if="c.teacher_name" class="opacity-80 flex items-center gap-1">
+                    <p v-if="c.teacher_name" class="opacity-70 flex items-center gap-1">
                       <UIcon name="i-lucide-user" class="text-[10px]" />
                       {{ c.teacher_name }}
                     </p>

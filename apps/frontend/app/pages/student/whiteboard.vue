@@ -53,22 +53,20 @@ onMounted(async () => {
     <template #body>
       <div class="p-6 space-y-6">
         <!-- Hero card -->
-        <div class="relative rounded-2xl overflow-hidden bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600 p-8 text-white">
-          <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.15),transparent_60%)]" />
-          <div class="relative flex flex-col sm:flex-row items-center gap-6">
-            <div class="w-20 h-20 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
-              <UIcon name="i-lucide-pen-tool" class="text-4xl" />
+        <div class="rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-8">
+          <div class="flex flex-col sm:flex-row items-center gap-6">
+            <div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+              <UIcon name="i-lucide-pen-tool" class="text-3xl text-primary" />
             </div>
             <div class="text-center sm:text-left flex-1">
-              <h1 class="text-2xl font-bold">协作白板</h1>
-              <p class="text-sm text-white/80 mt-2 max-w-lg">
+              <h1 class="text-2xl font-bold text-highlighted">协作白板</h1>
+              <p class="text-muted text-sm mt-2 max-w-lg">
                 基于 Excalidraw 的实时协作白板，支持多人同时编辑、手绘风格图形、无限画布。
                 适合课堂讨论、头脑风暴、知识梳理等场景。
               </p>
               <UButton
                 class="mt-4"
-                color="white"
-                variant="solid"
+                color="primary"
                 icon="i-lucide-external-link"
                 @click="openWhiteboard()"
               >
@@ -80,27 +78,27 @@ onMounted(async () => {
 
         <!-- Features -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="flex items-start gap-3 p-4 rounded-xl border border-default bg-default/50">
-            <div class="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center shrink-0">
-              <UIcon name="i-lucide-users" class="text-lg text-cyan-500" />
+          <div class="flex items-start gap-3 p-4 rounded-xl border border-default">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <UIcon name="i-lucide-users" class="text-lg text-primary" />
             </div>
             <div>
               <p class="text-sm font-medium text-highlighted">实时协作</p>
               <p class="text-xs text-muted mt-1">多人同时在线编辑，实时同步所有操作</p>
             </div>
           </div>
-          <div class="flex items-start gap-3 p-4 rounded-xl border border-default bg-default/50">
-            <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
-              <UIcon name="i-lucide-infinity" class="text-lg text-blue-500" />
+          <div class="flex items-start gap-3 p-4 rounded-xl border border-default">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <UIcon name="i-lucide-infinity" class="text-lg text-primary" />
             </div>
             <div>
               <p class="text-sm font-medium text-highlighted">无限画布</p>
               <p class="text-xs text-muted mt-1">自由缩放和平移，不受空间限制</p>
             </div>
           </div>
-          <div class="flex items-start gap-3 p-4 rounded-xl border border-default bg-default/50">
-            <div class="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center shrink-0">
-              <UIcon name="i-lucide-save" class="text-lg text-indigo-500" />
+          <div class="flex items-start gap-3 p-4 rounded-xl border border-default">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <UIcon name="i-lucide-save" class="text-lg text-primary" />
             </div>
             <div>
               <p class="text-sm font-medium text-highlighted">自动保存</p>
@@ -121,7 +119,7 @@ onMounted(async () => {
           </div>
 
           <div v-else-if="rooms.length === 0" class="text-center py-10">
-            <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-3">
+            <div class="w-16 h-16 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-3">
               <UIcon name="i-lucide-layout-dashboard" class="text-2xl text-muted" />
             </div>
             <p class="text-sm text-muted">暂无白板记录</p>
