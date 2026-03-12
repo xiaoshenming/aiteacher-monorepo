@@ -118,7 +118,7 @@ async function registerStudent({
   }
 
   // 密码强度验证
-  if (password.length < 5) {
+  if (password.length < 6) {
     throw new Error("密码长度不能少于6位");
   }
 

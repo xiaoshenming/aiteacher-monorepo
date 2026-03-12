@@ -41,7 +41,7 @@ const validateRegister = [
     .normalizeEmail(),
   body('password')
     .notEmpty().withMessage('密码不能为空')
-    .isLength({ min: 5, max: 32 }).withMessage('密码长度必须在5-32位之间'),
+    .isLength({ min: 6, max: 32 }).withMessage('密码长度必须在6-32位之间'),
   body('code')
     .trim()
     .notEmpty().withMessage('验证码不能为空'),
