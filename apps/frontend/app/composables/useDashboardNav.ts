@@ -61,7 +61,12 @@ function getTeacherNav(closeSidebar: () => void): DashboardNavItem[][] {
       label: '共享中心',
       icon: 'i-lucide-share-2',
       to: '/user/shared-resources',
-      tooltip: { text: '资源共享中心', openDelay: 500 },
+      onSelect: closeSidebar,
+    },
+    {
+      label: '课堂互动',
+      icon: 'i-lucide-hand',
+      to: '/user/classroom',
       onSelect: closeSidebar,
     },
     {
@@ -279,6 +284,7 @@ function getStudentNav(closeSidebar: () => void): DashboardNavItem[][] {
     { label: '成绩查询', icon: 'i-lucide-trophy', to: '/student/grades', onSelect: closeSidebar },
     { label: '学情分析', icon: 'i-lucide-bar-chart-3', to: '/student/data', onSelect: closeSidebar },
     { label: '协作白板', icon: 'i-lucide-pen-tool', to: '/student/whiteboard', onSelect: closeSidebar },
+    { label: '课堂互动', icon: 'i-lucide-hand', to: '/student/classroom', onSelect: closeSidebar },
     { label: '个人中心', icon: 'i-lucide-user', to: '/student/profile', onSelect: closeSidebar },
   ], [
     { label: '帮助与支持', icon: 'i-lucide-circle-help', to: '/student/help', onSelect: closeSidebar },
