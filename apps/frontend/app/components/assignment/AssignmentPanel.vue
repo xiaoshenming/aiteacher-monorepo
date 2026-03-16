@@ -31,8 +31,15 @@ const columns = [
 ]
 
 const showModal = ref(false)
+const showGrading = ref(false)
+const gradingAssignmentId = ref<number>(0)
 const classOptions = ref<{ label: string, value: number }[]>([])
 const courseOptions = ref<{ label: string, value: number }[]>([])
+
+function openGrading(id: number) {
+  gradingAssignmentId.value = id
+  showGrading.value = true
+}
 
 async function loadOptions() {
   const [classes, courses] = await Promise.all([
@@ -151,6 +158,7 @@ onMounted(() => {
             <div class="flex gap-1">
               <UButton v-if="row.original.status === 'draft'" size="xs" variant="ghost" icon="i-lucide-send" title="发布" @click="handlePublish(row.original.id)" />
               <UButton v-if="row.original.status === 'published'" size="xs" variant="ghost" icon="i-lucide-lock" title="截止" @click="handleClose(row.original.id)" />
+              <UButton v-if="row.original.status === 'published' || row.original.status === 'closed'" size="xs" variant="ghost" icon="i-lucide-clipboard-check" title="批改" @click="openGrading(row.original.id)" />
               <UButton size="xs" variant="ghost" color="error" icon="i-lucide-trash-2" title="删除" @click="handleDelete(row.original.id)" />
             </div>
           </template>
@@ -163,6 +171,20 @@ onMounted(() => {
         :course-options="courseOptions"
         @submit="handleSubmit"
       />
+
+      <UModal v-model:open="showGrading" fullscreen>
+        <template #content>
+          <div class="h-screen flex flex-col">
+            <div class="flex items-center justify-between p-3 border-b border-zinc-200 dark:border-zinc-700">
+              <h3 class="text-lg font-semibold text-highlighted">作业批改</h3>
+              <UButton variant="ghost" icon="i-lucide-x" @click="showGrading = false" />
+            </div>
+            <div class="flex-1 min-h-0">
+              <AssignmentGradingPanel v-if="gradingAssignmentId" :assignment-id="gradingAssignmentId" />
+            </div>
+          </div>
+        </template>
+      </UModal>
     </template>
   </UDashboardPanel>
 </template>
