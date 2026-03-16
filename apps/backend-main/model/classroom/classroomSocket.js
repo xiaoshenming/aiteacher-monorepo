@@ -26,13 +26,21 @@ function extractToken(request) {
 
 async function verifyToken(request) {
   const token = extractToken(request);
-  const deviceType = request.headers.devicetype || "web";
   if (!token) return { valid: false, error: "未提供授权信息" };
   try {
     const decoded = jwt.verify(token, secret);
-    const storedToken = await redis.get(`user_${decoded.id}_${deviceType}_token`);
-    if (storedToken !== token) return { valid: false, error: "无效的 Token" };
-    await redis.expire(`user_${decoded.id}_${deviceType}_token`, 3600);
+    // WebSocket 无法自定义 header，尝试所有设备类型匹配 token
+    const deviceTypes = [request.headers.devicetype, "pc", "web", "mobile"].filter(Boolean);
+    let matched = false;
+    for (const dt of deviceTypes) {
+      const storedToken = await redis.get(`user_${decoded.id}_${dt}_token`);
+      if (storedToken === token) {
+        await redis.expire(`user_${decoded.id}_${dt}_token`, 3600);
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) return { valid: false, error: "无效的 Token" };
     return { valid: true, user: decoded };
   } catch (err) {
     return { valid: false, error: "Token 验证失败" };

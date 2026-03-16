@@ -8,7 +8,7 @@ export function useClassroom() {
   async function fetchSessions(page = 1, pageSize = 20) {
     loading.value = true
     try {
-      const res = await apiFetch<any>('/api/classroom/sessions', {
+      const res = await apiFetch<any>('/classroom/sessions', {
         params: { page, pageSize },
       })
       sessions.value = res.data?.list || res.data || []

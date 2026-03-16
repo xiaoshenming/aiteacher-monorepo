@@ -38,24 +38,24 @@
         <div v-if="sessionActive" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div class="lg:col-span-2">
             <div class="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-4 min-h-[300px]">
-              <RandomPicker v-if="interactionType === 'random_pick'" :students="onlineStudents" :picked-id="pickedStudentId" />
-              <PollResult v-else-if="interactionType === 'poll'" :question="pollData.question" :options="pollData.options" :votes="pollData.votes" />
-              <QuizResult v-else-if="interactionType === 'quiz_closed'" :total-students="quizData.total" :correct-count="quizData.correct" />
-              <CountdownTimer v-else-if="interactionType === 'timer'" :remaining="timerRemaining" :total="timerTotal" />
+              <ClassroomRandomPicker v-if="interactionType === 'random_pick'" :students="onlineStudents" :picked-id="pickedStudentId" />
+              <ClassroomPollResult v-else-if="interactionType === 'poll'" :question="pollData.question" :options="pollData.options" :votes="pollData.votes" />
+              <ClassroomQuizResult v-else-if="interactionType === 'quiz_closed'" :total-students="quizData.total" :correct-count="quizData.correct" />
+              <ClassroomCountdownTimer v-else-if="interactionType === 'timer'" :remaining="timerRemaining" :total="timerTotal" />
               <div v-else class="flex items-center justify-center h-64 text-muted">
                 <p>选择上方工具开始互动</p>
               </div>
             </div>
           </div>
           <div class="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-4">
-            <StudentList :students="onlineStudents" />
+            <ClassroomStudentList :students="onlineStudents" />
           </div>
         </div>
       </div>
 
       <!-- 弹窗 -->
-      <PollCreator v-model="showPollCreator" @create="handleCreatePoll" />
-      <QuizLauncher v-model="showQuizLauncher" @launch="handleLaunchQuiz" />
+      <ClassroomPollCreator v-model:open="showPollCreator" @create="handleCreatePoll" />
+      <ClassroomQuizLauncher v-model:open="showQuizLauncher" @launch="handleLaunchQuiz" />
     </template>
   </UDashboardPanel>
 </template>
