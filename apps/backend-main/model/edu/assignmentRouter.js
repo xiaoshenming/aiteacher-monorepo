@@ -128,7 +128,24 @@ Router.post("/", authorize(["2", "3", "4"]), (req, res) => {
     if (err) {
       return res.status(500).json({ code: 500, message: "创建失败", error: err })
     }
-    res.json({ code: 200, message: "创建成功", data: { id: result.insertId } })
+    const { questions } = req.body
+    if (questions && Array.isArray(questions) && questions.length > 0) {
+      const values = questions.map((q, i) => [
+        result.insertId, q.question_id, q.sort_order ?? i, q.score ?? 10
+      ])
+      db.query(
+        `INSERT INTO assignment_questions (assignment_id, question_id, sort_order, score) VALUES ?`,
+        [values],
+        (err3) => {
+          if (err3) {
+            return res.status(500).json({ code: 500, message: "关联题目失败", error: err3 })
+          }
+          res.json({ code: 200, message: "创建成功", data: { id: result.insertId } })
+        }
+      )
+    } else {
+      res.json({ code: 200, message: "创建成功", data: { id: result.insertId } })
+    }
   })
 })
 
@@ -216,13 +233,41 @@ Router.get("/:id", authorize(["2", "3", "4"]), (req, res) => {
       FROM assignment_submissions WHERE assignment_id = ?`
 
     db.query(statsSql, [id], (err2, statsRows) => {
-      if (err2) {
-        return res.json({ code: 200, message: "查询成功", data: assignment })
+      if (!err2) {
+        assignment.stats = statsRows[0]
       }
-      assignment.stats = statsRows[0]
-      res.json({ code: 200, message: "查询成功", data: assignment })
+      // 查询关联题目
+      db.query(
+        `SELECT aq.*, q.title, q.type, q.difficulty, q.content, q.options, q.answer, q.explanation
+         FROM assignment_questions aq
+         LEFT JOIN question q ON aq.question_id = q.id
+         WHERE aq.assignment_id = ?
+         ORDER BY aq.sort_order`,
+        [id],
+        (err3, questions) => {
+          assignment.questions = err3 ? [] : questions
+          res.json({ code: 200, message: "查询成功", data: assignment })
+        }
+      )
     })
   })
+})
+
+// GET /:id/questions — 获取作业关联的题目列表
+Router.get("/:id/questions", authorize(["0","1","2","3","4"]), (req, res) => {
+  db.query(
+    `SELECT aq.id, aq.question_id, aq.sort_order, aq.score,
+            q.title, q.type, q.difficulty, q.content, q.options, q.answer, q.explanation
+     FROM assignment_questions aq
+     LEFT JOIN question q ON aq.question_id = q.id
+     WHERE aq.assignment_id = ?
+     ORDER BY aq.sort_order`,
+    [req.params.id],
+    (err, results) => {
+      if (err) return res.status(500).json({ code: 500, message: "查询失败" })
+      res.json({ code: 200, message: "查询成功", data: results })
+    }
+  )
 })
 
 // PUT /:id — 更新作业
@@ -246,7 +291,28 @@ Router.put("/:id", authorize(["2", "3", "4"]), (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ code: 404, message: "作业不存在或无权限", data: null })
     }
-    res.json({ code: 200, message: "更新成功", data: null })
+    const { questions } = req.body
+    if (questions && Array.isArray(questions)) {
+      db.query(`DELETE FROM assignment_questions WHERE assignment_id = ?`, [req.params.id], (delErr) => {
+        if (delErr) return res.status(500).json({ code: 500, message: "更新题目关联失败" })
+        if (questions.length === 0) {
+          return res.json({ code: 200, message: "更新成功" })
+        }
+        const values = questions.map((q, i) => [
+          parseInt(req.params.id), q.question_id, q.sort_order ?? i, q.score ?? 10
+        ])
+        db.query(
+          `INSERT INTO assignment_questions (assignment_id, question_id, sort_order, score) VALUES ?`,
+          [values],
+          (insErr) => {
+            if (insErr) return res.status(500).json({ code: 500, message: "关联题目失败" })
+            res.json({ code: 200, message: "更新成功" })
+          }
+        )
+      })
+    } else {
+      res.json({ code: 200, message: "更新成功" })
+    }
   })
 })
 
