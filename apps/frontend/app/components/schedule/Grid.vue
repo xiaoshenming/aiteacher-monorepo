@@ -11,12 +11,14 @@ const emit = defineEmits<{
   'click:cell': [row: number, col: number, cell: ScheduleCell]
 }>()
 
-const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+const days = ['周一', '周二', '周三', '周四', '周五']
 
-const timeSlots = computed(() => {
-  if (!Array.isArray(props.data) || props.data.length === 0) return []
-  return props.data.map((_, i) => ({ label: `第${i * 2 + 1}-${i * 2 + 2}节` }))
-})
+const timeSlots = [
+  { label: '第1-2节', start: '08:00', end: '09:40' },
+  { label: '第3-4节', start: '10:00', end: '11:40' },
+  { label: '第5-6节', start: '14:00', end: '15:40' },
+  { label: '第7-8节', start: '16:00', end: '17:40' },
+]
 
 const colors = [
   'bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800',
@@ -34,6 +36,11 @@ function getCourseColor(name: string) {
   }
   return courseColorMap.get(name)!
 }
+
+const visibleSlots = computed(() => {
+  if (!Array.isArray(props.data) || props.data.length === 0) return []
+  return props.data.slice(0, timeSlots.length).map((_, i) => timeSlots[i])
+})
 
 function getCell(row: number, col: number): ScheduleCell {
   if (!Array.isArray(props.data)) return { course_name: '' }
@@ -81,12 +88,13 @@ function cancelEdit() {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(slot, rowIdx) in timeSlots" :key="rowIdx">
+        <tr v-for="(slot, rowIdx) in visibleSlots" :key="rowIdx">
           <td class="p-2 text-center rounded-lg bg-zinc-50 dark:bg-zinc-800">
             <div class="text-xs font-medium text-highlighted">{{ slot.label }}</div>
+            <div class="text-[10px] text-muted mt-0.5">{{ slot.start }}-{{ slot.end }}</div>
           </td>
           <td
-            v-for="colIdx in 7"
+            v-for="colIdx in 5"
             :key="colIdx"
             class="align-top h-24 rounded-lg transition-all duration-200"
             :class="[

@@ -29,12 +29,26 @@ interface MutationResponse {
 
 function mapSchedule(raw: RawSchedule): CourseSchedule {
   let parsed = typeof raw.schedule_data === 'string' ? JSON.parse(raw.schedule_data) : raw.schedule_data
-  // 兼容旧数据：string[][] → ScheduleCell[][]
+
+  // 兼容旧数据：数据库格式是 [周一[8节], 周二[8节], ...周五[8节]]
+  // 需要转置为 Grid 期望的 [时间段1[周一..周日], 时间段2[周一..周日], ...]
+  // 并合并连堂课（两两一组）
   if (Array.isArray(parsed) && parsed.length > 0 && Array.isArray(parsed[0]) && typeof parsed[0][0] === 'string') {
-    parsed = (parsed as string[][]).map(row =>
-      row.map(cell => ({ course_name: cell || '' })),
-    )
+    const dayCount = parsed.length // 5天
+    const slotsPerDay = (parsed[0] as string[]).length // 8节
+    const timeSlotCount = Math.ceil(slotsPerDay / 2) // 4个时间段
+    const grid: ScheduleCell[][] = []
+    for (let t = 0; t < timeSlotCount; t++) {
+      const row: ScheduleCell[] = []
+      for (let d = 0; d < 7; d++) {
+        const name = d < dayCount ? ((parsed[d] as string[])[t * 2] || '') : ''
+        row.push({ course_name: name })
+      }
+      grid.push(row)
+    }
+    parsed = grid
   }
+
   return {
     id: raw.id,
     name: raw.schedule_name,
