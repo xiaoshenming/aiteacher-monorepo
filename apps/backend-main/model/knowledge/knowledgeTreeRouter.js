@@ -32,7 +32,7 @@ Router.get("/:id/children", authorize(["2", "3", "4"]), async (req, res) => {
 // 创建节点
 Router.post("/", authorize(["2", "3", "4"]), async (req, res) => {
   try {
-    const data = await createNode({ ...req.body, created_by: req.user.uid });
+    const data = await createNode({ ...req.body, created_by: req.user.id });
     res.json({ code: 200, message: "创建成功", data });
   } catch (err) {
     logger.error("创建节点失败:", err);
@@ -66,7 +66,7 @@ Router.delete("/:id", authorize(["2", "3", "4"]), async (req, res) => {
 Router.post("/:id/resources", authorize(["2", "3", "4"]), async (req, res) => {
   try {
     const { resource_type, resource_id } = req.body;
-    const data = await attachResource(req.params.id, resource_type, resource_id, req.user.uid);
+    const data = await attachResource(req.params.id, resource_type, resource_id, req.user.id);
     res.json({ code: 200, message: "挂载成功", data });
   } catch (err) {
     logger.error("挂载资源失败:", err);

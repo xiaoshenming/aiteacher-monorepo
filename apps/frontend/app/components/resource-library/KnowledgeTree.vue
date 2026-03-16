@@ -5,13 +5,13 @@ const emit = defineEmits<{
 
 const { treeData, loading, fetchTree, deleteNode } = useKnowledgeTree()
 
-const subjectFilter = ref('')
-const gradeFilter = ref('')
+const subjectFilter = ref('all')
+const gradeFilter = ref('all')
 const showCreateModal = ref(false)
 const parentNodeForCreate = ref<Record<string, any> | null>(null)
 
 const subjectOptions = [
-  { label: '全部学科', value: '' },
+  { label: '全部学科', value: 'all' },
   { label: '语文', value: '语文' },
   { label: '数学', value: '数学' },
   { label: '英语', value: '英语' },
@@ -24,7 +24,7 @@ const subjectOptions = [
 ]
 
 const gradeOptions = [
-  { label: '全部年级', value: '' },
+  { label: '全部年级', value: 'all' },
   { label: '七年级', value: '七年级' },
   { label: '八年级', value: '八年级' },
   { label: '九年级', value: '九年级' },
@@ -50,12 +50,16 @@ async function handleDelete(node: Record<string, any>) {
 
 function handleCreated() {
   showCreateModal.value = false
+  const filters: Record<string, string> = {}
+  if (subjectFilter.value && subjectFilter.value !== 'all') filters.subject = subjectFilter.value
+  if (gradeFilter.value && gradeFilter.value !== 'all') filters.grade = gradeFilter.value
+  fetchTree(filters)
 }
 
 watch([subjectFilter, gradeFilter], () => {
   const filters: Record<string, string> = {}
-  if (subjectFilter.value) filters.subject = subjectFilter.value
-  if (gradeFilter.value) filters.grade = gradeFilter.value
+  if (subjectFilter.value && subjectFilter.value !== 'all') filters.subject = subjectFilter.value
+  if (gradeFilter.value && gradeFilter.value !== 'all') filters.grade = gradeFilter.value
   fetchTree(filters)
 }, { immediate: true })
 </script>
@@ -75,7 +79,7 @@ watch([subjectFilter, gradeFilter], () => {
         暂无知识树节点
       </div>
       <template v-else>
-        <KnowledgeTreeNode
+        <ResourceLibraryKnowledgeTreeNode
           v-for="node in treeData" :key="node.id"
           :node="node" :level="0"
           @select="emit('select', $event)"
@@ -91,7 +95,7 @@ watch([subjectFilter, gradeFilter], () => {
       </UButton>
     </div>
 
-    <CreateNodeModal
+    <ResourceLibraryCreateNodeModal
       v-model:open="showCreateModal"
       :parent-node="parentNodeForCreate"
       @created="handleCreated"

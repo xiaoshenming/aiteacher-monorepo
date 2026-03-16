@@ -32,12 +32,12 @@ function handleAttached() {
       <div class="flex h-full">
         <!-- 左侧知识树 -->
         <div class="w-2/5 border-r border-zinc-200 dark:border-zinc-700 flex flex-col">
-          <KnowledgeTree @select="handleSelectNode" />
+          <ResourceLibraryKnowledgeTree @select="handleSelectNode" />
         </div>
 
         <!-- 右侧资源列表 -->
         <div class="w-3/5 flex flex-col">
-          <ResourceList
+          <ResourceLibraryResourceList
             :node-id="selectedNode?.id"
             :resources="nodeResources"
             :loading="resourceLoading"
@@ -47,7 +47,7 @@ function handleAttached() {
         </div>
       </div>
 
-      <ResourceAttachModal
+      <ResourceLibraryResourceAttachModal
         v-if="selectedNode"
         v-model:open="showAttachModal"
         :node-id="selectedNode.id"

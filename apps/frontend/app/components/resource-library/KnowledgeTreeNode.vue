@@ -65,7 +65,7 @@ const typeColors: Record<string, string> = {
     </div>
 
     <div v-if="hasChildren && expanded">
-      <KnowledgeTreeNode
+      <ResourceLibraryKnowledgeTreeNode
         v-for="child in node.children" :key="child.id"
         :node="child" :level="level + 1"
         @select="emit('select', $event)"

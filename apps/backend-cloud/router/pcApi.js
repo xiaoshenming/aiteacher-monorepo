@@ -112,7 +112,7 @@ router.post('/chunk/upload', chunkUpload.single('chunk'), async (req, res) => {
  */
 router.post('/chunk/merge', async (req, res) => {
   try {
-    const { fileMd5, fileName, fileType, fileSize } = req.body
+    const { fileMd5, fileName, fileType, fileSize, parentId } = req.body
     const userLvid = req.user.lvid
 
     // 获取所有已上传的分片，并确保按照顺序排列
@@ -148,6 +148,7 @@ router.post('/chunk/merge', async (req, res) => {
       path: finalPath,
       size: fileSize,
       type: fileType,
+      parent_id: parentId || null,
       uploaded_at: new Date()
     })
 
@@ -247,20 +248,114 @@ router.delete('/delete/:fileId', async (req, res) => {
 })
 
 /**
- * 查询用户文件列表
+ * 查询用户文件列表（支持文件夹筛选）
  * @route GET /list
  * @group 文件管理
  */
 router.get('/list', async (req, res) => {
   try {
+    const parentId = req.query.parent_id ? parseInt(req.query.parent_id) : null
     const [files] = await db.query(
-      'SELECT id, name, size, type, uploaded_at, is_folder FROM file WHERE lvid = ?',
-      [req.user.lvid]
+      'SELECT id, name, size, type, uploaded_at, is_folder, parent_id FROM file WHERE lvid = ? AND parent_id <=> ?',
+      [req.user.lvid, parentId]
     )
     res.json({ code: 200, message: '查询文件列表成功', data: files })
   } catch (err) {
     console.error(err)
     res.status(500).json({ code: 500, message: '查询失败', data: null })
+  }
+})
+
+/**
+ * 创建文件夹
+ * @route POST /folder
+ */
+router.post('/folder', async (req, res) => {
+  try {
+    const { name, parent_id } = req.body
+    if (!name) return res.status(400).json({ code: 400, message: '文件夹名称不能为空', data: null })
+    const [result] = await db.query('INSERT INTO file SET ?', {
+      lvid: req.user.lvid,
+      name,
+      path: '',
+      size: 0,
+      type: 'folder',
+      is_folder: 1,
+      parent_id: parent_id || null,
+      uploaded_at: new Date()
+    })
+    res.json({ code: 200, message: '创建成功', data: { id: result.insertId } })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ code: 500, message: '创建文件夹失败', data: null })
+  }
+})
+
+/**
+ * 移动文件/文件夹到目标文件夹
+ * @route PUT /move/:fileId
+ */
+router.put('/move/:fileId', async (req, res) => {
+  try {
+    const fileId = parseInt(req.params.fileId)
+    const { parent_id } = req.body
+    const targetParentId = parent_id === undefined || parent_id === null ? null : parseInt(parent_id)
+    // 不能移动到自身
+    if (targetParentId === fileId) {
+      return res.status(400).json({ code: 400, message: '不能移动到自身', data: null })
+    }
+    await db.query(
+      'UPDATE file SET parent_id = ? WHERE id = ? AND lvid = ?',
+      [targetParentId, fileId, req.user.lvid]
+    )
+    res.json({ code: 200, message: '移动成功', data: null })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ code: 500, message: '移动失败', data: null })
+  }
+})
+
+/**
+ * 重命名文件/文件夹
+ * @route PUT /rename/:fileId
+ */
+router.put('/rename/:fileId', async (req, res) => {
+  try {
+    const { name } = req.body
+    if (!name) return res.status(400).json({ code: 400, message: '名称不能为空', data: null })
+    await db.query(
+      'UPDATE file SET name = ? WHERE id = ? AND lvid = ?',
+      [name, parseInt(req.params.fileId), req.user.lvid]
+    )
+    res.json({ code: 200, message: '重命名成功', data: null })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ code: 500, message: '重命名失败', data: null })
+  }
+})
+
+/**
+ * 获取文件夹面包屑路径
+ * @route GET /breadcrumb/:folderId
+ */
+router.get('/breadcrumb/:folderId', async (req, res) => {
+  try {
+    const folderId = parseInt(req.params.folderId)
+    const breadcrumb = []
+    let currentId = folderId
+    while (currentId) {
+      const [rows] = await db.query(
+        'SELECT id, name, parent_id FROM file WHERE id = ? AND lvid = ? AND is_folder = 1',
+        [currentId, req.user.lvid]
+      )
+      if (!rows.length) break
+      breadcrumb.unshift({ id: rows[0].id, name: rows[0].name })
+      currentId = rows[0].parent_id
+    }
+    res.json({ code: 200, message: '获取路径成功', data: breadcrumb })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ code: 500, message: '获取路径失败', data: null })
   }
 })
 

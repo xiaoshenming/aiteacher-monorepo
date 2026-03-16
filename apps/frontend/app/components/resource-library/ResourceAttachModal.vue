@@ -5,6 +5,7 @@ const emit = defineEmits<{ attached: [] }>()
 
 const { apiFetch } = useApi()
 const { attachResource } = useKnowledgeTree()
+const { fetchFiles: fetchCloudFiles } = useCloudDisk()
 
 const activeTab = ref('lesson_plan')
 const searchQuery = ref('')
@@ -17,6 +18,7 @@ const tabs = [
   { label: '试卷', value: 'paper', icon: 'i-lucide-file-text' },
   { label: '题目', value: 'question', icon: 'i-lucide-help-circle' },
   { label: '文件', value: 'file', icon: 'i-lucide-file' },
+  { label: '云盘', value: 'cloud_file', icon: 'i-lucide-cloud' },
 ]
 
 const apiMap: Record<string, string> = {
@@ -29,9 +31,17 @@ const apiMap: Record<string, string> = {
 async function doSearch() {
   searching.value = true
   try {
-    const url = `${apiMap[activeTab.value]}?keyword=${encodeURIComponent(searchQuery.value)}&page=1&pageSize=20`
-    const { data } = await apiFetch<any>(url)
-    searchResults.value = data?.list || data || []
+    if (activeTab.value === 'cloud_file') {
+      const files = await fetchCloudFiles()
+      const q = searchQuery.value.toLowerCase()
+      searchResults.value = (files || [])
+        .filter((f: any) => !f.is_folder && (!q || f.name.toLowerCase().includes(q)))
+    }
+    else {
+      const url = `${apiMap[activeTab.value]}?keyword=${encodeURIComponent(searchQuery.value)}&page=1&pageSize=20`
+      const { data } = await apiFetch<any>(url)
+      searchResults.value = data?.list || data || []
+    }
   } catch {
     searchResults.value = []
   } finally {

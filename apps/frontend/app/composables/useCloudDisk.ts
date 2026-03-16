@@ -8,8 +8,10 @@ export function useCloudDisk() {
   const config = useRuntimeConfig()
   const userStore = useUserStore()
 
-  async function fetchFiles(): Promise<CloudFile[]> {
-    const res = await cloudFetch<FileListResponse>('/pc/list')
+  async function fetchFiles(parentId?: number | null): Promise<CloudFile[]> {
+    const params: Record<string, any> = {}
+    if (parentId !== undefined && parentId !== null) params.parent_id = parentId
+    const res = await cloudFetch<FileListResponse>('/pc/list', { params })
     return res.data
   }
 
@@ -27,10 +29,10 @@ export function useCloudDisk() {
     })
   }
 
-  async function mergeChunks(fileMd5: string, fileName: string, fileType: string, fileSize: number): Promise<void> {
+  async function mergeChunks(fileMd5: string, fileName: string, fileType: string, fileSize: number, parentId?: number | null): Promise<void> {
     await cloudFetch('/pc/chunk/merge', {
       method: 'POST',
-      body: { fileMd5, fileName, fileType, fileSize },
+      body: { fileMd5, fileName, fileType, fileSize, parentId: parentId || null },
     })
   }
 
@@ -79,7 +81,7 @@ export function useCloudDisk() {
     })
   }
 
-  async function uploadFile(file: File, onProgress?: (progress: number) => void): Promise<void> {
+  async function uploadFile(file: File, onProgress?: (progress: number) => void, parentId?: number | null): Promise<void> {
     const fileMd5 = await computeFileHash(file)
     const totalChunks = Math.ceil(file.size / CHUNK_SIZE)
 
@@ -89,7 +91,7 @@ export function useCloudDisk() {
 
     // If all chunks uploaded, just merge
     if (uploadedIndices.length >= totalChunks) {
-      await mergeChunks(fileMd5, file.name, file.type || 'application/octet-stream', file.size)
+      await mergeChunks(fileMd5, file.name, file.type || 'application/octet-stream', file.size, parentId)
       onProgress?.(100)
       return
     }
@@ -120,8 +122,35 @@ export function useCloudDisk() {
     }
 
     // Merge all chunks
-    await mergeChunks(fileMd5, file.name, file.type || 'application/octet-stream', file.size)
+    await mergeChunks(fileMd5, file.name, file.type || 'application/octet-stream', file.size, parentId)
     onProgress?.(100)
+  }
+
+  async function createFolder(name: string, parentId?: number | null): Promise<{ id: number }> {
+    const res = await cloudFetch<{ code: number, data: { id: number } }>('/pc/folder', {
+      method: 'POST',
+      body: { name, parent_id: parentId || null },
+    })
+    return res.data
+  }
+
+  async function moveFile(fileId: number, parentId: number | null): Promise<void> {
+    await cloudFetch(`/pc/move/${fileId}`, {
+      method: 'PUT',
+      body: { parent_id: parentId },
+    })
+  }
+
+  async function renameFile(fileId: number, name: string): Promise<void> {
+    await cloudFetch(`/pc/rename/${fileId}`, {
+      method: 'PUT',
+      body: { name },
+    })
+  }
+
+  async function fetchBreadcrumb(folderId: number): Promise<{ id: number, name: string }[]> {
+    const res = await cloudFetch<{ code: number, data: { id: number, name: string }[] }>(`/pc/breadcrumb/${folderId}`)
+    return res.data
   }
 
   return {
@@ -133,5 +162,9 @@ export function useCloudDisk() {
     getDownloadUrl,
     getPreviewUrl,
     uploadFile,
+    createFolder,
+    moveFile,
+    renameFile,
+    fetchBreadcrumb,
   }
 }

@@ -5,6 +5,7 @@ export interface CloudFile {
   type: string
   uploaded_at: string
   is_folder: number
+  parent_id: number | null
 }
 
 export interface ChunkUploadState {
