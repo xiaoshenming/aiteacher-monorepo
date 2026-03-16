@@ -142,7 +142,7 @@ watch(open, (val) => {
 
         <!-- Step 3: 预览 -->
         <div v-show="currentStep === 3">
-          <AssignmentAssignmentPreview :assignment="form" :questions="selectedQuestions" @update:questions="selectedQuestions = $event" />
+          <AssignmentPreview :assignment="form" :questions="selectedQuestions" @update:questions="selectedQuestions = $event" />
         </div>
 
         <!-- 底部导航 -->

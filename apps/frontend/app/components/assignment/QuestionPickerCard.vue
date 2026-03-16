@@ -35,7 +35,7 @@ const typeLabels: Record<string, string> = {
     @click="$emit('toggle')"
   >
     <div class="flex items-start gap-3">
-      <UCheckbox :model-value="selected" class="mt-0.5" @click.stop />
+      <UCheckbox :model-value="selected" class="mt-0.5 pointer-events-none" :tabindex="-1" />
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2 mb-1">
           <UBadge variant="subtle" size="xs" color="primary">

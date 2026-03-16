@@ -11,12 +11,12 @@ const loading = ref(false)
 const total = ref(0)
 const page = ref(1)
 
-const filterType = ref('')
-const filterDifficulty = ref('')
+const filterType = ref('all')
+const filterDifficulty = ref('all')
 const keyword = ref('')
 
 const typeOptions = [
-  { label: '全部类型', value: '' },
+  { label: '全部类型', value: 'all' },
   { label: '单选', value: 'single_choice' },
   { label: '多选', value: 'multiple_choice' },
   { label: '判断', value: 'true_false' },
@@ -26,7 +26,7 @@ const typeOptions = [
 ]
 
 const difficultyOptions = [
-  { label: '全部难度', value: '' },
+  { label: '全部难度', value: 'all' },
   { label: '简单', value: 'easy' },
   { label: '中等', value: 'medium' },
   { label: '困难', value: 'hard' },
@@ -38,8 +38,8 @@ async function fetchQuestions() {
   loading.value = true
   try {
     const params = new URLSearchParams({ page: String(page.value), pageSize: '20' })
-    if (filterType.value) params.append('type', filterType.value)
-    if (filterDifficulty.value) params.append('difficulty', filterDifficulty.value)
+    if (filterType.value && filterType.value !== 'all') params.append('type', filterType.value)
+    if (filterDifficulty.value && filterDifficulty.value !== 'all') params.append('difficulty', filterDifficulty.value)
     if (keyword.value) params.append('keyword', keyword.value)
     const res = await apiFetch<{ code: number, data: any }>(`/question-bank?${params}`)
     if (res.code === 200) {
