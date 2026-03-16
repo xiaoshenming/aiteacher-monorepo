@@ -23,6 +23,7 @@ const authorize = require("./model/auth/authUtils"); // 鉴权中间件
 const scheduleRouter = require("./model/schedule/scheduleRouter"); // 课程表接口
 const questionRouter = require("./model/question/questionRouter"); // 题目生成接口
 const questionBankRouter = require("./model/edu/questionBankRouter"); // 题库管理接口
+const knowledgeTreeRouter = require("./model/knowledge/knowledgeTreeRouter"); // 知识点树接口
 const aiRouter = require("./model/ai/aiRouter"); // AI 功能接口
 const { setupWebSocketServer } = require("./model/ai/wxsocket"); // 初始化 WebSocket 服务（用于 AI 模块）
 const { startHeartbeats } = require("./config/heartbeat"); // 启动心跳检测（Redis 与 MySQL）
@@ -111,6 +112,7 @@ app.use("/api/changelog", changelogRoute); // 版本更新日志接口
 app.use("/api/course-schedule", scheduleRouter); // 课程表接口
 app.use("/api/bridge", questionRouter); // 题目生成接口
 app.use("/api/question-bank", questionBankRouter); // 题库管理接口
+app.use("/api/knowledge-tree", knowledgeTreeRouter); // 知识点树接口
 
 // AI 接口限流：10 req/min（按用户 ID）
 app.use("/api/ai", aiLimiter);
