@@ -24,8 +24,11 @@ const scheduleRouter = require("./model/schedule/scheduleRouter"); // 课程表�
 const questionRouter = require("./model/question/questionRouter"); // 题目生成接口
 const questionBankRouter = require("./model/edu/questionBankRouter"); // 题库管理接口
 const knowledgeTreeRouter = require("./model/knowledge/knowledgeTreeRouter"); // 知识点树接口
+const shareRouter = require("./model/share/shareRouter"); // 资源共享接口
 const aiRouter = require("./model/ai/aiRouter"); // AI 功能接口
 const { setupWebSocketServer } = require("./model/ai/wxsocket"); // 初始化 WebSocket 服务（用于 AI 模块）
+const classroomRouter = require("./model/classroom/classroomRouter"); // 课堂互动接口
+const { setupClassroomWS } = require("./model/classroom/classroomSocket"); // 课堂互动 WebSocket
 const { startHeartbeats } = require("./config/heartbeat"); // 启动心跳检测（Redis 与 MySQL）
 const testRouter = require("./model/test/testRoutes"); // 测试接口（需要鉴权）
 const fileUploadMiddleware = require("./model/static/fileUpload"); // 文件上传中间件
@@ -113,6 +116,7 @@ app.use("/api/course-schedule", scheduleRouter); // 课程表接口
 app.use("/api/bridge", questionRouter); // 题目生成接口
 app.use("/api/question-bank", questionBankRouter); // 题库管理接口
 app.use("/api/knowledge-tree", knowledgeTreeRouter); // 知识点树接口
+app.use("/api/share", shareRouter); // 资源共享接口
 
 // AI 接口限流：10 req/min（按用户 ID）
 app.use("/api/ai", aiLimiter);
@@ -123,6 +127,7 @@ app.use("/api/ppt", pptRouter); // PPT 接口
 app.use("/api/news", newsRouter); // 新闻接口
 app.use("/api/lessonPlans", lessonPlansRouter); // 教案接口
 app.use("/api/assignments", assignmentRouter); // 作业接口
+app.use("/api/classroom", classroomRouter); // 课堂互动接口
 app.use("/api", verifyRoute); // 邮件验证接口
 
 // 404 错误处理（必须在所有路由之后）
@@ -133,6 +138,7 @@ app.use(errorHandler);
 
 const server = http.createServer(app); // 创建 HTTP 服务器
 setupWebSocketServer(server); // 初始化 WebSocket 服务器（绑定至 HTTP 服务器）
+setupClassroomWS(server); // 初始化课堂互动 WebSocket
 startHeartbeats(); // 启动心跳检测服务
 server.listen(port, "0.0.0.0", () => {
   logger.info(`服务器已启动，监听端口：http://0.0.0.0:${port}`);
