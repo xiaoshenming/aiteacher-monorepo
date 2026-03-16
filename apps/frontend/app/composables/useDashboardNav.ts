@@ -55,7 +55,13 @@ function getTeacherNav(closeSidebar: () => void): DashboardNavItem[][] {
       label: '资源库',
       icon: 'i-lucide-library',
       to: '/user/resource-library',
-      tooltip: { text: '教学资源库', openDelay: 500 },
+      onSelect: closeSidebar,
+    },
+    {
+      label: '共享中心',
+      icon: 'i-lucide-share-2',
+      to: '/user/shared-resources',
+      tooltip: { text: '资源共享中心', openDelay: 500 },
       onSelect: closeSidebar,
     },
     {
