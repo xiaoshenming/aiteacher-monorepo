@@ -1,6 +1,7 @@
 const express = require("express")
 const db = require("../../config/db")
 const authorize = require("../auth/authUtils")
+const logger = require("../../utils/logger")
 
 const Router = express.Router()
 
@@ -344,6 +345,153 @@ Router.delete("/:id", authorize(["2", "3", "4"]), (req, res) => {
       })
     })
   })
+})
+
+// ========== 批改与反馈端点 ==========
+const assignmentUtils = require("./assignmentUtils")
+
+// GET /:id/submissions — 教师获取提交列表
+Router.get("/:id/submissions", authorize(["2","3","4"]), async (req, res) => {
+  try {
+    const { page = 1, pageSize = 20 } = req.query
+    const data = await assignmentUtils.getSubmissions(req.params.id, parseInt(page), parseInt(pageSize))
+    res.json({ code: 200, message: "查询成功", data })
+  } catch (err) {
+    res.status(500).json({ code: 500, message: "查询失败" })
+  }
+})
+
+// GET /:id/submissions/:sid — 获取单个提交详情
+Router.get("/:id/submissions/:sid", authorize(["2","3","4"]), async (req, res) => {
+  try {
+    const data = await assignmentUtils.getSubmissionDetail(req.params.id, req.params.sid)
+    if (!data) return res.status(404).json({ code: 404, message: "提交不存在" })
+    res.json({ code: 200, message: "查询成功", data })
+  } catch (err) {
+    res.status(500).json({ code: 500, message: "查询失败" })
+  }
+})
+
+// POST /:id/auto-grade — 自动批改客观题
+Router.post("/:id/auto-grade", authorize(["2","3","4"]), async (req, res) => {
+  try {
+    const result = await assignmentUtils.autoGradeObjective(req.params.id)
+    res.json({ code: 200, message: "自动批改完成", data: result })
+  } catch (err) {
+    res.status(500).json({ code: 500, message: "自动批改失败" })
+  }
+})
+
+// POST /:id/ai-grade — AI 辅助批改主观题（SSE 流式）
+Router.post("/:id/ai-grade", authorize(["2","3","4"]), async (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream")
+  res.setHeader("Cache-Control", "no-cache")
+  res.setHeader("Connection", "keep-alive")
+
+  try {
+    const questions = await assignmentUtils.dbQuery(
+      `SELECT aq.*, q.title, q.type, q.content, q.answer AS standard_answer, q.explanation
+       FROM assignment_questions aq
+       LEFT JOIN question q ON aq.question_id = q.id
+       WHERE aq.assignment_id = ? AND q.type IN ('short_answer','essay','calculation')`,
+      [req.params.id]
+    )
+    const submissions = await assignmentUtils.dbQuery(
+      `SELECT * FROM assignment_submissions WHERE assignment_id = ? AND status IN ('submitted','auto_graded')`,
+      [req.params.id]
+    )
+
+    for (const sub of submissions) {
+      let answers = []
+      try { answers = JSON.parse(sub.answers)?.question_answers || [] } catch (e) { continue }
+
+      const aiScores = []
+      for (const q of questions) {
+        const sa = answers.find((a) => a.question_id === q.question_id)
+        if (!sa) continue
+
+        const prompt = `你是一位严格的教师，请评估学生的答案。
+题目：${q.content || q.title}
+标准答案：${q.standard_answer || "无"}
+学生答案：${sa.answer}
+满分：${q.score}分
+
+请以 JSON 格式返回评分：{"score": 数字, "feedback": "评语"}`
+
+        try {
+          const OpenAI = require("openai")
+          const client = new OpenAI({
+            apiKey: process.env.DEEPSEEK_API_KEY,
+            baseURL: process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com",
+          })
+          const completion = await client.chat.completions.create({
+            model: process.env.DEEPSEEK_MODEL || "deepseek-chat",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.3,
+          })
+
+          let aiResult = { score: 0, feedback: "AI 评分失败" }
+          try {
+            const content = completion.choices[0].message.content
+            const jsonMatch = content.match(/\{[\s\S]*\}/)
+            if (jsonMatch) aiResult = JSON.parse(jsonMatch[0])
+          } catch (e) { /* parse error, use default */ }
+
+          aiScores.push({ question_id: q.question_id, score: aiResult.score, max: q.score, feedback: aiResult.feedback })
+          res.write(`data: ${JSON.stringify({ type: "progress", submission_id: sub.id, question_id: q.question_id, result: aiResult })}\n\n`)
+        } catch (aiErr) {
+          logger.error("AI 批改失败:", aiErr)
+        }
+      }
+
+      if (aiScores.length > 0) {
+        await assignmentUtils.dbQuery(
+          `UPDATE assignment_submissions SET ai_scores = ?, status = 'ai_graded' WHERE id = ?`,
+          [JSON.stringify(aiScores), sub.id]
+        )
+      }
+      res.write(`data: ${JSON.stringify({ type: "submission_done", submission_id: sub.id, ai_scores: aiScores })}\n\n`)
+    }
+
+    res.write(`data: ${JSON.stringify({ type: "complete" })}\n\n`)
+    res.end()
+  } catch (err) {
+    logger.error("AI 批改失败:", err)
+    res.write(`data: ${JSON.stringify({ type: "error", message: err.message })}\n\n`)
+    res.end()
+  }
+})
+
+// PUT /:id/submissions/:sid/grade — 教师手动批改
+Router.put("/:id/submissions/:sid/grade", authorize(["2","3","4"]), async (req, res) => {
+  try {
+    const { score, feedback, detail_scores } = req.body
+    await assignmentUtils.manualGrade(req.params.sid, score, feedback, detail_scores)
+    res.json({ code: 200, message: "批改成功" })
+  } catch (err) {
+    res.status(500).json({ code: 500, message: "批改失败" })
+  }
+})
+
+// POST /:id/batch-grade — 批量确认 AI 建议
+Router.post("/:id/batch-grade", authorize(["2","3","4"]), async (req, res) => {
+  try {
+    const { submission_ids } = req.body
+    const result = await assignmentUtils.batchConfirmGrades(req.params.id, submission_ids)
+    res.json({ code: 200, message: "批量确认完成", data: result })
+  } catch (err) {
+    res.status(500).json({ code: 500, message: "批量确认失败" })
+  }
+})
+
+// GET /:id/grade-summary — 批改统计
+Router.get("/:id/grade-summary", authorize(["2","3","4"]), async (req, res) => {
+  try {
+    const data = await assignmentUtils.getGradeSummary(req.params.id)
+    res.json({ code: 200, message: "查询成功", data })
+  } catch (err) {
+    res.status(500).json({ code: 500, message: "查询失败" })
+  }
 })
 
 module.exports = Router
