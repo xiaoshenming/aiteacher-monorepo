@@ -82,9 +82,7 @@ function setupWebSocketServer(server) {
       wss.handleUpgrade(request, socket, head, (ws) => {
         wss.emit("connection", ws, request, authResult.user);
       });
-    } else {
-      socket.destroy();
-    }
+    } // 不处理非 wxsocket 路径，让其他 upgrade handler 处理
   });
 
   wss.on("connection", (ws, request, user) => {
