@@ -10,7 +10,7 @@ export function useResourceShare() {
   async function fetchMyShares(page = 1, pageSize = 20) {
     loading.value = true
     try {
-      const res = await apiFetch<any>('/api/share/my-shares', {
+      const res = await apiFetch<any>('/share/my-shares', {
         params: { page, pageSize },
       })
       myShares.value = res.data || []
@@ -24,7 +24,7 @@ export function useResourceShare() {
   async function fetchSharedToMe(page = 1, pageSize = 20) {
     loading.value = true
     try {
-      const res = await apiFetch<any>('/api/share/shared-to-me', {
+      const res = await apiFetch<any>('/share/shared-to-me', {
         params: { page, pageSize },
       })
       sharedToMe.value = res.data || []
@@ -40,7 +40,7 @@ export function useResourceShare() {
     try {
       const params: any = { page, pageSize }
       if (resourceType) params.resource_type = resourceType
-      const res = await apiFetch<any>('/api/share/public', { params })
+      const res = await apiFetch<any>('/share/public', { params })
       publicShares.value = res.data || []
       total.value = res.total || 0
     }
@@ -54,7 +54,7 @@ export function useResourceShare() {
     try {
       const userStore = useUserStore()
       const schoolId = (userStore.userInfo as any)?.school_id
-      const res = await apiFetch<any>('/api/share/school', {
+      const res = await apiFetch<any>('/share/school', {
         params: { page, pageSize, school_id: schoolId },
       })
       schoolShares.value = res.data || []
@@ -74,14 +74,14 @@ export function useResourceShare() {
     permission?: string
     message?: string
   }) {
-    return await apiFetch<any>('/api/share', {
+    return await apiFetch<any>('/share', {
       method: 'POST',
       body: data,
     })
   }
 
   async function deleteShare(id: number) {
-    return await apiFetch<any>(`/api/share/${id}`, {
+    return await apiFetch<any>(`/share/${id}`, {
       method: 'DELETE',
     })
   }

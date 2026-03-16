@@ -3,12 +3,12 @@ export function useTags() {
   const tags = ref<any[]>([])
 
   async function fetchTags() {
-    const res = await apiFetch<any>('/api/share/tags')
+    const res = await apiFetch<any>('/share/tags')
     tags.value = res.data || []
   }
 
   async function createTag(name: string, color = '#14b8a6') {
-    return await apiFetch<any>('/api/share/tag', {
+    return await apiFetch<any>('/share/tag', {
       method: 'POST',
       body: { name, color },
     })
