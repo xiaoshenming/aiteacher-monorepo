@@ -13,8 +13,8 @@ export function useResourceShare() {
       const res = await apiFetch<any>('/share/my-shares', {
         params: { page, pageSize },
       })
-      myShares.value = res.data || []
-      total.value = res.total || 0
+      myShares.value = res.data?.list || []
+      total.value = res.data?.total || 0
     }
     finally {
       loading.value = false
@@ -27,8 +27,8 @@ export function useResourceShare() {
       const res = await apiFetch<any>('/share/shared-to-me', {
         params: { page, pageSize },
       })
-      sharedToMe.value = res.data || []
-      total.value = res.total || 0
+      sharedToMe.value = res.data?.list || []
+      total.value = res.data?.total || 0
     }
     finally {
       loading.value = false
@@ -41,8 +41,8 @@ export function useResourceShare() {
       const params: any = { page, pageSize }
       if (resourceType) params.resource_type = resourceType
       const res = await apiFetch<any>('/share/public', { params })
-      publicShares.value = res.data || []
-      total.value = res.total || 0
+      publicShares.value = res.data?.list || []
+      total.value = res.data?.total || 0
     }
     finally {
       loading.value = false
@@ -57,8 +57,8 @@ export function useResourceShare() {
       const res = await apiFetch<any>('/share/school', {
         params: { page, pageSize, school_id: schoolId },
       })
-      schoolShares.value = res.data || []
-      total.value = res.total || 0
+      schoolShares.value = res.data?.list || []
+      total.value = res.data?.total || 0
     }
     finally {
       loading.value = false

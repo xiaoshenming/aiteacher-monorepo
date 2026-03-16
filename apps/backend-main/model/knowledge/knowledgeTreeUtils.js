@@ -90,12 +90,12 @@ async function getNodeResources(nodeId, page = 1, pageSize = 20) {
   const [rows, countResult] = await Promise.all([
     dbQuery(
       `SELECT m.id AS map_id, m.resource_type, m.resource_id, m.created_at,
-              COALESCE(q.title, r.name, e.title, f.name) AS resource_name
+              COALESCE(q.title, f.name, e.name, cf.name) AS resource_name
        FROM resource_node_map m
-       LEFT JOIN questionbank q ON m.resource_type = 'question' AND m.resource_id = q.id
-       LEFT JOIN resources r ON m.resource_type = 'resource' AND m.resource_id = r.id
-       LEFT JOIN lesson_plans e ON m.resource_type = 'lesson_plan' AND m.resource_id = e.id
-       LEFT JOIN file f ON m.resource_type = 'cloud_file' AND m.resource_id = f.id
+       LEFT JOIN question q ON m.resource_type = 'question' AND m.resource_id = q.id
+       LEFT JOIN file f ON m.resource_type = 'resource' AND m.resource_id = f.id
+       LEFT JOIN lessonplans e ON m.resource_type = 'lesson_plan' AND m.resource_id = e.id
+       LEFT JOIN file cf ON m.resource_type = 'cloud_file' AND m.resource_id = cf.id
        WHERE m.node_id = ?
        ORDER BY m.created_at DESC LIMIT ? OFFSET ?`,
       [nodeId, pageSize, offset]

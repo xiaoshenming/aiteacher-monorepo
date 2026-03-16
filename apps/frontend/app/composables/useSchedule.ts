@@ -28,10 +28,17 @@ interface MutationResponse {
 }
 
 function mapSchedule(raw: RawSchedule): CourseSchedule {
+  let parsed = typeof raw.schedule_data === 'string' ? JSON.parse(raw.schedule_data) : raw.schedule_data
+  // 兼容旧数据：string[][] → ScheduleCell[][]
+  if (Array.isArray(parsed) && parsed.length > 0 && Array.isArray(parsed[0]) && typeof parsed[0][0] === 'string') {
+    parsed = (parsed as string[][]).map(row =>
+      row.map(cell => ({ course_name: cell || '' })),
+    )
+  }
   return {
     id: raw.id,
     name: raw.schedule_name,
-    schedule_data: typeof raw.schedule_data === 'string' ? JSON.parse(raw.schedule_data) : raw.schedule_data,
+    schedule_data: parsed,
     is_active: raw.status === 1,
     created_at: raw.created_at,
     updated_at: raw.updated_at,

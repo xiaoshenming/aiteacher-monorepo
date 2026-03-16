@@ -333,9 +333,10 @@ async function getCourseDetails(courseId, teacherId) {
 
     const isMainTeacher = teacherCheck[0].is_main_teacher === 1;
 
-    // 获取关联到课程的班级
+    // 获取关联到课程的班级（含学生数）
     const [classRows] = await connection.query(
-      `SELECT cc.*, c.class_name, c.grade, c.capacity, c.schoolId
+      `SELECT cc.*, c.class_name AS name, c.grade, c.capacity, c.schoolId,
+              (SELECT COUNT(*) FROM class_student cs WHERE cs.class_id = cc.class_id AND cs.status = 1) AS student_count
        FROM course_class cc
        JOIN class c ON cc.class_id = c.id
        WHERE cc.course_id = ? AND cc.status = 1`,
