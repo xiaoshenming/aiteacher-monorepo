@@ -21,6 +21,10 @@ const creating = ref(false)
 const deleteTarget = ref<LessonPlan | null>(null)
 const deleting = ref(false)
 
+// 共享
+const showShareModal = ref(false)
+const shareTarget = ref<LessonPlan | null>(null)
+
 async function loadData() {
   loading.value = true
   try {
@@ -81,6 +85,16 @@ async function handleDelete() {
 
 function openEditor(plan: LessonPlan) {
   router.push(`/user/lesson-plans/${plan.id}`)
+}
+
+function handleShare(plan: LessonPlan) {
+  shareTarget.value = plan
+  showShareModal.value = true
+}
+
+function handleShared() {
+  showShareModal.value = false
+  shareTarget.value = null
 }
 
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
@@ -189,6 +203,7 @@ onMounted(() => loadData())
             :plan="plan"
             @open="openEditor"
             @delete="deleteTarget = $event"
+            @share="handleShare"
           />
         </div>
 
@@ -247,6 +262,15 @@ onMounted(() => loadData())
           </div>
         </div>
       </Teleport>
+
+      <!-- 共享对话框 -->
+      <ShareShareModal
+        v-if="shareTarget"
+        v-model="showShareModal"
+        resource-type="lesson_plan"
+        :resource-id="shareTarget.id"
+        @shared="handleShared"
+      />
     </template>
   </UDashboardPanel>
 </template>

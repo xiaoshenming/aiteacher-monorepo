@@ -36,6 +36,10 @@ const gradingAssignmentId = ref<number>(0)
 const classOptions = ref<{ label: string, value: number }[]>([])
 const courseOptions = ref<{ label: string, value: number }[]>([])
 
+// 共享
+const showShareModal = ref(false)
+const shareTargetId = ref<number | null>(null)
+
 function openGrading(id: number) {
   gradingAssignmentId.value = id
   showGrading.value = true
@@ -115,6 +119,16 @@ function formatDeadline(d: string | null) {
   return new Date(d).toLocaleDateString('zh-CN')
 }
 
+function handleShare(id: number) {
+  shareTargetId.value = id
+  showShareModal.value = true
+}
+
+function handleShared() {
+  showShareModal.value = false
+  shareTargetId.value = null
+}
+
 onMounted(() => {
   fetchAssignments()
   loadOptions()
@@ -159,6 +173,7 @@ onMounted(() => {
               <UButton v-if="row.original.status === 'draft'" size="xs" variant="ghost" icon="i-lucide-send" title="发布" @click="handlePublish(row.original.id)" />
               <UButton v-if="row.original.status === 'published'" size="xs" variant="ghost" icon="i-lucide-lock" title="截止" @click="handleClose(row.original.id)" />
               <UButton v-if="row.original.status === 'published' || row.original.status === 'closed'" size="xs" variant="ghost" icon="i-lucide-clipboard-check" title="批改" @click="openGrading(row.original.id)" />
+              <UButton size="xs" variant="ghost" color="primary" icon="i-lucide-share-2" title="共享" @click="handleShare(row.original.id)" />
               <UButton size="xs" variant="ghost" color="error" icon="i-lucide-trash-2" title="删除" @click="handleDelete(row.original.id)" />
             </div>
           </template>
@@ -185,6 +200,15 @@ onMounted(() => {
           </div>
         </template>
       </UModal>
+
+      <!-- 共享对话框 -->
+      <ShareShareModal
+        v-if="shareTargetId"
+        v-model="showShareModal"
+        resource-type="assignment"
+        :resource-id="shareTargetId"
+        @shared="handleShared"
+      />
     </template>
   </UDashboardPanel>
 </template>

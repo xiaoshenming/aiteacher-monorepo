@@ -8,6 +8,7 @@ defineProps<{
 const emit = defineEmits<{
   attach: []
   detach: [mapId: number]
+  share: [resource: any]
 }>()
 
 const typeIcons: Record<string, string> = {
@@ -63,7 +64,11 @@ const typeLabels: Record<string, string> = {
             </UBadge>
           </div>
           <UButton
-            icon="i-lucide-unlink" size="xs" variant="ghost" color="error"
+            icon="i-lucide-share-2" size="xs" variant="ghost" color="primary" title="共享"
+            @click="emit('share', res)"
+          />
+          <UButton
+            icon="i-lucide-unlink" size="xs" variant="ghost" color="error" title="解除关联"
             @click="emit('detach', res.map_id || res.id)"
           />
         </div>

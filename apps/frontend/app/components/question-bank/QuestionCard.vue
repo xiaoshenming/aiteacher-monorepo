@@ -19,6 +19,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   toggle: [id: number]
   delete: [id: number]
+  share: [id: number]
 }>()
 
 const difficultyColors: Record<string, string> = {
@@ -40,6 +41,13 @@ const difficultyColors: Record<string, string> = {
         <span class="text-sm text-highlighted truncate">{{ props.question.content }}</span>
       </div>
       <div class="flex items-center gap-2 ml-2">
+        <UButton
+          size="xs"
+          variant="ghost"
+          color="primary"
+          icon="i-lucide-share-2"
+          @click.stop="emit('share', props.question.id)"
+        />
         <UButton
           size="xs"
           variant="ghost"

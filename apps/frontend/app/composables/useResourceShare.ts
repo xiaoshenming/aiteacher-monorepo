@@ -53,7 +53,7 @@ export function useResourceShare() {
     loading.value = true
     try {
       const userStore = useUserStore()
-      const schoolId = (userStore.userInfo as any)?.school_id
+      const schoolId = (userStore.userInfo as any)?.schoolId
       const res = await apiFetch<any>('/share/school', {
         params: { page, pageSize, school_id: schoolId },
       })

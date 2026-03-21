@@ -70,9 +70,14 @@ async function getTeacherCourses(teacherId) {
 
     const teacherUid = userResult[0].uid;
 
-    // 使用uid查询课程
+    // 使用uid查询课程，并统计班级数量和学生数量
     const [rows] = await connection.query(
-      `SELECT c.*, tc.is_main_teacher
+      `SELECT c.*, tc.is_main_teacher,
+              (SELECT COUNT(*) FROM course_class cc WHERE cc.course_id = c.id AND cc.status = 1) as class_count,
+              (SELECT COUNT(cs.student_id) 
+               FROM class_student cs 
+               JOIN course_class cc ON cs.class_id = cc.class_id 
+               WHERE cc.course_id = c.id AND cc.status = 1 AND cs.status = 1) as student_count
        FROM course c
        JOIN teacher_course tc ON c.id = tc.course_id
        WHERE tc.teacher_id = ? AND tc.status = 1

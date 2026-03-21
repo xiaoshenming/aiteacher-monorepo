@@ -2,6 +2,10 @@
 const { selectedNode, nodeResources, resourceLoading, fetchNodeResources, detachResource } = useKnowledgeTree()
 const showAttachModal = ref(false)
 
+// 共享
+const showShareModal = ref(false)
+const shareTarget = ref<{ type: string, id: number } | null>(null)
+
 function handleSelectNode(node: Record<string, any>) {
   selectedNode.value = node
   fetchNodeResources(node.id)
@@ -15,6 +19,19 @@ async function handleDetach(mapId: number) {
 function handleAttached() {
   showAttachModal.value = false
   if (selectedNode.value) fetchNodeResources(selectedNode.value.id)
+}
+
+function handleShare(resource: any) {
+  shareTarget.value = {
+    type: resource.resource_type,
+    id: resource.resource_id || resource.id
+  }
+  showShareModal.value = true
+}
+
+function handleShared() {
+  showShareModal.value = false
+  shareTarget.value = null
 }
 </script>
 
@@ -43,6 +60,7 @@ function handleAttached() {
             :loading="resourceLoading"
             @attach="showAttachModal = true"
             @detach="handleDetach"
+            @share="handleShare"
           />
         </div>
       </div>
@@ -52,6 +70,15 @@ function handleAttached() {
         v-model:open="showAttachModal"
         :node-id="selectedNode.id"
         @attached="handleAttached"
+      />
+
+      <!-- 共享对话框 -->
+      <ShareShareModal
+        v-if="shareTarget"
+        v-model="showShareModal"
+        :resource-type="shareTarget.type"
+        :resource-id="shareTarget.id"
+        @shared="handleShared"
       />
     </template>
   </UDashboardPanel>

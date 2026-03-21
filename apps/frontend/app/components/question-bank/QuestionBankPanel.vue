@@ -11,6 +11,10 @@ const page = ref(1)
 const pageSize = 20
 const total = ref(0)
 
+// 共享
+const showShareModal = ref(false)
+const shareTargetId = ref<number | null>(null)
+
 interface QuestionRow {
   id: number
   type: string
@@ -88,6 +92,16 @@ function handleExport() {
   a.click()
   URL.revokeObjectURL(url)
   toast.add({ title: '导出成功', color: 'success' })
+}
+
+function handleShare(id: number) {
+  shareTargetId.value = id
+  showShareModal.value = true
+}
+
+function handleShared() {
+  showShareModal.value = false
+  shareTargetId.value = null
 }
 
 const totalPages = computed(() => Math.ceil(total.value / pageSize))
@@ -168,6 +182,7 @@ onMounted(() => {
             :expanded="expandedId === q.id"
             @toggle="toggleExpand"
             @delete="deleteQuestion"
+            @share="handleShare"
           />
 
           <!-- Pagination -->
@@ -190,6 +205,15 @@ onMounted(() => {
           </div>
         </div>
       </div>
+
+      <!-- 共享对话框 -->
+      <ShareShareModal
+        v-if="shareTargetId"
+        v-model="showShareModal"
+        resource-type="question"
+        :resource-id="shareTargetId"
+        @shared="handleShared"
+      />
     </template>
   </UDashboardPanel>
 </template>

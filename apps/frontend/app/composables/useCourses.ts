@@ -53,8 +53,8 @@ export function useCourses() {
   }
 
   async function fetchCourseDetail(id: number) {
-    const res = await apiFetch<DetailResponse<Course>>(`courses/${id}`)
-    const detail = res.data
+    const res = await apiFetch<DetailResponse<any>>(`courses/${id}`)
+    const detail = res.data.course ? { ...res.data.course, classes: res.data.classes, assistants: res.data.assistants } : res.data
     if (detail.classes) {
       detail.classes = detail.classes.map((c: any) => ({
         ...c,
