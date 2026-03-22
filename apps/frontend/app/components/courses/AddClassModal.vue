@@ -30,7 +30,9 @@ const emit = defineEmits<{
             >
               <div>
                 <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ cls.name }}</p>
-                <p class="text-xs text-zinc-400">{{ cls.student_count ?? 0 }} 名学生</p>
+                <p class="text-xs text-zinc-400">
+                  {{ cls.student_count != null ? `${cls.student_count} 名学生` : `${cls.grade || '未设置年级'} · 容量 ${cls.capacity ?? '-'} 人` }}
+                </p>
               </div>
               <button
                 :disabled="addingId === cls.id"

@@ -104,7 +104,10 @@ onMounted(() => loadData())
                 <tr class="bg-zinc-50 dark:bg-zinc-800">
                   <th class="text-left px-4 py-2.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">用户名</th>
                   <th class="text-left px-4 py-2.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">姓名</th>
+                  <th class="text-left px-4 py-2.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">学号</th>
+                  <th class="text-left px-4 py-2.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">座位号</th>
                   <th class="text-left px-4 py-2.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">邮箱</th>
+                  <th class="text-left px-4 py-2.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">班干部</th>
                   <th class="text-right px-4 py-2.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">操作</th>
                 </tr>
               </thead>
@@ -114,9 +117,20 @@ onMounted(() => loadData())
                   :key="student.id"
                   class="border-t border-zinc-100 dark:border-zinc-700/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30"
                 >
-                  <td class="px-4 py-2.5 text-zinc-900 dark:text-zinc-100">{{ student.username }}</td>
-                  <td class="px-4 py-2.5 text-zinc-600 dark:text-zinc-300">{{ student.name || '-' }}</td>
+                  <td class="px-4 py-2.5 text-zinc-900 dark:text-zinc-100">{{ student.username || '-' }}</td>
+                  <td class="px-4 py-2.5 text-zinc-600 dark:text-zinc-300">{{ student.name || student.username || '-' }}</td>
+                  <td class="px-4 py-2.5 text-zinc-600 dark:text-zinc-300">{{ student.student_number || '-' }}</td>
+                  <td class="px-4 py-2.5 text-zinc-600 dark:text-zinc-300">{{ student.seat_number ?? '-' }}</td>
                   <td class="px-4 py-2.5 text-zinc-400">{{ student.email || '-' }}</td>
+                  <td class="px-4 py-2.5">
+                    <UBadge
+                      :color="student.is_monitor ? 'primary' : 'neutral'"
+                      variant="subtle"
+                      size="xs"
+                    >
+                      {{ student.is_monitor ? '班长' : '普通' }}
+                    </UBadge>
+                  </td>
                   <td class="px-4 py-2.5 text-right">
                     <button
                       class="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer"

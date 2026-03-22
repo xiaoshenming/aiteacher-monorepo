@@ -110,10 +110,19 @@ export function useCourses() {
     const res = await apiFetch<DetailResponse<ClassInfo>>(`classes/${id}`)
     const raw = res.data as any
     const cls = raw.class ?? raw
+    const students = (raw.students ?? cls.students ?? []).map((s: any) => ({
+      ...s,
+      id: s.student_id ?? s.id,
+      name: s.name ?? s.username,
+      student_number: s.student_number ?? '-',
+      seat_number: s.seat_number ?? null,
+      is_monitor: Number(s.is_monitor) === 1,
+      relation_id: s.id,
+    }))
     return {
       ...cls,
       name: cls.class_name ?? cls.name,
-      students: raw.students ?? cls.students ?? [],
+      students,
       courses: raw.courses ?? cls.courses ?? [],
     }
   }
