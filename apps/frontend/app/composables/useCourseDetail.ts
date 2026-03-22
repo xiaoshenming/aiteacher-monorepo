@@ -84,9 +84,10 @@ export function useCourseDetail(courseId: Ref<number>) {
       showAddAssistant.value = false
       await loadCourse()
     }
-    catch (err) {
+    catch (err: any) {
       console.error('添加助教失败:', err)
-      toast.add({ title: '添加助教失败', color: 'error' })
+      const message = err?.data?.message || err?.message || '添加助教失败'
+      toast.add({ title: message, color: 'error' })
     }
     finally {
       addingAssistantId.value = null

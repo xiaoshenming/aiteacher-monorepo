@@ -4,7 +4,7 @@ const db = require("../../config/db");
  * 创建新课程
  */
 async function createCourse(teacherId, courseData) {
-  const connection = db.promise();
+  const connection = await db.promise().getConnection();
   await connection.beginTransaction();
   try {
     // 获取用户的uid
@@ -49,6 +49,8 @@ async function createCourse(teacherId, courseData) {
   } catch (error) {
     await connection.rollback();
     throw error;
+  } finally {
+    connection.release();
   }
 }
 
@@ -56,7 +58,7 @@ async function createCourse(teacherId, courseData) {
  * 获取教师所教授的课程
  */
 async function getTeacherCourses(teacherId) {
-  const connection = db.promise();
+  const connection = await db.promise().getConnection();
   try {
     // 获取用户的uid
     const [userResult] = await connection.query(
@@ -87,6 +89,8 @@ async function getTeacherCourses(teacherId) {
     return rows;
   } catch (error) {
     throw error;
+  } finally {
+    connection.release();
   }
 }
 
@@ -94,7 +98,7 @@ async function getTeacherCourses(teacherId) {
  * 添加助教到课程
  */
 async function addCourseAssistant(courseId, mainTeacherId, assistantId) {
-  const connection = db.promise();
+  const connection = await db.promise().getConnection();
   await connection.beginTransaction();
   try {
     // 获取用户的uid
@@ -148,6 +152,8 @@ async function addCourseAssistant(courseId, mainTeacherId, assistantId) {
   } catch (error) {
     await connection.rollback();
     throw error;
+  } finally {
+    connection.release();
   }
 }
 
@@ -155,7 +161,7 @@ async function addCourseAssistant(courseId, mainTeacherId, assistantId) {
  * 从课程中移除助教
  */
 async function removeCourseAssistant(courseId, mainTeacherId, assistantId) {
-  const connection = db.promise();
+  const connection = await db.promise().getConnection();
   await connection.beginTransaction();
   try {
     // 获取主讲教师uid
@@ -205,6 +211,8 @@ async function removeCourseAssistant(courseId, mainTeacherId, assistantId) {
   } catch (error) {
     await connection.rollback();
     throw error;
+  } finally {
+    connection.release();
   }
 }
 
@@ -212,7 +220,7 @@ async function removeCourseAssistant(courseId, mainTeacherId, assistantId) {
  * 添加班级到课程
  */
 async function addClassToCourse(courseId, teacherId, classData) {
-  const connection = db.promise();
+  const connection = await db.promise().getConnection();
   await connection.beginTransaction();
   try {
     // 获取教师uid
@@ -295,6 +303,8 @@ async function addClassToCourse(courseId, teacherId, classData) {
   } catch (error) {
     await connection.rollback();
     throw error;
+  } finally {
+    connection.release();
   }
 }
 
@@ -302,7 +312,7 @@ async function addClassToCourse(courseId, teacherId, classData) {
  * 获取课程详情，包括班级和助教信息
  */
 async function getCourseDetails(courseId, teacherId) {
-  const connection = db.promise();
+  const connection = await db.promise().getConnection();
   try {
     // 获取教师uid
     const [teacherResult] = await connection.query(
@@ -318,7 +328,11 @@ async function getCourseDetails(courseId, teacherId) {
 
     // 获取课程信息
     const [courseRows] = await connection.query(
-      "SELECT * FROM course WHERE id = ?",
+      `SELECT c.*, tc.teacher_id AS main_teacher_id, u.username AS teacher_name, u.email AS teacher_email
+       FROM course c
+       JOIN teacher_course tc ON c.id = tc.course_id AND tc.is_main_teacher = 1 AND tc.status = 1
+       LEFT JOIN user u ON tc.teacher_id = u.id
+       WHERE c.id = ?`,
       [courseId]
     );
 
@@ -350,7 +364,20 @@ async function getCourseDetails(courseId, teacherId) {
 
     // 获取助教（非主讲教师）
     const [assistantRows] = await connection.query(
-      `SELECT tc.*, u.username as teacher_name, u.email, u.phoneNumber
+      `SELECT tc.teacher_id AS id,
+              tc.id AS teacher_course_id,
+              tc.course_id,
+              tc.is_main_teacher,
+              tc.start_date,
+              tc.end_date,
+              tc.status,
+              tc.createTime,
+              tc.updateTime,
+              u.username,
+              u.username AS name,
+              u.username AS teacher_name,
+              u.email,
+              u.phoneNumber
        FROM teacher_course tc
        JOIN user u ON tc.teacher_id = u.id
        WHERE tc.course_id = ? AND tc.is_main_teacher = 0 AND tc.status = 1`,
@@ -365,6 +392,8 @@ async function getCourseDetails(courseId, teacherId) {
     };
   } catch (error) {
     throw error;
+  } finally {
+    connection.release();
   }
 }
 
@@ -372,7 +401,7 @@ async function getCourseDetails(courseId, teacherId) {
  * 更新课程信息
  */
 async function updateCourse(courseId, teacherId, courseData) {
-  const connection = db.promise();
+  const connection = await db.promise().getConnection();
 
   try {
     // 获取用户的uid
@@ -456,6 +485,8 @@ async function updateCourse(courseId, teacherId, courseData) {
     return { message: "课程更新成功" };
   } catch (error) {
     throw error;
+  } finally {
+    connection.release();
   }
 }
 
@@ -463,7 +494,7 @@ async function updateCourse(courseId, teacherId, courseData) {
  * 删除课程
  */
 async function deleteCourse(courseId, userId, userRole) {
-  const connection = db.promise();
+  const connection = await db.promise().getConnection();
   await connection.beginTransaction();
 
   try {
@@ -514,6 +545,8 @@ async function deleteCourse(courseId, userId, userRole) {
   } catch (error) {
     await connection.rollback();
     throw error;
+  } finally {
+    connection.release();
   }
 }
 

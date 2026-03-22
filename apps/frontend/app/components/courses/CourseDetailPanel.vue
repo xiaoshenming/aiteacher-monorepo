@@ -147,6 +147,8 @@ onMounted(() => loadCourse())
         v-if="showAddAssistant"
         :teachers="teachers"
         :adding-id="addingAssistantId"
+        :existing-ids="course?.assistants?.map(a => a.id) ?? []"
+        :main-teacher-id="course?.main_teacher_id ?? null"
         @close="showAddAssistant = false"
         @add="addAssistant"
       />

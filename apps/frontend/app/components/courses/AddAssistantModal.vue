@@ -1,15 +1,27 @@
 <script setup lang="ts">
 import type { Assistant } from '~/types/course'
 
-defineProps<{
+const props = defineProps<{
   teachers: Assistant[]
   addingId: number | null
+  existingIds: number[]
+  mainTeacherId?: number | null
 }>()
 
 const emit = defineEmits<{
   close: []
   add: [teacherId: number]
 }>()
+
+const availableTeachers = computed(() => {
+  return [...props.teachers]
+    .map(t => ({
+      ...t,
+      isMainTeacher: props.mainTeacherId === t.id,
+      isAdded: props.existingIds.includes(t.id)
+    }))
+    .sort((a, b) => Number(b.isMainTeacher) - Number(a.isMainTeacher))
+})
 </script>
 
 <template>
@@ -24,20 +36,34 @@ const emit = defineEmits<{
               暂无可用教师
             </div>
             <div
-              v-for="teacher in teachers"
+              v-for="teacher in availableTeachers"
               :key="teacher.id"
-              class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700/50"
+              class="flex items-center justify-between px-3 py-2 rounded-lg"
+              :class="[
+                teacher.isMainTeacher || teacher.isAdded
+                  ? 'bg-zinc-100 dark:bg-zinc-800/50 opacity-60'
+                  : 'hover:bg-zinc-50 dark:hover:bg-zinc-700/50'
+              ]"
             >
               <div>
-                <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ teacher.name || teacher.username }}</p>
+                <p class="text-sm font-medium" :class="teacher.isMainTeacher || teacher.isAdded ? 'text-zinc-500 dark:text-zinc-500' : 'text-zinc-900 dark:text-zinc-100'">
+                  {{ teacher.name || teacher.username }}
+                  <span v-if="teacher.isMainTeacher" class="text-xs text-zinc-400 ml-1">(主讲教师，不可添加)</span>
+                  <span v-else-if="teacher.isAdded" class="text-xs text-zinc-400 ml-1">(已添加)</span>
+                </p>
                 <p v-if="teacher.email" class="text-xs text-zinc-400">{{ teacher.email }}</p>
               </div>
               <button
-                :disabled="addingId === teacher.id"
-                class="px-3 py-1 text-xs font-medium text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 disabled:opacity-50 transition-colors cursor-pointer"
+                :disabled="addingId === teacher.id || teacher.isMainTeacher || teacher.isAdded"
+                class="px-3 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer"
+                :class="[
+                  teacher.isMainTeacher || teacher.isAdded
+                    ? 'text-zinc-400 border border-zinc-200 dark:border-zinc-700 cursor-not-allowed'
+                    : 'text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-800 hover:bg-primary-50 dark:hover:bg-primary-900/20 disabled:opacity-50'
+                ]"
                 @click="emit('add', teacher.id)"
               >
-                {{ addingId === teacher.id ? '添加中...' : '添加' }}
+                {{ teacher.isMainTeacher ? '不可添加' : (teacher.isAdded ? '已添加' : (addingId === teacher.id ? '添加中...' : '添加')) }}
               </button>
             </div>
           </div>

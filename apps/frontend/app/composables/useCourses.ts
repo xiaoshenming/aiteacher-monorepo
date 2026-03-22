@@ -62,6 +62,13 @@ export function useCourses() {
         name: c.class_name ?? c.name,
       }))
     }
+    if (detail.assistants) {
+      detail.assistants = detail.assistants.map((a: any) => ({
+        ...a,
+        id: a.teacher_id ?? a.id,
+        name: a.name ?? a.teacher_name ?? a.username,
+      }))
+    }
     return detail
   }
 
