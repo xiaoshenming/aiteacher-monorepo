@@ -1,5 +1,7 @@
 # AI Teacher Monorepo
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/xiaoshenming/aiteacher-monorepo)
+
 智慧教育平台，集成 AI 对话、协作白板、AI PPT 生成、语音识别、同声传译、课堂录制、富文本教案编辑、智能出题、3D 可视化等功能。使用 Nx + pnpm 管理多应用架构。
 
 ## 项目结构
