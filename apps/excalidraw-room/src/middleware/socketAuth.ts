@@ -1,8 +1,8 @@
 import { Socket } from "socket.io";
 import jwt from "jsonwebtoken";
 import { JwtPayload } from "./auth";
+import { getJwtSecret } from "../config/security";
 
-const JWT_SECRET = process.env.JWT_SECRET || "3a07f8a622d44f6eaf934ca43f8f3d7b";
 const REQUIRE_AUTH = process.env.REQUIRE_AUTH === "true";
 
 export function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void): void {
@@ -18,10 +18,15 @@ export function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const decoded = jwt.verify(token, getJwtSecret()) as JwtPayload;
     socket.data.user = decoded;
     next();
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("JWT_SECRET")) {
+      next(new Error("认证服务配置错误"));
+      return;
+    }
+
     next(new Error("认证令牌无效或已过期"));
   }
 }

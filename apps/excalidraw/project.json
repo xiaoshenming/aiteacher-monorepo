@@ -16,6 +16,12 @@
         "cwd": "apps/excalidraw"
       }
     },
+    "test": {
+      "command": "pnpm exec vitest run",
+      "options": {
+        "cwd": "apps/excalidraw"
+      }
+    },
     "install": {
       "command": "pnpm install",
       "options": {

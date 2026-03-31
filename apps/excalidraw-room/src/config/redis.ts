@@ -1,9 +1,10 @@
 import Redis from "ioredis";
 import dotenv from "dotenv";
+import { getRedisUrl } from "./security";
 
 dotenv.config();
 
-const redis = new Redis(process.env.REDIS_URL || "redis://:000000@localhost:6379");
+const redis = new Redis(getRedisUrl());
 
 redis.on("connect", () => {
   console.log("Redis connected");

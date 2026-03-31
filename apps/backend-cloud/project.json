@@ -17,6 +17,13 @@
         "command": "node app.js",
         "cwd": "apps/backend-cloud"
       }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node --test utils/auth-config.test.js",
+        "cwd": "apps/backend-cloud"
+      }
     }
   },
   "tags": ["backend", "cloud"]

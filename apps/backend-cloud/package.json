@@ -7,7 +7,8 @@
     "dev": "nodemon app.js",
     "start": "node app.js",
     "build": "echo 'No build step required'",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test utils/auth-config.test.js",
+    "test:unit": "node --test utils/auth-config.test.js"
   },
   "dependencies": {
     "async_hooks": "^1.0.0",

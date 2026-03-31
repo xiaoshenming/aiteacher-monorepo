@@ -24,6 +24,13 @@
         "command": "node dist/index.js",
         "cwd": "apps/excalidraw-room"
       }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node --require ts-node/register --test src/config/security.test.ts",
+        "cwd": "apps/excalidraw-room"
+      }
     }
   },
   "tags": ["service", "excalidraw"]

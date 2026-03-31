@@ -1,18 +1,11 @@
 // redis.js
 const Redis = require('ioredis');
 const logger = require('../utils/logger');
+const { getRedisConnectionOptions } = require('./redis-config');
 require("dotenv").config();
-const HOST = process.env.Redis_HOST;
-const PORT = process.env.Redis_PORT;
-const PASSWORD = process.env.Redis_PASSWORD;
 
 // 创建 Redis 连接
-const redis = new Redis({
-  host: HOST,
-  port: PORT,
-  password: PASSWORD,
-  db: 0,
-});
+const redis = new Redis(getRedisConnectionOptions());
 
 // 测试 Redis 连接
 redis.on('connect', () => {

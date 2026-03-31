@@ -17,6 +17,13 @@
         "command": "node app.js",
         "cwd": "apps/backend-main"
       }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node --test config/redis-config.test.js",
+        "cwd": "apps/backend-main"
+      }
     }
   },
   "tags": ["backend", "main"]
