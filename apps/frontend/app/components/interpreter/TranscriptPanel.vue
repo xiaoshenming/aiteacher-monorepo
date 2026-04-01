@@ -22,7 +22,40 @@ const emit = defineEmits<{
 }>()
 
 const isSource = computed(() => props.type === 'source')
-const themeColor = computed(() => isSource.value ? 'primary' : 'sky')
+
+// Virtual scroll setup
+const { measureHeight } = usePretext()
+const scrollContainerRef = ref<HTMLElement | null>(null)
+const useVirtual = computed(() => props.transcripts.length > 100)
+
+const ITEM_FONT = '14px "Noto Sans SC", "Inter", sans-serif'
+const ITEM_LINE_HEIGHT = 22
+const ITEM_PADDING = 24 // p-3 = 12px * 2
+const TIMESTAMP_HEIGHT = 18 // text-[10px] + margin
+
+function estimateItemHeight(index: number): number {
+  const item = props.transcripts[index]
+  if (!item) return 60
+  const text = isSource.value
+    ? item.text
+    : (props.getTranslation?.(item.id) || item.translation || '等待翻译...')
+  const containerWidth = scrollContainerRef.value?.clientWidth ?? 400
+  const textWidth = containerWidth - ITEM_PADDING - (isSource.value ? 80 : 0)
+  const textHeight = measureHeight(text, textWidth, ITEM_FONT, ITEM_LINE_HEIGHT)
+  return textHeight + ITEM_PADDING + (isSource.value ? 0 : TIMESTAMP_HEIGHT)
+}
+
+const virtualScroll = useVirtualScroll({
+  itemCount: computed(() => props.transcripts.length),
+  estimateHeight: estimateItemHeight,
+  containerRef: scrollContainerRef,
+  overscan: 10,
+})
+
+// Auto-scroll to bottom when new items arrive
+watch(() => props.transcripts.length, () => {
+  nextTick(() => virtualScroll.scrollToBottom())
+})
 </script>
 
 <template>
@@ -49,48 +82,93 @@ const themeColor = computed(() => isSource.value ? 'primary' : 'sky')
       </ClientOnly>
     </div>
     <UCard class="!hover:shadow-none">
-      <div class="space-y-1 min-h-[350px] max-h-[500px] overflow-y-auto scrollbar-thin">
+      <div ref="scrollContainerRef" class="space-y-1 min-h-[350px] max-h-[500px] overflow-y-auto scrollbar-thin">
         <ClientOnly>
           <template v-if="transcripts.length">
-            <!-- 原文面板 -->
-            <template v-if="isSource">
-              <div
-                v-for="(t, idx) in transcripts"
-                :key="t.id"
-                class="group relative flex items-start gap-3 p-3 rounded-lg hover:bg-primary-500/5 dark:hover:bg-primary-500/10 transition-all duration-200"
-                :class="idx === transcripts.length - 1 ? 'bg-primary-500/5 dark:bg-primary-500/8' : ''"
-              >
-                <div class="flex flex-col items-center gap-1 shrink-0 pt-0.5">
-                  <span class="text-[10px] font-mono text-muted tabular-nums">{{ new Date(t.timestamp).toLocaleTimeString() }}</span>
+            <!-- 虚拟滚动模式 -->
+            <template v-if="useVirtual">
+              <div :style="{ height: `${virtualScroll.totalHeight.value}px`, position: 'relative' }">
+                <div
+                  v-for="vItem in virtualScroll.visibleItems.value"
+                  :key="transcripts[vItem.index]!.id"
+                  :style="{ position: 'absolute', top: `${vItem.offsetTop}px`, left: 0, right: 0 }"
+                >
+                  <div
+                    v-if="isSource"
+                    class="group relative flex items-start gap-3 p-3 rounded-lg hover:bg-primary-500/5 dark:hover:bg-primary-500/10 transition-all duration-200"
+                    :class="vItem.index === transcripts.length - 1 ? 'bg-primary-500/5 dark:bg-primary-500/8' : ''"
+                  >
+                    <div class="flex flex-col items-center gap-1 shrink-0 pt-0.5">
+                      <span class="text-[10px] font-mono text-muted tabular-nums">{{ new Date(transcripts[vItem.index]!.timestamp).toLocaleTimeString() }}</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm text-highlighted leading-relaxed">{{ transcripts[vItem.index]!.text }}</p>
+                    </div>
+                    <UButton
+                      icon="i-lucide-languages"
+                      size="xs"
+                      color="neutral"
+                      variant="ghost"
+                      class="opacity-0 group-hover:opacity-100 shrink-0 transition-opacity"
+                      :loading="calibratingId === transcripts[vItem.index]!.id"
+                      title="AI校准翻译"
+                      @click="emit('calibrate', transcripts[vItem.index]!.id, transcripts[vItem.index]!.text)"
+                    />
+                  </div>
+                  <div
+                    v-else
+                    class="p-3 rounded-lg hover:bg-sky-500/5 dark:hover:bg-sky-500/10 transition-all duration-200"
+                    :class="vItem.index === transcripts.length - 1 ? 'bg-sky-500/5 dark:bg-sky-500/8' : ''"
+                  >
+                    <span class="text-[10px] font-mono text-muted tabular-nums">{{ new Date(transcripts[vItem.index]!.timestamp).toLocaleTimeString() }}</span>
+                    <p class="text-sm text-highlighted mt-1 leading-relaxed">
+                      {{ getTranslation?.(transcripts[vItem.index]!.id) || transcripts[vItem.index]!.translation || '等待翻译...' }}
+                    </p>
+                  </div>
                 </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm text-highlighted leading-relaxed">{{ t.text }}</p>
-                </div>
-                <UButton
-                  icon="i-lucide-languages"
-                  size="xs"
-                  color="neutral"
-                  variant="ghost"
-                  class="opacity-0 group-hover:opacity-100 shrink-0 transition-opacity"
-                  :loading="calibratingId === t.id"
-                  title="AI校准翻译"
-                  @click="emit('calibrate', t.id, t.text)"
-                />
               </div>
             </template>
-            <!-- 翻译面板 -->
+
+            <!-- 普通模式 -->
             <template v-else>
-              <div
-                v-for="(t, idx) in transcripts"
-                :key="t.id"
-                class="p-3 rounded-lg hover:bg-sky-500/5 dark:hover:bg-sky-500/10 transition-all duration-200"
-                :class="idx === transcripts.length - 1 ? 'bg-sky-500/5 dark:bg-sky-500/8' : ''"
-              >
-                <span class="text-[10px] font-mono text-muted tabular-nums">{{ new Date(t.timestamp).toLocaleTimeString() }}</span>
-                <p class="text-sm text-highlighted mt-1 leading-relaxed">
-                  {{ getTranslation?.(t.id) || t.translation || '等待翻译...' }}
-                </p>
-              </div>
+              <template v-if="isSource">
+                <div
+                  v-for="(t, idx) in transcripts"
+                  :key="t.id"
+                  class="group relative flex items-start gap-3 p-3 rounded-lg hover:bg-primary-500/5 dark:hover:bg-primary-500/10 transition-all duration-200"
+                  :class="idx === transcripts.length - 1 ? 'bg-primary-500/5 dark:bg-primary-500/8' : ''"
+                >
+                  <div class="flex flex-col items-center gap-1 shrink-0 pt-0.5">
+                    <span class="text-[10px] font-mono text-muted tabular-nums">{{ new Date(t.timestamp).toLocaleTimeString() }}</span>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm text-highlighted leading-relaxed">{{ t.text }}</p>
+                  </div>
+                  <UButton
+                    icon="i-lucide-languages"
+                    size="xs"
+                    color="neutral"
+                    variant="ghost"
+                    class="opacity-0 group-hover:opacity-100 shrink-0 transition-opacity"
+                    :loading="calibratingId === t.id"
+                    title="AI校准翻译"
+                    @click="emit('calibrate', t.id, t.text)"
+                  />
+                </div>
+              </template>
+              <template v-else>
+                <div
+                  v-for="(t, idx) in transcripts"
+                  :key="t.id"
+                  class="p-3 rounded-lg hover:bg-sky-500/5 dark:hover:bg-sky-500/10 transition-all duration-200"
+                  :class="idx === transcripts.length - 1 ? 'bg-sky-500/5 dark:bg-sky-500/8' : ''"
+                >
+                  <span class="text-[10px] font-mono text-muted tabular-nums">{{ new Date(t.timestamp).toLocaleTimeString() }}</span>
+                  <p class="text-sm text-highlighted mt-1 leading-relaxed">
+                    {{ getTranslation?.(t.id) || t.translation || '等待翻译...' }}
+                  </p>
+                </div>
+              </template>
             </template>
           </template>
           <div v-else class="flex flex-col items-center justify-center py-20 text-muted">
