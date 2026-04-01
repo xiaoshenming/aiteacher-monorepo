@@ -34,6 +34,21 @@ type AuthCallback = (state: AuthState) => void;
 const PARENT_ORIGIN =
   import.meta.env.VITE_APP_PARENT_ORIGIN || "http://localhost:10003";
 
+// 允许的 origin 列表（支持 localhost 和局域网 IP 访问）
+const ALLOWED_ORIGINS = new Set([PARENT_ORIGIN]);
+if (typeof window !== "undefined") {
+  // 动态添加当前页面 referrer 的 origin（处理 IP 访问场景）
+  try {
+    const ref = document.referrer;
+    if (ref) {
+      const refOrigin = new URL(ref).origin;
+      ALLOWED_ORIGINS.add(refOrigin);
+    }
+  } catch {
+    // ignore
+  }
+}
+
 let authState: AuthState = {
   token: null,
   user: null,
@@ -47,8 +62,11 @@ let tokenWatcherInterval: ReturnType<typeof setInterval> | null = null;
 // --- Helpers ---
 
 function isValidOrigin(origin: string): boolean {
-  return origin === PARENT_ORIGIN;
+  return ALLOWED_ORIGINS.has(origin);
 }
+
+// 记录实际的 parent origin（从收到的第一条合法消息中获取）
+let actualParentOrigin = PARENT_ORIGIN;
 
 function sendToParent(type: string, payload?: any, requestId?: string): void {
   if (!window.parent || window.parent === window) {
@@ -60,7 +78,7 @@ function sendToParent(type: string, payload?: any, requestId?: string): void {
     ...(payload !== undefined && { payload }),
     ...(requestId && { requestId }),
   };
-  window.parent.postMessage(message, PARENT_ORIGIN);
+  window.parent.postMessage(message, actualParentOrigin);
 }
 
 function notifySubscribers(): void {
@@ -96,6 +114,9 @@ function handleMessage(event: MessageEvent): void {
   if (!isValidOrigin(event.origin)) {
     return;
   }
+
+  // 记录实际的 parent origin，用于 sendToParent
+  actualParentOrigin = event.origin;
 
   const data = event.data as BridgeMessage;
   if (!data || data.source !== "aiteacher-nuxt") {

@@ -7,7 +7,9 @@ const props = withDefaults(defineProps<{
   mode: 'panel',
 })
 
-const EXCALIDRAW_ORIGIN = 'http://localhost:10007'
+const EXCALIDRAW_ORIGIN = import.meta.client
+  ? `${window.location.protocol}//${window.location.hostname}:10007`
+  : 'http://localhost:10007'
 const TIMEOUT_MS = 30000
 
 const userStore = useUserStore()
@@ -22,9 +24,20 @@ const iframeSrc = computed(() =>
 let timeoutTimer: ReturnType<typeof setTimeout> | null = null
 let saveResolve: (() => void) | null = null
 
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+  // Fallback for non-secure contexts (HTTP + non-localhost)
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
+  })
+}
+
 function sendToIframe(type: string, payload: Record<string, unknown> = {}) {
   iframeRef.value?.contentWindow?.postMessage(
-    { source: 'aiteacher-nuxt', type, payload, requestId: crypto.randomUUID() },
+    { source: 'aiteacher-nuxt', type, payload, requestId: generateUUID() },
     EXCALIDRAW_ORIGIN,
   )
 }
