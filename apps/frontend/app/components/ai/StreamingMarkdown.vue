@@ -16,7 +16,7 @@ watch(() => props.content, (newContent) => {
   const delta = newContent.slice(lastLength)
   if (delta) feed(delta)
   lastLength = newContent.length
-})
+}, { immediate: true })
 
 watch(() => props.streaming, (streaming) => {
   if (!streaming && props.content) finish()

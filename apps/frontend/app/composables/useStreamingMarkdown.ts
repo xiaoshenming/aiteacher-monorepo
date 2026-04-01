@@ -13,6 +13,7 @@ export function useStreamingMarkdown() {
   const marked = new Marked({
     breaks: true,
     gfm: true,
+    async: false,
   })
 
   let rafId: number | null = null
@@ -63,8 +64,15 @@ export function useStreamingMarkdown() {
     rafId = null
 
     const closed = autoClose(buffer.value)
-    const raw = marked.parse(closed) as string
-    html.value = DOMPurify.sanitize(raw)
+    const raw = marked.parse(closed)
+    // marked v17 parse() 可能返回 Promise 或 string
+    if (raw instanceof Promise) {
+      raw.then((result) => {
+        html.value = DOMPurify.sanitize(result)
+      })
+    } else {
+      html.value = DOMPurify.sanitize(raw as string)
+    }
   }
 
   function scheduleRender() {
