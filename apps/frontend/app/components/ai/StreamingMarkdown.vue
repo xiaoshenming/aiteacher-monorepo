@@ -27,13 +27,8 @@ onUnmounted(() => reset())
 
 <template>
   <div class="streaming-markdown">
-    <MDC
-      v-if="isComplete"
-      :value="content"
-      class="prose prose-sm dark:prose-invert max-w-none *:first:mt-0 *:last:mb-0"
-    />
+    <!-- 始终用 v-html 渲染，避免流式结束时切换 MDC 导致闪烁 -->
     <div
-      v-else
       class="prose prose-sm dark:prose-invert max-w-none *:first:mt-0 *:last:mb-0"
       v-html="html"
     />
