@@ -21,10 +21,40 @@ const editValue = computed({
   get: () => props.editingContent,
   set: (val: string) => emit('update:editingContent', val),
 })
+
+// Pretext shrinkwrap for user messages
+const { shrinkWrap } = usePretext()
+const containerRef = ref<HTMLElement | null>(null)
+const containerWidth = ref(600)
+
+// Observe container width for shrinkwrap calculations
+const resizeObserver = ref<ResizeObserver | null>(null)
+watch(containerRef, (el) => {
+  resizeObserver.value?.disconnect()
+  if (el) {
+    resizeObserver.value = new ResizeObserver(([entry]) => {
+      if (entry) containerWidth.value = entry.contentRect.width
+    })
+    resizeObserver.value.observe(el)
+    containerWidth.value = el.clientWidth
+  }
+}, { immediate: true })
+onUnmounted(() => resizeObserver.value?.disconnect())
+
+/** 计算用户消息气泡的最紧凑宽度 */
+function getBubbleMaxWidth(message: ChatMessage): string | undefined {
+  if (message.role !== 'user' || !message.content) return undefined
+  const maxW = containerWidth.value * 0.75
+  const shrunk = shrinkWrap(message.content, maxW)
+  if (shrunk < maxW - 20) {
+    return `${shrunk + 32}px`
+  }
+  return undefined
+}
 </script>
 
 <template>
-  <div class="flex-1 overflow-y-auto min-h-0">
+  <div ref="containerRef" class="flex-1 overflow-y-auto min-h-0">
     <UContainer class="flex flex-col h-full">
       <ClientOnly>
         <UChatMessages
@@ -61,7 +91,11 @@ const editValue = computed({
                 class="prose prose-sm dark:prose-invert max-w-none *:first:mt-0 *:last:mb-0"
               />
             </template>
-            <p v-else class="whitespace-pre-wrap">
+            <p
+              v-else
+              class="whitespace-pre-wrap"
+              :style="getBubbleMaxWidth(message) ? { maxWidth: getBubbleMaxWidth(message) } : {}"
+            >
               {{ message.content }}
             </p>
           </template>
