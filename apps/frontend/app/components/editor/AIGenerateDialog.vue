@@ -53,7 +53,7 @@ function onClose() {
             <UIcon name="i-lucide-eye" class="size-4 text-primary-500" />
             <span class="text-xs font-medium text-muted">实时预览</span>
           </div>
-          <StreamingMarkdown :content="previewContent" :streaming="true" />
+          <AiStreamingMarkdown :content="previewContent" :streaming="true" />
         </div>
       </div>
     </template>

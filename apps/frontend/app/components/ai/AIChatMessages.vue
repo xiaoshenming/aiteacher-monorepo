@@ -80,7 +80,7 @@ function getBubbleMaxWidth(message: ChatMessage): string | undefined {
               </div>
             </div>
             <template v-else-if="message.role === 'assistant' && message.content">
-              <StreamingMarkdown
+              <AiStreamingMarkdown
                 v-if="chatStatus === 'streaming' && message.id === activeConversation?.messages[activeConversation.messages.length - 1]?.id"
                 :content="message.content"
                 :streaming="true"
