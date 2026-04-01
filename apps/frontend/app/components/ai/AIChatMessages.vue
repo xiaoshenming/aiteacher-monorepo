@@ -50,8 +50,16 @@ const editValue = computed({
               </div>
             </div>
             <template v-else-if="message.role === 'assistant' && message.content">
-              <MDC v-if="chatStatus !== 'streaming' || message.id !== activeConversation?.messages[activeConversation.messages.length - 1]?.id" :value="message.content" class="prose prose-sm dark:prose-invert max-w-none *:first:mt-0 *:last:mb-0" />
-              <div v-else class="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">{{ message.content }}</div>
+              <StreamingMarkdown
+                v-if="chatStatus === 'streaming' && message.id === activeConversation?.messages[activeConversation.messages.length - 1]?.id"
+                :content="message.content"
+                :streaming="true"
+              />
+              <MDC
+                v-else
+                :value="message.content"
+                class="prose prose-sm dark:prose-invert max-w-none *:first:mt-0 *:last:mb-0"
+              />
             </template>
             <p v-else class="whitespace-pre-wrap">
               {{ message.content }}
