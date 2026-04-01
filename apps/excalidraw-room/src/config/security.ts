@@ -13,7 +13,10 @@ function requireSecureEnv(name: string, value: string, insecureValues: ReadonlyS
   }
 
   if (insecureValues.has(value)) {
-    throw new Error(`${name} 使用了已知不安全的默认值`);
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(`${name} 使用了已知不安全的默认值`);
+    }
+    console.warn(`[security] 警告: ${name} 使用了已知不安全的默认值，生产环境请务必更换`);
   }
 
   return value;
