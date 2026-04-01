@@ -4,6 +4,7 @@ import type { Editor } from '@tiptap/vue-3'
 const props = defineProps<{
   editor?: Editor
   loading?: boolean
+  previewContent?: string
 }>()
 
 const emit = defineEmits<{
@@ -45,6 +46,15 @@ function onClose() {
           @keydown.ctrl.enter="onGenerate"
         />
         <p class="text-xs text-muted">按 Ctrl+Enter 快速生成</p>
+
+        <!-- 流式生成预览 -->
+        <div v-if="loading && previewContent" class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 max-h-80 overflow-y-auto">
+          <div class="flex items-center gap-2 mb-3">
+            <UIcon name="i-lucide-eye" class="size-4 text-primary-500" />
+            <span class="text-xs font-medium text-muted">实时预览</span>
+          </div>
+          <StreamingMarkdown :content="previewContent" :streaming="true" />
+        </div>
       </div>
     </template>
     <template #footer>

@@ -393,6 +393,7 @@ export function useEditorCompletion(editorRef: Ref<{ editor: Editor | undefined 
     handlers,
     isLoading,
     mode,
+    completionText: readonly(completionText),
     triggerGenerate,
     stop
   }

@@ -17,7 +17,7 @@ const modelValue = defineModel<string>({ default: '' })
 const editorRef = ref()
 const generateDialogOpen = ref(false)
 
-const { extension: completionExtension, handlers: aiHandlers, isLoading: aiLoading, triggerGenerate, stop: stopGenerate } = useEditorCompletion(editorRef)
+const { extension: completionExtension, handlers: aiHandlers, isLoading: aiLoading, triggerGenerate, stop: stopGenerate, completionText } = useEditorCompletion(editorRef)
 
 // Override aiGenerate handler to open dialog instead of direct execution
 aiHandlers.aiGenerate.execute = (editor: Editor) => {
@@ -202,6 +202,7 @@ defineExpose({ editor: computed(() => editorRef.value?.editor) })
       v-model="generateDialogOpen"
       :editor="editor"
       :loading="aiLoading"
+      :preview-content="completionText"
       @generate="onGenerate"
       @stop="onStopGenerate"
     />
