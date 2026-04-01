@@ -8,7 +8,7 @@ const props = withDefaults(defineProps<{
 })
 
 const EXCALIDRAW_ORIGIN = 'http://localhost:10007'
-const TIMEOUT_MS = 15000
+const TIMEOUT_MS = 30000
 
 const userStore = useUserStore()
 const iframeRef = ref<HTMLIFrameElement | null>(null)
