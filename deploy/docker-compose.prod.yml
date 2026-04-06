@@ -1,0 +1,193 @@
+# AI Teacher 生产部署 Docker Compose
+# 使用: docker compose -f docker-compose.prod.yml up -d
+
+services:
+  # ===========================================================================
+  # 基础设施
+  # ===========================================================================
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: ait-rabbitmq
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - ait-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ===========================================================================
+  # Nginx 反向代理（唯一入口）
+  # ===========================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: ait-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend-main
+      - backend-cloud
+      - excalidraw
+      - excalidraw-room
+      - excalidraw-firebase
+      - service-asr
+      - landppt
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ===========================================================================
+  # 前端 (Nuxt 4 SSR)
+  # ===========================================================================
+  frontend:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.frontend
+    container_name: ait-frontend
+    env_file:
+      - ./envs/.env.frontend
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ===========================================================================
+  # 主后端 (Express 5)
+  # ===========================================================================
+  backend-main:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.backend-main
+    container_name: ait-backend-main
+    env_file:
+      - ./envs/.env.backend-main
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ===========================================================================
+  # 云存储后端 (Express 5)
+  # ===========================================================================
+  backend-cloud:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.backend-cloud
+    container_name: ait-backend-cloud
+    env_file:
+      - ./envs/.env.backend-cloud
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - cloud-storage:/app/storage
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ===========================================================================
+  # 协作白板前端 (React + Nginx 静态)
+  # ===========================================================================
+  excalidraw:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.excalidraw
+    container_name: ait-excalidraw
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ===========================================================================
+  # 白板协作服务 (Socket.IO)
+  # ===========================================================================
+  excalidraw-room:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.excalidraw-room
+    container_name: ait-excalidraw-room
+    env_file:
+      - ./envs/.env.excalidraw-room
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ===========================================================================
+  # Firebase 模拟器 (Firestore + Storage)
+  # ===========================================================================
+  excalidraw-firebase:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.excalidraw-firebase
+    container_name: ait-excalidraw-firebase
+    volumes:
+      - firebase-data:/app/data
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ===========================================================================
+  # 语音识别服务 (FunASR)
+  # ===========================================================================
+  service-asr:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.service-asr
+    container_name: ait-service-asr
+    env_file:
+      - ./envs/.env.service-asr
+    volumes:
+      - asr-models:/app/models
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+  # ===========================================================================
+  # PPT 生成服务 (LandPPT)
+  # ===========================================================================
+  landppt:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.landppt
+    container_name: ait-landppt
+    env_file:
+      - ./envs/.env.landppt
+    volumes:
+      - landppt-uploads:/app/uploads
+    networks:
+      - ait-network
+    restart: unless-stopped
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  ait-network:
+    driver: bridge
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  rabbitmq-data:
+  cloud-storage:
+  firebase-data:
+  asr-models:
+  landppt-uploads:

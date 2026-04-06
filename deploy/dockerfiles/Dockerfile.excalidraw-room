@@ -1,0 +1,32 @@
+# ---- Stage 1: Build ----
+FROM node:20-alpine AS builder
+
+WORKDIR /build
+
+# 复制源码
+COPY apps/excalidraw-room/ ./
+
+# 安装全部依赖（含 devDependencies 用于 tsc 编译）
+RUN npm install
+
+# TypeScript 编译
+RUN npx tsc
+
+# ---- Stage 2: Production ----
+FROM node:20-alpine
+
+WORKDIR /app
+
+# 复制编译产物和 package 文件
+COPY --from=builder /build/dist ./dist
+COPY --from=builder /build/package.json ./package.json
+COPY --from=builder /build/package-lock.json* ./
+
+# 只安装生产依赖
+RUN npm install --omit=dev
+
+ENV NODE_ENV=production
+
+EXPOSE 10008
+
+CMD ["node", "dist/index.js"]

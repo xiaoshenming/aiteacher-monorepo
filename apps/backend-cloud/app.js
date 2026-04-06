@@ -25,12 +25,15 @@ ASRTaskQueue.startWorker(2).catch(err => {
 // 创建一个服务器对象
 const app = express()
 
+// 反向代理支持（Nginx）
+app.set('trust proxy', 1)
+
 // CORS 配置 - 限制为前端域名白名单
 const allowedOrigins = [
   'http://localhost:10003', // 开发环境
   'http://10.3.36.36:10003', // 局域网访问
-  process.env.FRONTEND_URL, // 生产环境（从环境变量读取）
-].filter(Boolean); // 过滤掉 undefined
+  ...(process.env.FRONTEND_URL || '').split(',').map(s => s.trim()),
+].filter(Boolean); // 过滤掉空字符串
 
 const corsOptions = {
   origin: (origin, callback) => {

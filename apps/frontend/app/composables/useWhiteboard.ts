@@ -14,9 +14,9 @@ interface CreateRoomOptions {
   title?: string
 }
 
-const WHITEBOARD_API = 'http://localhost:10008/api/rooms'
-
 export function useWhiteboard() {
+  const config = useRuntimeConfig()
+  const WHITEBOARD_API = (config.public.whiteboardApi as string) || `${window.location.protocol}//${window.location.hostname}:10008/api/rooms`
   const userStore = useUserStore()
 
   function authHeaders(): Record<string, string> {

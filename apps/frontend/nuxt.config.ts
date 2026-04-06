@@ -96,6 +96,8 @@ export default defineNuxtConfig({
       apiBase: 'http://10.3.36.36:10001/api/',
       apiCloud: 'http://10.3.36.36:10002/api/',
       landpptBase: 'http://10.3.36.36:10006',
+      whiteboardApi: '',
+      excalidrawOrigin: '',
     },
   },
 

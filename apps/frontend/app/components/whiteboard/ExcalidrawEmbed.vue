@@ -7,9 +7,11 @@ const props = withDefaults(defineProps<{
   mode: 'panel',
 })
 
-const EXCALIDRAW_ORIGIN = import.meta.client
-  ? `${window.location.protocol}//${window.location.hostname}:10007`
-  : 'http://localhost:10007'
+const config = useRuntimeConfig()
+const EXCALIDRAW_ORIGIN = (config.public.excalidrawOrigin as string)
+  || (import.meta.client
+    ? `${window.location.protocol}//${window.location.hostname}:10007`
+    : 'http://localhost:10007')
 const TIMEOUT_MS = 30000
 
 const userStore = useUserStore()

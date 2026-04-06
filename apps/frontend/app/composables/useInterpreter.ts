@@ -29,7 +29,9 @@ export function useInterpreter() {
 
   function getWsUrl() {
     const host = window.location.hostname || 'localhost'
-    return `ws://${host}:10005/stream/sensevoice/translation`
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    const port = window.location.port ? `:${window.location.port}` : ''
+    return `${protocol}//${host}${port}/ws/asr/stream/sensevoice/translation`
   }
 
   function connectWebSocket(): Promise<void> {
